@@ -46,6 +46,12 @@ input[type="text"] {
   box-sizing: border-box;
 }
 
+input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
 button {
   background-color: #007bff;
   color: white;
@@ -63,6 +69,11 @@ button:hover {
   background-color: #0056b3;
 }
 
+button:disabled {
+  background-color: #9ac3ff;
+  cursor: not-allowed;
+}
+
 .result {
   margin-top: 30px;
   padding: 20px;
@@ -70,6 +81,25 @@ button:hover {
   border-radius: 8px;
   border: 1px solid #c3e6cb;
   text-align: left;
+}
+
+.result-title {
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #155724;
+}
+
+.result-area {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #0c6b3a;
+  margin: 12px 0;
+}
+
+.result-time {
+  font-size: 0.95rem;
+  color: #666;
+  margin-top: 8px;
 }
 
 .error {
@@ -85,18 +115,22 @@ button:hover {
   display: none;
 }
 
-/* Mobile tweaks */
+/* Mobile adjustments */
 @media (max-width: 480px) {
   .container {
     padding: 20px;
   }
-
+  
   h2 {
     font-size: 1.5rem;
   }
-
+  
   input[type="text"],
   button {
     font-size: 1rem;
+  }
+  
+  .result-area {
+    font-size: 2rem;
   }
 }

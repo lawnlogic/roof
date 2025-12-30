@@ -9,17 +9,102 @@
 <body>
   <div class="container">
     <h2>Roof Area Calculator</h2>
+
     <div class="input-group">
-      <label for="address">Address:</label>
-      <input type="text" id="address" placeholder="e.g. 67 Williamson Avenue, Grey Lynn, Auckland" />
+      <label for="address">New Zealand Address:</label>
+      <input 
+        type="text" 
+        id="address" 
+        placeholder="e.g. 67 Williamson Avenue, Grey Lynn, Auckland"
+      />
     </div>
+
     <button id="lookup-btn">Calculate Area</button>
+
     <div id="result" class="result hidden">
-      <div id="address-display"></div>
-      <div id="area"></div>
-      <div id="time"></div>
+      <div id="address-display" class="result-title"></div>
+      <div id="area" class="result-area"></div>
+      <div id="time" class="result-time"></div>
     </div>
+
     <div id="error" class="error hidden"></div>
   </div>
+
+  <script>
+    // ← CHANGE THIS to your actual Cloudflare Worker URL
+    const WORKER_URL = "https://your-worker-name.your-account.workers.dev";
+
+    const btn = document.getElementById('lookup-btn');
+    const addressInput = document.getElementById('address');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const addressDisplay = document.getElementById('address-display');
+    const areaDisplay = document.getElementById('area');
+    const timeDisplay = document.getElementById('time');
+
+    btn.addEventListener('click', async () => {
+      const address = addressInput.value.trim();
+      
+      if (!address) {
+        showError("Please enter a valid address");
+        return;
+      }
+
+      // Reset UI
+      hideError();
+      resultDiv.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = "Looking up...";
+
+      try {
+        const startTime = performance.now();
+
+        const response = await fetch(`${WORKER_URL}?address=${encodeURIComponent(address)}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        const data = await response.json();
+        const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "Service error");
+        }
+
+        if (data.found === true) {
+          addressDisplay.textContent = data.address;
+          areaDisplay.textContent = `${data.building_area_m2.toLocaleString()} m²`;
+          timeDisplay.textContent = `Found in ${timeTaken} seconds`;
+          resultDiv.classList.remove('hidden');
+        } else {
+          showError(data.message || "No building outline found nearby");
+        }
+
+      } catch (err) {
+        showError(err.message || "Failed to connect to the service");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Calculate Area";
+      }
+    });
+
+    // Allow pressing Enter to search
+    addressInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        btn.click();
+      }
+    });
+
+    function showError(message) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorDiv.classList.add('hidden');
+      errorDiv.textContent = '';
+    }
+  </script>
 </body>
 </html>
