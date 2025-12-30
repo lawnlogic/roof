@@ -1,29 +1,40 @@
 body {
-  width: 360px;
-  min-height: 220px;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #1A1A1A;
   margin: 0;
-  padding: 16px;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #1A1A1A;
   color: #e5e5e5;
-  /*border-radius: 20px;*/              /* ← Strong rounding for the whole popup */
-  overflow: hidden;                 /* Prevents content from breaking the radius */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* Optional: nice shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .container {
+  width: 100%;
+  max-width: 380px;          /* slightly wider than 360px for better content breathing room */
+  min-height: 220px;
+  background: #1A1A1A;
+  padding: 20px;             /* increased padding for better touch targets */
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #1A1A1A;              /* Same as body */
-  /*border-radius: 12px;*/              /* Inner card still rounded */
-  padding: 16px;
+  gap: 14px;
+  border-radius: 16px;       /* softer rounding */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Center content inside container */
+.container > * {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
 }
 
 h2 {
   margin: 0 0 12px;
-  font-size: 1.4rem;
-  color: #8B5CF6;                   /* ← Your updated color */
+  font-size: clamp(1.3rem, 5vw, 1.45rem); /* responsive title size */
+  color: #8B5CF6;
   text-align: center;
 }
 
@@ -40,32 +51,37 @@ label {
 }
 
 input {
-  padding: 8px 12px;
-  background: #404040;
+  padding: 10px 12px;
+  background: #2f2f2f;
   border: none;
   border-radius: 8px;
   font-size: 0.95rem;
   color: #f3f4f6;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #513690;    /* Matches your color */
+  box-shadow: 0 0 0 2px #513690;
 }
 
 button {
-  background: #513690;              /* ← Updated to your color */
+  background: #513690;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  position: relative;
+  min-height: 44px;          /* good touch target size */
 }
 
 button:hover {
-  background: #412e75;              /* Darker version for hover */
+  background: #412e75;
 }
 
 button:disabled {
@@ -73,15 +89,16 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.result, .error {
+.result,
+.error {
   margin-top: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
 }
 
 .result {
-  background: #2a1f45;              /* Darker tone that fits with #513690 */
+  background: #2a1f45;
 }
 
 .error {
@@ -93,33 +110,39 @@ button:disabled {
   display: none;
 }
 
+#address-display {
+  font-weight: 600;
+  color: #d1d5db;
+}
+
 #area {
-  font-size: 1.6rem;
+  font-size: clamp(1.5rem, 6vw, 1.8rem);
   font-weight: bold;
-  color: #a78bfa;                   /* Lighter purple for contrast */
+  color: #a78bfa;
   margin: 8px 0;
+  text-align: center;
 }
 
 #time {
   font-size: 0.85rem;
   color: #9ca3af;
   margin-top: 8px;
+  text-align: center;
 }
 
 button.loading {
-  background: #412e75 !important;     /* Darker purple during loading */
+  background: #412e75 !important;
   cursor: wait;
   opacity: 0.85;
-  position: relative;
 }
 
 button.loading::after {
   content: "";
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   top: 50%;
-  right: 12px;
+  right: 14px;
   transform: translateY(-50%);
   border: 2px solid white;
   border-top: 2px solid transparent;
@@ -128,6 +151,27 @@ button.loading::after {
 }
 
 @keyframes spin {
-  0% { transform: translateY(-50%) rotate(0deg); }
+  0%   { transform: translateY(-50%) rotate(0deg); }
   100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Mobile / small screen improvements
+────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  body {
+    padding: 12px;
+    align-items: flex-start; /* better for very small screens */
+    padding-top: 20vh;       /* push content down a bit */
+  }
+
+  .container {
+    padding: 18px;
+    border-radius: 12px;
+    max-width: none;         /* use full width on tiny screens */
+  }
+
+  button {
+    padding: 14px;
+  }
 }
