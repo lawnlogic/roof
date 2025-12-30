@@ -12,28 +12,21 @@ body {
 }
 
 .container {
-  width: 100%;
-  max-width: 380px;          /* slightly wider than 360px for better content breathing room */
+  width: 90%;
+  max-width: 400px;
   min-height: 220px;
   background: #1A1A1A;
-  padding: 20px;             /* increased padding for better touch targets */
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  border-radius: 16px;       /* softer rounding */
+  border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-}
-
-/* Center content inside container */
-.container > * {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 100%;
 }
 
 h2 {
   margin: 0 0 12px;
-  font-size: clamp(1.3rem, 5vw, 1.45rem); /* responsive title size */
+  font-size: clamp(1.3rem, 5vw, 1.45rem);
   color: #8B5CF6;
   text-align: center;
 }
@@ -77,7 +70,7 @@ button {
   cursor: pointer;
   transition: background 0.2s;
   position: relative;
-  min-height: 44px;          /* good touch target size */
+  min-height: 44px;
 }
 
 button:hover {
@@ -113,6 +106,7 @@ button:disabled {
 #address-display {
   font-weight: 600;
   color: #d1d5db;
+  text-align: center;
 }
 
 #area {
@@ -151,27 +145,33 @@ button.loading::after {
 }
 
 @keyframes spin {
-  0%   { transform: translateY(-50%) rotate(0deg); }
+  0% { transform: translateY(-50%) rotate(0deg); }
   100% { transform: translateY(-50%) rotate(360deg); }
 }
 
 /* ──────────────────────────────────────────────────────────────
-   Mobile / small screen improvements
+   Mobile adjustments
 ────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   body {
-    padding: 12px;
-    align-items: flex-start; /* better for very small screens */
-    padding-top: 20vh;       /* push content down a bit */
+    padding: 16px;
+    align-items: center;      /* keep vertical centering */
   }
 
   .container {
+    width: 100%;
     padding: 18px;
     border-radius: 12px;
-    max-width: none;         /* use full width on tiny screens */
   }
 
   button {
     padding: 14px;
+  }
+}
+
+@media (max-height: 500px) {
+  body {
+    align-items: flex-start;
+    padding-top: 10vh;
   }
 }
