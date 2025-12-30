@@ -11,7 +11,7 @@
     <h2>Roof Area Calculator</h2>
 
     <div class="input-group">
-      <label for="address">New Zealand Address:</label>
+      <label for="address">NZ Address:</label>
       <input 
         type="text" 
         id="address" 
@@ -22,17 +22,19 @@
     <button id="lookup-btn">Calculate Area</button>
 
     <div id="result" class="result hidden">
-      <div id="address-display" class="result-title"></div>
-      <div id="area" class="result-area"></div>
-      <div id="time" class="result-time"></div>
+      <div id="address-display"></div>
+      <div id="area"></div>
+      <div id="time"></div>
     </div>
 
     <div id="error" class="error hidden"></div>
   </div>
 
   <script>
-    // ← CHANGE THIS to your actual Cloudflare Worker URL
+    // CHANGE THIS to your real Worker URL
     const WORKER_URL = "https://your-worker-name.your-account.workers.dev";
+
+    // Note: use KOORDINATES_API_KEY in Worker secret (already done)
 
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
@@ -50,11 +52,11 @@
         return;
       }
 
-      // Reset UI
       hideError();
       resultDiv.classList.add('hidden');
       btn.disabled = true;
       btn.textContent = "Looking up...";
+      btn.classList.add('loading');
 
       try {
         const startTime = performance.now();
@@ -81,23 +83,21 @@
         }
 
       } catch (err) {
-        showError(err.message || "Failed to connect to the service");
+        showError("Failed to fetch data — check Worker CORS settings");
         console.error(err);
       } finally {
         btn.disabled = false;
         btn.textContent = "Calculate Area";
+        btn.classList.remove('loading');
       }
     });
 
-    // Allow pressing Enter to search
     addressInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        btn.click();
-      }
+      if (e.key === 'Enter') btn.click();
     });
 
-    function showError(message) {
-      errorDiv.textContent = message;
+    function showError(msg) {
+      errorDiv.textContent = msg;
       errorDiv.classList.remove('hidden');
     }
 
