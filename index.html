@@ -10,31 +10,55 @@
   <div class="container">
     <h2>Roof Area Calculator</h2>
 
-    <div class="input-group">
-      <label for="address">NZ Address:</label>
-      <input 
-        type="text" 
-        id="address" 
-        placeholder="67 Williamson Avenue, Grey Lynn, Auckland"
-      />
+    <!-- Sign-in prompt when not logged in -->
+    <div id="auth-prompt" class="info">
+      Please <a href="https://lawnlogic.github.io/login.html">sign in</a> to use the calculator.
     </div>
 
-    <button id="lookup-btn">Calculate Area</button>
-
-    <div id="result" class="result hidden">
-      <div id="address-display"></div>
-      <div id="area"></div>
-      <div id="time"></div>
+    <!-- Calculator (hidden until logged in) -->
+    <div id="calculator" style="display: none;">
+      <div class="input-group">
+        <label for="address">NZ Address:</label>
+        <input
+          type="text"
+          id="address"
+          placeholder="67 Williamson Avenue, Grey Lynn, Auckland"
+        />
+      </div>
+      <button id="lookup-btn">Calculate Area</button>
+      <div id="result" class="result hidden">
+        <div id="address-display"></div>
+        <div id="area"></div>
+        <div id="time"></div>
+      </div>
+      <div id="error" class="error hidden"></div>
     </div>
-
-    <div id="error" class="error hidden"></div>
   </div>
 
-  <script>
-    // CHANGE THIS to your real Worker URL
-    const WORKER_URL = "https://roof.jamesisarad.workers.dev";
+  <script type="module">
+    // ───────────────────────────────────────────────────────────────
+    // Firebase config + imports
+    // ───────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
+    };
 
-    // Note: use KOORDINATES_API_KEY in Worker secret (already done)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // ───────────────────────────────────────────────────────────────
+    // Your Worker URL + endpoint
+    // ───────────────────────────────────────────────────────────────
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev/api/building-area";
 
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
@@ -43,12 +67,32 @@
     const addressDisplay = document.getElementById('address-display');
     const areaDisplay = document.getElementById('area');
     const timeDisplay = document.getElementById('time');
+    const calculatorDiv = document.getElementById('calculator');
+    const authPrompt = document.getElementById('auth-prompt');
+
+    // Show/hide calculator based on auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authPrompt.style.display = 'none';
+        calculatorDiv.style.display = 'block';
+      } else {
+        authPrompt.style.display = 'block';
+        calculatorDiv.style.display = 'none';
+        resultDiv.classList.add('hidden');
+        hideError();
+      }
+    });
 
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
-      
+
       if (!address) {
         showError("Please enter a valid address");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        showError("Please sign in first");
         return;
       }
 
@@ -61,16 +105,21 @@
       try {
         const startTime = performance.now();
 
+        const token = await auth.currentUser.getIdToken(true);
+
         const response = await fetch(`${WORKER_URL}?address=${encodeURIComponent(address)}`, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         });
 
         const data = await response.json();
         const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
 
         if (!response.ok || data.error) {
-          throw new Error(data.error || "Service error");
+          throw new Error(data.error || data.message || "Service error");
         }
 
         if (data.found === true) {
@@ -81,9 +130,8 @@
         } else {
           showError(data.message || "No building outline found nearby");
         }
-
       } catch (err) {
-        showError("Failed to fetch data — check Worker CORS settings");
+        showError(err.message || "Failed to fetch data — check connection or sign-in status");
         console.error(err);
       } finally {
         btn.disabled = false;
