@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In / Sign Up • Deep Edge</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 380px;
+      margin: 60px auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.8rem;
+      font-size: 1.8rem;
+      color: #1a1a1a;
+    }
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    input:focus {
+      outline: none;
+      border-color: #6200ea;
+      box-shadow: 0 0 0 3px rgba(98,0,234,0.1);
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 1.5rem 0;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    #btnSignUp {
+      background: #6200ea;
+      color: white;
+    }
+    #btnSignIn {
+      background: #304ffe;
+      color: white;
+    }
+    #btnSignOut {
+      background: #d81b60;
+      color: white;
+    }
+    button:hover {
+      filter: brightness(1.08);
+    }
+    #message {
+      min-height: 1.4em;
+      margin-top: 1rem;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .success { background: #e8f5e9; color: #1b5e20; }
+    .error   { background: #ffebee; color: #b71c1c; }
+    .info    { background: #e3f2fd; color: #0d47a1; }
+    .hidden  { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Sign In / Sign Up</h1>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+    </div>
+
+    <div class="buttons">
+      <button id="btnSignUp">Create Account</button>
+      <button id="btnSignIn">Sign In</button>
+      <button id="btnSignOut" class="hidden">Sign Out</button>
+    </div>
+
+    <div id="message" class="info">Enter your email and password to continue</div>
+  </div>
+
+  <button id="btnTestApi" style="background:#4caf50; color:white; margin-top:10px;">Test Protected API</button>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // ───────────────────────────────────────────────────────────────
+    //   Your Firebase configuration (from your message)
+    // ───────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey:            "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain:        "deep-edge-cc5bd.firebaseapp.com",
+      projectId:         "deep-edge-cc5bd",
+      storageBucket:     "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId:             "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId:     "G-GLYGPCHRXM"
+    };
+
+    // ───────────────────────────────────────────────────────────────
+    //   Firebase imports (using the latest stable version as of late 2025)
+    // ───────────────────────────────────────────────────────────────
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAnalytics }        from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // DOM elements
+    const emailEl     = document.getElementById('email');
+    const passwordEl  = document.getElementById('password');
+    const msgEl       = document.getElementById('message');
+    const btnSignUp   = document.getElementById('btnSignUp');
+    const btnSignIn   = document.getElementById('btnSignIn');
+    const btnSignOut  = document.getElementById('btnSignOut');
+
+    // Show message helper
+    function showMessage(text, type = 'info') {
+      msgEl.textContent = text;
+      msgEl.className = type;           // info, success, error
+    }
+
+    // Sign Up
+    btnSignUp.addEventListener('click', async () => {
+      const email = emailEl.value.trim();
+      const pass  = passwordEl.value;
+
+      if (!email || !pass) {
+        showMessage("Please enter email and password", "error");
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        showMessage(`Account created! Welcome ${userCredential.user.email}`, "success");
+      } catch (error) {
+        showMessage(error.message || "Sign-up failed", "error");
+      }
+    });
+
+    // Sign In
+    btnSignIn.addEventListener('click', async () => {
+      const email = emailEl.value.trim();
+      const pass  = passwordEl.value;
+
+      if (!email || !pass) {
+        showMessage("Please enter email and password", "error");
+        return;
+      }
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        showMessage(`Signed in as ${userCredential.user.email}`, "success");
+      } catch (error) {
+        showMessage(error.message || "Sign-in failed", "error");
+      }
+    });
+
+    // Sign Out
+    btnSignOut.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        // UI will update via onAuthStateChanged
+      } catch (error) {
+        showMessage("Sign-out failed", "error");
+      }
+    });
+
+    // Listen to authentication state changes (this drives the UI)
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in
+        showMessage(`Logging in as ${user.email || user.uid}...`, "info");
+
+        try {
+          const token = await user.getIdToken(true);
+          const response = await fetch('http://localhost:8787/api/protected', {  // change to live URL later
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (!response.ok) {
+            const err = await response.text();
+            showMessage(`Backend check failed: ${err}`, "error");
+            return;
+          }
+
+          const data = await response.json();
+          showMessage(
+            `Welcome back, ${data.user.email}! ` +
+            `You're authenticated. ` +
+            (data.message || 'Protected API says hi.') +
+            `<br><small>UID: ${data.user.uid}</small>`,
+            "success"
+          );
+
+          // Hide sign-in form, show logged-in UI
+          btnSignOut.classList.remove('hidden');
+          btnSignIn.classList.add('hidden');
+          btnSignUp.classList.add('hidden');
+          emailEl.disabled = true;
+          passwordEl.disabled = true;
+
+          // Optional: show a dashboard section here later
+        } catch (err) {
+          showMessage(`Login failed: ${err.message}`, "error");
+        }
+      } else {
+        // Signed out
+        showMessage("Not logged in — sign in or create an account", "info");
+        btnSignOut.classList.add('hidden');
+        btnSignIn.classList.remove('hidden');
+        btnSignUp.classList.remove('hidden');
+        emailEl.disabled = false;
+        passwordEl.disabled = false;
+        emailEl.value = '';
+        passwordEl.value = '';
+      }
+    });
+
+    // Test protected endpoint button
+    document.getElementById('btnTestApi')?.addEventListener('click', async () => {
+      if (!auth.currentUser) {
+        showMessage("You must be signed in first!", "error");
+        return;
+      }
+
+      showMessage("Testing protected API...", "info");
+
+      try {
+        const token = await auth.currentUser.getIdToken(true);
+        const response = await fetch('http://localhost:8787/api/protected', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          showMessage(`Error ${response.status}: ${errText}`, "error");
+          console.error("API error:", errText);
+          return;
+        }
+
+        const data = await response.json();
+        showMessage(`Success! ${JSON.stringify(data, null, 2)}`, "success");
+        console.log("Protected API response:", data);
+      } catch (err) {
+        showMessage(`Test failed: ${err.message}`, "error");
+        console.error("Test failed:", err);
+      }
+    });
+  </script>
+
+</body>
+</html>
