@@ -35,7 +35,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (minimal, just auth) -->
   <script type="module">
     // Firebase config
     const firebaseConfig = {
@@ -67,7 +67,7 @@
     const calculatorDiv = document.getElementById('calculator');
     const authPrompt = document.getElementById('auth-prompt');
 
-    // Show/hide calculator based on auth
+    // Show/hide calculator based on auth state
     onAuthStateChanged(auth, (user) => {
       if (user) {
         authPrompt.style.display = 'none';
