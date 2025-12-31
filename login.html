@@ -296,9 +296,18 @@
         console.error("Test failed:", err);
       }
     });
+
+    // Debug: log signed-in status on every page load / auth change
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("Signed in as:", user.email, "UID:", user.uid);
+        console.log("Current token (first 50 chars):", user.getIdToken().then(t => t.substring(0, 50) + "..."));
+      } else {
+        console.log("Not signed in");
+      }
+    });
   </script>
 
 </body>
 
 </html>
-
