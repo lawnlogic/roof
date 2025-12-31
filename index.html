@@ -35,31 +35,10 @@
     </div>
   </div>
 
-  <script type="module">
-    // ───────────────────────────────────────────────────────────────
-    // Firebase config + imports
-    // ───────────────────────────────────────────────────────────────
-    const firebaseConfig = {
-      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
-      authDomain: "deep-edge-cc5bd.firebaseapp.com",
-      projectId: "deep-edge-cc5bd",
-      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
-      messagingSenderId: "23198790796",
-      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
-      measurementId: "G-GLYGPCHRXM"
-    };
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // ───────────────────────────────────────────────────────────────
-    // Your Worker URL + endpoint
-    // ───────────────────────────────────────────────────────────────
+  <script>
+    // CHANGE THIS to the correct protected endpoint (do not include ?address= here)
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev/api/building-area";
-
+  
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
     const resultDiv = document.getElementById('result');
@@ -67,61 +46,43 @@
     const addressDisplay = document.getElementById('address-display');
     const areaDisplay = document.getElementById('area');
     const timeDisplay = document.getElementById('time');
-    const calculatorDiv = document.getElementById('calculator');
-    const authPrompt = document.getElementById('auth-prompt');
-
-    // Show/hide calculator based on auth state
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authPrompt.style.display = 'none';
-        calculatorDiv.style.display = 'block';
-      } else {
-        authPrompt.style.display = 'block';
-        calculatorDiv.style.display = 'none';
-        resultDiv.classList.add('hidden');
-        hideError();
-      }
-    });
-
+  
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
-
+      
       if (!address) {
         showError("Please enter a valid address");
         return;
       }
-
-      if (!auth.currentUser) {
-        showError("Please sign in first");
-        return;
-      }
-
       hideError();
       resultDiv.classList.add('hidden');
       btn.disabled = true;
       btn.textContent = "Looking up...";
       btn.classList.add('loading');
-
+  
       try {
         const startTime = performance.now();
-
-        const token = await auth.currentUser.getIdToken(true);
-
         const response = await fetch(`${WORKER_URL}?address=${encodeURIComponent(address)}`, {
           method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Accept': 'application/json' }
         });
-
-        const data = await response.json();
+        const text = await response.text();  // First get as text to debug
+        console.log("Raw Worker response:", text);  // ← add this for debugging
+  
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error("Parse failed on:", text);
+          throw new Error("Invalid response from server (not JSON)");
+        }
+  
         const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
-
+  
         if (!response.ok || data.error) {
           throw new Error(data.error || data.message || "Service error");
         }
-
+  
         if (data.found === true) {
           addressDisplay.textContent = data.address;
           areaDisplay.textContent = `${data.building_area_m2.toLocaleString()} m²`;
@@ -131,7 +92,7 @@
           showError(data.message || "No building outline found nearby");
         }
       } catch (err) {
-        showError(err.message || "Failed to fetch data — check connection or sign-in status");
+        showError(err.message || "Failed to fetch data");
         console.error(err);
       } finally {
         btn.disabled = false;
@@ -139,16 +100,16 @@
         btn.classList.remove('loading');
       }
     });
-
+  
     addressInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') btn.click();
     });
-
+  
     function showError(msg) {
       errorDiv.textContent = msg;
       errorDiv.classList.remove('hidden');
     }
-
+  
     function hideError() {
       errorDiv.classList.add('hidden');
       errorDiv.textContent = '';
@@ -156,3 +117,4 @@
   </script>
 </body>
 </html>
+
