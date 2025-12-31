@@ -220,7 +220,7 @@
 
         try {
           const token = await user.getIdToken(true);
-          const response = await fetch('http://localhost:8787/api/protected', {  // change to live URL later
+          const response = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/protected', {  // change to live URL later
             headers: { 'Authorization': `Bearer ${token}` }
           });
 
@@ -299,4 +299,5 @@
   </script>
 
 </body>
+
 </html>
