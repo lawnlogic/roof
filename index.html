@@ -9,32 +9,55 @@
 <body>
   <div class="container">
     <h2>Roof Area Calculator</h2>
-
     <div class="input-group">
       <label for="address">NZ Address:</label>
-      <input 
-        type="text" 
-        id="address" 
+      <input
+        type="text"
+        id="address"
         placeholder="67 Williamson Avenue, Grey Lynn, Auckland"
       />
     </div>
-
     <button id="lookup-btn">Calculate Area</button>
-
     <div id="result" class="result hidden">
       <div id="address-display"></div>
       <div id="area"></div>
       <div id="time"></div>
     </div>
-
     <div id="error" class="error hidden"></div>
   </div>
 
-  <script>
-    // CHANGE THIS to your real Worker URL
-    const WORKER_URL = "https://roof.jamesisarad.workers.dev";
+  <!-- Firebase SDK - only Auth, to get tokens and check sign-in -->
+  <script type="module">
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
+    };
 
-    // Note: use KOORDINATES_API_KEY in Worker secret (already done)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Log auth status for debugging
+    console.log("Firebase Auth initialized on calculator page");
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is signed in on calculator page:", user.email, "UID:", user.uid);
+      } else {
+        console.log("No signed-in user detected on calculator page");
+      }
+    });
+
+    // Worker protected endpoint
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev/api/building-area";
 
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
@@ -46,7 +69,7 @@
 
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
-      
+
       if (!address) {
         showError("Please enter a valid address");
         return;
@@ -58,19 +81,52 @@
       btn.textContent = "Looking up...";
       btn.classList.add('loading');
 
+      console.log("Button clicked - address:", address);
+
       try {
         const startTime = performance.now();
 
+        let token = null;
+        try {
+          if (auth.currentUser) {
+            console.log("Generating fresh token...");
+            token = await auth.currentUser.getIdToken(true); // force refresh
+            console.log("Token generated successfully (first 50 chars):", token.substring(0, 50) + "...");
+          } else {
+            console.log("No current user - no token will be sent");
+          }
+        } catch (tokenErr) {
+          console.error("Token generation failed:", tokenErr);
+        }
+
         const response = await fetch(`${WORKER_URL}?address=${encodeURIComponent(address)}`, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: {
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}) // only add header if token exists
+          }
         });
 
-        const data = await response.json();
+        console.log("Fetch status:", response.status);
+
+        const text = await response.text();
+        console.log("Raw Worker response:", text);
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error("JSON parse failed on:", text);
+          throw new Error("Invalid response from server (not JSON)");
+        }
+
         const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
 
         if (!response.ok || data.error) {
-          throw new Error(data.error || "Service error");
+          if (response.status === 401) {
+            throw new Error("Authentication required - please sign in");
+          }
+          throw new Error(data.error || data.message || "Service error");
         }
 
         if (data.found === true) {
@@ -81,10 +137,9 @@
         } else {
           showError(data.message || "No building outline found nearby");
         }
-
       } catch (err) {
-        showError("Failed to fetch data — check Worker CORS settings");
-        console.error(err);
+        showError(err.message || "Failed to fetch data");
+        console.error("Full error:", err);
       } finally {
         btn.disabled = false;
         btn.textContent = "Calculate Area";
