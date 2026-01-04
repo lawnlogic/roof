@@ -98,9 +98,9 @@
         maxZoom: 22
       }).addTo(map);
 
-      // Initial non-editable view
+      // Initial non-editable outline
       L.geoJSON(data.building_geometry, {
-        style: { color: "#ff7800", weight: 6, opacity: 0.9, fillOpacity: 0.15 }
+        style: { color: "#513690", weight: 2, opacity: 0.9, fillOpacity: 0.15 }
       }).addTo(map);
 
       map.fitBounds(L.geoJSON(data.building_geometry).getBounds().pad(0.3));
@@ -109,7 +109,7 @@
       const editBtn = L.control({ position: 'topright' });
       editBtn.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        div.style.backgroundColor = '#ff7800';
+        div.style.backgroundColor = '#513690';
         div.style.color = 'white';
         div.style.width = '36px';
         div.style.height = '36px';
@@ -132,42 +132,50 @@
     function enableRoofEditing(data) {
       if (!map || !data.building_geometry) return;
 
-      // Remove any existing layers/controls
-      if (editableLayers) {
-        map.removeLayer(editableLayers);
-      }
+      // Clear everything except base tiles
       map.eachLayer(layer => {
-        if (layer instanceof L.GeoJSON || layer instanceof L.FeatureGroup) {
+        if (layer._url && layer._url.includes('basemaps.linz.govt.nz')) {
+          // Keep tile layer
+        } else {
           map.removeLayer(layer);
         }
       });
 
+      // Remove any existing draw control
+      if (map.drawControl) {
+        map.removeControl(map.drawControl);
+      }
+
+      // New editable group
       editableLayers = new L.FeatureGroup();
       map.addLayer(editableLayers);
 
-      // Add the original polygon as the ONLY editable layer
-      const polygon = L.geoJSON(data.building_geometry, {
-        style: { color: "#ff7800", weight: 6, fillOpacity: 0.2 }
-      });
-      polygon.eachLayer(layer => editableLayers.addLayer(layer));
+      // Add the original polygon — this is the ONLY shape
+      L.geoJSON(data.building_geometry, {
+        style: { color: "#513690", weight: 2, fillOpacity: 0.2 }
+      }).eachLayer(layer => editableLayers.addLayer(layer));
 
-      // Create draw control with NO drawing tools — only edit
+      // Create draw control with ZERO drawing tools
       const drawControl = new L.Control.Draw({
-        draw: false, // Completely disable all drawing
+        position: 'topleft',
+        draw: false, // No drawing at all
         edit: {
           featureGroup: editableLayers,
           edit: true,
           remove: true
         }
       });
+
+      // Store reference so we can remove later
+      map.drawControl = drawControl;
       map.addControl(drawControl);
 
-      // Area display overlay
+      // Area display
       if (areaOverlay) areaOverlay.remove();
       areaOverlay = L.control({ position: 'bottomleft' });
       areaOverlay.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-        div.style.background = 'rgba(255,255,255,0.95)';
+        div.style.background = '#513690';
         div.style.padding = '12px 18px';
         div.style.borderRadius = '8px';
         div.style.fontSize = '18px';
@@ -191,9 +199,8 @@
         areaDisplay.textContent = `${areaM2.toLocaleString()} m² (edited)`;
       }
 
-      // Listen to all edit events
-      map.on('draw:edited draw:editstart draw:deleted draw:deletestart', updateArea);
-      updateArea(); // Initial calculation
+      map.on('draw:edited draw:deleted', updateArea);
+      updateArea();
     }
 
     btn.addEventListener('click', async () => {
