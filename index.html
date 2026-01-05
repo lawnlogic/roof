@@ -3,28 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Roof Area Calculator</title>
+  <title>Lawn Area Calculator</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Leaflet CSS for aerial map -->
-  <!-- Replace your current Leaflet loading with this block -->
+  <!-- Leaflet + Draw -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <!-- Turf.js for clipping -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <style>
+    .pricing-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: #1A1A1A;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    }
+    .pricing-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    .pricing-row strong {
+      font-size: 20px;
+      color: #28a745;
+    }
+    #rate-input {
+      width: 100px;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>Roof Area Calculator</h2>
+    <h2>Lawn Area Calculator</h2>
     <div class="input-group">
       <label for="address">NZ Address:</label>
       <input
         type="text"
         id="address"
-        placeholder="67 Williamson Avenue, Grey Lynn, Auckland"
+        placeholder="687 Hillsborough Road, Mount Roskill, Auckland"
       />
     </div>
-    <button id="lookup-btn">Calculate Area</button>
+    <button id="lookup-btn">Calculate Lawn Area</button>
     <div id="result" class="result hidden">
       <div id="address-display"></div>
       <div id="area"></div>
@@ -32,14 +58,28 @@
     </div>
     <div id="error" class="error hidden"></div>
 
-    <!-- NEW: Aerial map will appear here when data is loaded -->
+    <!-- Pricing Box -->
+    <div id="pricing-box" class="pricing-box hidden">
+      <div class="input-group">
+        <label for="rate-input">Rate per m² (ex GST):</label>
+        <input type="number" id="rate-input" value="0.2" step="0.05" min="0" />
+      </div>
+      <div class="pricing-row">
+        <span>Lawn Area:</span>
+        <span id="final-area">0 m²</span>
+      </div>
+      <div class="pricing-row">
+        <span>Job Cost (ex GST):</span>
+        <strong id="job-cost">$0.00</strong>
+      </div>
+    </div>
+
     <div id="aerial-container" class="hidden" style="margin-top: 40px;">
-      <h2 style="margin-bottom: 15px;">Aerial View</h2>
+      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
       <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -54,14 +94,6 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    console.log("Firebase Auth initialized on calculator page");
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User is signed in:", user.email);
-      } else {
-        console.log("No signed-in user");
-      }
-    });
 
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev/api/building-area";
     const btn = document.getElementById('lookup-btn');
@@ -72,22 +104,26 @@
     const areaDisplay = document.getElementById('area');
     const timeDisplay = document.getElementById('time');
     const aerialContainer = document.getElementById('aerial-container');
+    const pricingBox = document.getElementById('pricing-box');
+    const rateInput = document.getElementById('rate-input');
+    const finalAreaDisplay = document.getElementById('final-area');
+    const jobCostDisplay = document.getElementById('job-cost');
 
     let map = null;
-    let editableLayers = null;
+    let parcelLayer = null;
+    let clippedBuildingsLayer = null;
+    let clippedBuildingsGeoJSON = null;
+    let negativeLayer = null;
     let areaOverlay = null;
+    let parcelAreaM2 = 0;
+    let currentLawnArea = 0;
 
     function showAerialMap(data) {
-      if (!data.aerial || !data.building_geometry) {
+      if (!data.aerial) {
         aerialContainer.style.display = 'none';
         return;
       }
       aerialContainer.classList.remove('hidden');
-
-      if (typeof L === 'undefined' || typeof L.Draw === 'undefined') {
-        setTimeout(() => showAerialMap(data), 100);
-        return;
-      }
 
       if (map) map.remove();
 
@@ -98,18 +134,74 @@
         maxZoom: 22
       }).addTo(map);
 
-      // Initial non-editable outline
-      L.geoJSON(data.building_geometry, {
-        style: { color: "#513690", weight: 2, opacity: 0.9, fillOpacity: 0.15 }
-      }).addTo(map);
+      parcelAreaM2 = data.parcel_area_m2 || 0;
 
-      map.fitBounds(L.geoJSON(data.building_geometry).getBounds().pad(0.3));
+      if (data.parcel_geometry) {
+        parcelLayer = L.geoJSON(data.parcel_geometry, {
+          style: { color: "#0066ff", weight: 5, fillOpacity: 0 }
+        }).addTo(map);
+      }
 
-      // Add Edit button
+      if (data.parcel_geometry && data.buildings_geometries && data.buildings_geometries.length > 0) {
+        try {
+          let parcelPoly;
+          if (data.parcel_geometry.type === "MultiPolygon") {
+            parcelPoly = turf.multiPolygon(data.parcel_geometry.coordinates);
+          } else {
+            parcelPoly = turf.polygon(data.parcel_geometry.coordinates);
+          }
+
+          const clippedBuildings = [];
+
+          data.buildings_geometries.forEach(geom => {
+            try {
+              if (geom.type === "Polygon" && geom.coordinates && geom.coordinates.length > 0) {
+                const ring = geom.coordinates[0];
+                if (ring.length >= 4) {
+                  const cleaned = [];
+                  ring.forEach((p, i) => {
+                    const prev = ring[i === 0 ? ring.length - 1 : i - 1];
+                    if (i === 0 || p[0] !== prev[0] || p[1] !== prev[1]) {
+                      cleaned.push(p);
+                    }
+                  });
+                  if (cleaned.length >= 4) {
+                    if (cleaned[0][0] !== cleaned[cleaned.length - 1][0] || cleaned[0][1] !== cleaned[cleaned.length - 1][1]) {
+                      cleaned.push(cleaned[0]);
+                    }
+                    const buildingPoly = turf.polygon([cleaned]);
+                    const intersection = turf.intersect(parcelPoly, buildingPoly);
+                    if (intersection && intersection.geometry) {
+                      clippedBuildings.push(intersection.geometry);
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          });
+
+          if (clippedBuildings.length > 0) {
+            clippedBuildingsGeoJSON = { type: "FeatureCollection", features: clippedBuildings.map(g => ({ type: "Feature", geometry: g })) };
+            clippedBuildingsLayer = L.geoJSON(clippedBuildings, {
+              style: { color: "#ff4444", weight: 3, fillColor: "#ff4444", fillOpacity: 0.5 }
+            }).addTo(map);
+          }
+        } catch (e) {
+          console.warn('Building clipping failed', e);
+        }
+      }
+
+      if (parcelLayer) {
+        map.fitBounds(parcelLayer.getBounds().pad(0.2));
+      }
+
+      // Show pricing box
+      pricingBox.classList.remove('hidden');
+
       const editBtn = L.control({ position: 'topright' });
       editBtn.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        div.style.backgroundColor = '#513690';
+        div.style.backgroundColor = '#ff4444';
         div.style.color = 'white';
         div.style.width = '36px';
         div.style.height = '36px';
@@ -119,63 +211,65 @@
         div.style.cursor = 'pointer';
         div.style.fontWeight = 'bold';
         div.innerHTML = '✏️';
-        div.title = 'Edit Roof Outline';
+        div.title = 'Edit Negative Layer (areas to exclude from lawn)';
         div.onclick = (e) => {
           L.DomEvent.stopPropagation(e);
-          enableRoofEditing(data);
+          enableNegativeLayerEditing();
         };
         return div;
       };
       editBtn.addTo(map);
     }
 
-    function enableRoofEditing(data) {
-      if (!map || !data.building_geometry) return;
+    function enableNegativeLayerEditing() {
+      if (!map) return;
 
-      // Clear everything except base tiles
-      map.eachLayer(layer => {
-        if (layer._url && layer._url.includes('basemaps.linz.govt.nz')) {
-          // Keep tile layer
-        } else {
-          map.removeLayer(layer);
-        }
-      });
-
-      // Remove any existing draw control
-      if (map.drawControl) {
-        map.removeControl(map.drawControl);
+      if (clippedBuildingsLayer) {
+        map.removeLayer(clippedBuildingsLayer);
+        clippedBuildingsLayer = null;
       }
 
-      // New editable group
-      editableLayers = new L.FeatureGroup();
-      map.addLayer(editableLayers);
+      if (negativeLayer) map.removeLayer(negativeLayer);
+      if (areaOverlay) areaOverlay.remove();
 
-      // Add the original polygon — this is the ONLY shape
-      L.geoJSON(data.building_geometry, {
-        style: { color: "#513690", weight: 2, fillOpacity: 0.2 }
-      }).eachLayer(layer => editableLayers.addLayer(layer));
+      negativeLayer = new L.FeatureGroup();
+      map.addLayer(negativeLayer);
 
-      // Create draw control with ZERO drawing tools
+      if (clippedBuildingsGeoJSON) {
+        L.geoJSON(clippedBuildingsGeoJSON, {
+          style: { color: "#ff4444", weight: 4, fillColor: "#ff4444", fillOpacity: 0.6 }
+        }).eachLayer(layer => {
+          negativeLayer.addLayer(layer);
+        });
+      }
+
       const drawControl = new L.Control.Draw({
-        position: 'topleft',
-        draw: false, // No drawing at all
+        draw: {
+          polygon: true,
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false,
+          polyline: false
+        },
         edit: {
-          featureGroup: editableLayers,
+          featureGroup: negativeLayer,
           edit: true,
           remove: true
         }
       });
-
-      // Store reference so we can remove later
-      map.drawControl = drawControl;
       map.addControl(drawControl);
 
-      // Area display
-      if (areaOverlay) areaOverlay.remove();
+      map.on('draw:created', function (e) {
+        const layer = e.layer;
+        negativeLayer.addLayer(layer);
+        updateLawnArea();
+      });
+
       areaOverlay = L.control({ position: 'bottomleft' });
       areaOverlay.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-        div.style.background = '#513690';
+        div.style.background = 'rgba(255,255,255,0.95)';
         div.style.padding = '12px 18px';
         div.style.borderRadius = '8px';
         div.style.fontSize = '18px';
@@ -187,21 +281,38 @@
       };
       areaOverlay.addTo(map);
 
-      function updateArea() {
-        let total = 0;
-        editableLayers.eachLayer(layer => {
-          if (layer.getLatLngs) {
-            total += L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]);
+      function updateLawnArea() {
+        let negativeArea = 0;
+        negativeLayer.eachLayer(layer => {
+          if (layer.getLatLngs && layer.getLatLngs().length > 0) {
+            const latlngs = layer.getLatLngs()[0];
+            if (Array.isArray(latlngs) && latlngs.length >= 3) {
+              negativeArea += L.GeometryUtil.geodesicArea(latlngs);
+            }
           }
         });
-        const areaM2 = Math.round(total);
-        areaOverlay._div.innerHTML = `<strong>Roof Area:</strong> ${areaM2.toLocaleString()} m²`;
-        areaDisplay.textContent = `${areaM2.toLocaleString()} m² (edited)`;
+
+        currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
+
+        areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
+        areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
+        finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
+
+        // Update job cost
+        const rate = parseFloat(rateInput.value) || 0;
+        const cost = currentLawnArea * rate;
+        jobCostDisplay.textContent = `$${cost.toFixed(2)}`;
       }
 
-      map.on('draw:edited draw:deleted', updateArea);
-      updateArea();
+      map.on('draw:edited draw:deleted draw:created', updateLawnArea);
+
+      // Update cost when rate changes
+      rateInput.addEventListener('input', updateLawnArea);
+
+      updateLawnArea();
     }
+
+    // ... rest of your fetch logic unchanged (same as before)
 
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
@@ -212,6 +323,7 @@
       hideError();
       resultDiv.classList.add('hidden');
       aerialContainer.classList.add('hidden');
+      pricingBox.classList.add('hidden');
       btn.disabled = true;
       btn.textContent = "Looking up...";
       btn.classList.add('loading');
@@ -240,20 +352,16 @@
         if (!response.ok || data.error) {
           throw new Error(data.error || "Service error");
         }
-        if (data.building_found === true) {
-          addressDisplay.textContent = data.address;
-          areaDisplay.textContent = `${data.building_area_m2.toLocaleString()} m²`;
-          timeDisplay.textContent = `Found in ${timeTaken} seconds`;
-          resultDiv.classList.remove('hidden');
-          showAerialMap(data);
-        } else {
-          showError(data.message || "No building found");
-        }
+        addressDisplay.textContent = data.address;
+        areaDisplay.textContent = `${data.estimated_lawn_area_m2?.toLocaleString() || 'Calculating...'} m²`;
+        timeDisplay.textContent = `Found in ${timeTaken} seconds`;
+        resultDiv.classList.remove('hidden');
+        showAerialMap(data);
       } catch (err) {
         showError(err.message || "Failed to fetch data");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Calculate Area";
+        btn.textContent = "Calculate Lawn Area";
         btn.classList.remove('loading');
       }
     });
