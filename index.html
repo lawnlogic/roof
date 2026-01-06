@@ -12,6 +12,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <!-- Turf.js for clipping -->
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <!-- Leaflet.TileLayer.Fallback plugin for missing tiles (blurry aerial instead of grey) -->
+  <script src="https://ghybs.github.io/Leaflet.TileLayer.Fallback/dist/leaflet.tilelayer.fallback.min.js"></script>
   <style>
     .pricing-box {
     margin-top: 20px;
@@ -128,10 +130,11 @@
       if (map) map.remove();
 
       map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
-        L.tileLayer(data.aerial.tileUrl, {
+
+      // Use fallback plugin: automatically replaces missing tiles with scaled lower-zoom aerial (blurry, no grey)
+      L.tileLayer.fallback(data.aerial.tileUrl, {
         attribution: '© LINZ Aerial Imagery',
-        maxZoom: 24,               // Extreme zoom allowed
-        maxNativeZoom: 10,         // Highest safe real tiles for most NZ (adjust 19-21)
+        maxZoom: 24,               // Allow extreme zoom
         tileSize: 256,
         zoomOffset: 0,
         noWrap: true
@@ -198,7 +201,6 @@
         map.fitBounds(parcelLayer.getBounds().pad(0.2));
       }
 
-      // Show pricing box
       pricingBox.classList.remove('hidden');
 
       const editBtn = L.control({ position: 'topright' });
@@ -301,7 +303,6 @@
         areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
         finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
 
-        // Update job cost
         const rate = parseFloat(rateInput.value) || 0;
         const cost = currentLawnArea * rate;
         jobCostDisplay.textContent = `$${cost.toFixed(2)}`;
@@ -309,13 +310,10 @@
 
       map.on('draw:edited draw:deleted draw:created', updateLawnArea);
 
-      // Update cost when rate changes
       rateInput.addEventListener('input', updateLawnArea);
 
       updateLawnArea();
     }
-
-    // ... rest of your fetch logic unchanged (same as before)
 
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
@@ -384,5 +382,3 @@
   </script>
 </body>
 </html>
-
-
