@@ -128,10 +128,13 @@
       if (map) map.remove();
 
       map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
-
-      L.tileLayer(data.aerial.tileUrl, {
+        L.tileLayer(data.aerial.tileUrl, {
         attribution: '© LINZ Aerial Imagery',
-        maxZoom: 22
+        maxZoom: 24,               // Extreme zoom allowed
+        maxNativeZoom: 19,         // Highest safe real tiles for most NZ (adjust 19-21)
+        tileSize: 256,
+        zoomOffset: 0,
+        noWrap: true
       }).addTo(map);
 
       parcelAreaM2 = data.parcel_area_m2 || 0;
@@ -381,3 +384,4 @@
   </script>
 </body>
 </html>
+
