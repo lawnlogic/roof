@@ -10,34 +10,80 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-  <!-- Turf.js for clipping -->
+  <!-- Turf.js -->
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <!-- Leaflet.TileLayer.Fallback plugin for missing tiles (blurry aerial instead of grey) -->
-  <script src="https://ghybs.github.io/Leaflet.TileLayer.Fallback/dist/leaflet.tilelayer.fallback.min.js"></script>
+  <!-- Fallback plugin -->
+  <script src="https://unpkg.com/leaflet.tilelayer.fallback@1.0.4/dist/leaflet.tilelayer.fallback.js"></script>
   <style>
     .pricing-box {
-    margin-top: 20px;
-    padding: 15px;
-    background: #1A1A1A;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+      margin-top: 20px;
+      padding: 20px;
+      background: #1A1A1A;
+      border-radius: 8px;
+      border: 1px solid #444;
+      color: white;
+    }
+    .input-group {
+      margin-bottom: 18px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 15px;
     }
     .pricing-row {
       display: flex;
       justify-content: space-between;
-      margin: 10px 0;
-      font-size: 18px;
+      margin: 12px 0;
+      font-size: 17px;
     }
     .pricing-row strong {
-      font-size: 20px;
+      font-size: 19px;
       color: #28a745;
     }
-    #rate-input {
-      width: 100px;
+    input[type="number"] {
+      width: 120px;
       padding: 8px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
       border-radius: 4px;
+      background: #222;
+      color: white;
+    }
+    .summary-box {
+      margin-top: 25px;
+      padding: 18px;
+      background: #222;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .summary-row.total {
+      font-weight: bold;
+      font-size: 19px;
+      border-top: 2px solid #28a745;
+      padding-top: 12px;
+      margin-top: 15px;
+    }
+    #generate-pdf-btn {
+      margin-top: 25px;
+      padding: 14px 28px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #generate-pdf-btn:hover {
+      background: #218838;
     }
   </style>
 </head>
@@ -46,11 +92,7 @@
     <h2>Lawn Area Calculator</h2>
     <div class="input-group">
       <label for="address">NZ Address:</label>
-      <input
-        type="text"
-        id="address"
-        placeholder="687 Hillsborough Road, Mount Roskill, Auckland"
-      />
+      <input type="text" id="address" placeholder="687 Hillsborough Road, Mount Roskill, Auckland" />
     </div>
     <button id="lookup-btn">Calculate Lawn Area</button>
     <div id="result" class="result hidden">
@@ -60,25 +102,75 @@
     </div>
     <div id="error" class="error hidden"></div>
 
-    <!-- Pricing Box -->
+    <!-- map -->
+    <div id="aerial-container" class="hidden" style="margin-top: 40px;">
+      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
+      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+    </div>
+
+    <!-- Professional Job Summary Box -->
     <div id="pricing-box" class="pricing-box hidden">
       <div class="input-group">
-        <label for="rate-input">Rate per m² (ex GST):</label>
-        <input type="number" id="rate-input" value="0.2" step="0.05" min="0" />
+        <label for="rate-input">Base Rate per m² (ex GST):</label>
+        <input type="number" id="rate-input" value="0.20" step="0.05" min="0" />
       </div>
+
+      <div class="input-group">
+        <label for="callout-input">Call-out / Travel Fee (ex GST):</label>
+        <input type="number" id="callout-input" value="80" step="10" min="0" />
+      </div>
+
+      <div class="input-group">
+        <label for="estimated-hours">Estimated Time (hours):</label>
+        <input type="number" id="estimated-hours" value="1.0" step="0.25" min="0.25" />
+      </div>
+
+      <div class="input-group">
+        <label for="hourly-rate">Your Hourly Cost (fuel, labour, etc.):</label>
+        <input type="number" id="hourly-rate" value="50" step="5" min="0" />
+      </div>
+
       <div class="pricing-row">
         <span>Lawn Area:</span>
         <span id="final-area">0 m²</span>
       </div>
-      <div class="pricing-row">
-        <span>Job Cost (ex GST):</span>
-        <strong id="job-cost">$0.00</strong>
-      </div>
-    </div>
 
-    <div id="aerial-container" class="hidden" style="margin-top: 40px;">
-      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
-      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+      <div class="pricing-row">
+        <span>Mowing Revenue (ex GST):</span>
+        <strong id="mowing-revenue">$0.00</strong>
+      </div>
+
+      <div class="pricing-row">
+        <span>Total Revenue (ex GST):</span>
+        <strong id="total-revenue">$0.00</strong>
+      </div>
+
+      <div class="pricing-row">
+        <span>GST (15%):</span>
+        <strong id="gst">$0.00</strong>
+      </div>
+
+      <div class="pricing-row">
+        <span>TOTAL (incl GST):</span>
+        <strong id="total-incl">$0.00</strong>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Estimated Cost (time × hourly):</span>
+          <strong id="est-cost">$0.00</strong>
+        </div>
+        <div class="summary-row">
+          <span>Estimated Profit (ex GST):</span>
+          <strong id="est-profit">$0.00</strong>
+        </div>
+        <div class="summary-row total">
+          <span>Profit per Hour:</span>
+          <strong id="profit-hour">$0.00</strong>
+        </div>
+      </div>
+
+      <button id="generate-pdf-btn">Generate Quote PDF</button>
     </div>
   </div>
 
@@ -131,10 +223,9 @@
 
       map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
 
-      // Use fallback plugin: automatically replaces missing tiles with scaled lower-zoom aerial (blurry, no grey)
       L.tileLayer.fallback(data.aerial.tileUrl, {
         attribution: '© LINZ Aerial Imagery',
-        maxZoom: 24,               // Allow extreme zoom
+        maxZoom: 24,
         tileSize: 256,
         zoomOffset: 0,
         noWrap: true
@@ -287,30 +378,80 @@
       areaOverlay.addTo(map);
 
       function updateLawnArea() {
-        let negativeArea = 0;
+        console.log("=== Negative Layer Debug ===");
+        const negativePolys = [];
+        let individualAreas = [];
+        let polygonCount = 0;
+
         negativeLayer.eachLayer(layer => {
           if (layer.getLatLngs && layer.getLatLngs().length > 0) {
             const latlngs = layer.getLatLngs()[0];
             if (Array.isArray(latlngs) && latlngs.length >= 3) {
-              negativeArea += L.GeometryUtil.geodesicArea(latlngs);
+              polygonCount++;
+              const area = L.GeometryUtil.geodesicArea(latlngs);
+              individualAreas.push(Math.round(area));
+              const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+              coords.push(coords[0]);
+              negativePolys.push(turf.polygon([coords]));
+              console.log(`Polygon ${polygonCount} area: ${Math.round(area)} m²`);
             }
           }
         });
 
+        console.log(`Total polygons: ${polygonCount}`);
+        console.log(`Individual areas: ${individualAreas.join(', ')} m²`);
+
+        let negativeArea = 0;
+        if (negativePolys.length > 0) {
+          try {
+            let unioned = negativePolys.reduce((acc, poly) => turf.union(acc, poly));
+            negativeArea = turf.area(unioned);
+            console.log(`Unioned negative area (no overlap): ${Math.round(negativeArea)} m²`);
+          } catch (e) {
+            console.warn('Union failed, using sum', e);
+            individualAreas.forEach(a => negativeArea += a);
+            console.log(`Fallback sum negative area: ${Math.round(negativeArea)} m²`);
+          }
+        }
+
         currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
+        console.log(`Parcel area: ${parcelAreaM2} m²`);
+        console.log(`Final lawn area: ${currentLawnArea} m²`);
+        console.log("=== End Debug ===\n");
 
         areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
         areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
         finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
 
         const rate = parseFloat(rateInput.value) || 0;
-        const cost = currentLawnArea * rate;
-        jobCostDisplay.textContent = `$${cost.toFixed(2)}`;
+        const callout = parseFloat(document.getElementById('callout-input').value) || 0;
+        const hours = parseFloat(document.getElementById('estimated-hours').value) || 1;
+        const hourlyCost = parseFloat(document.getElementById('hourly-rate').value) || 0;
+
+        const mowingRevenue = currentLawnArea * rate;
+        const totalEx = mowingRevenue + callout;
+        const gst = totalEx * 0.15;
+        const totalIncl = totalEx + gst;
+
+        const estCost = hours * hourlyCost;
+        const estProfit = totalEx - estCost;
+        const profitPerHour = hours > 0 ? estProfit / hours : 0;
+
+        document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
+        document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
+        document.getElementById('gst').textContent = '$' + gst.toFixed(2);
+        document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+        document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
+        document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
+        document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
       }
 
       map.on('draw:edited draw:deleted draw:created', updateLawnArea);
 
       rateInput.addEventListener('input', updateLawnArea);
+      document.getElementById('callout-input').addEventListener('input', updateLawnArea);
+      document.getElementById('estimated-hours').addEventListener('input', updateLawnArea);
+      document.getElementById('hourly-rate').addEventListener('input', updateLawnArea);
 
       updateLawnArea();
     }
