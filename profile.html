@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Company Profile • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+  <style>
+    .container {
+        max-width: 800px;
+        margin: 40px auto;
+        /* background: white; */
+        padding: 40px;
+        border-radius: 10px;
+        /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
+    }
+    h2 {
+        text-align: center;
+        color: #8B5CF6;
+        margin-bottom: 30px;
+    }
+    .pricing-box {
+        background: #1A1A1A;
+        padding: 30px;
+        border-radius: 8px;
+        /* border: 1px solid #444; */
+        color: white;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    input[type="text"], input[type="tel"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #222;
+      color: white;
+      box-sizing: border-box;
+    }
+    input:disabled {
+      background: #333;
+      color: #aaa;
+    }
+    input[type="file"] {
+      padding: 8px 0;
+    }
+    #logo-preview {
+      max-width: 150px;
+      max-height: auto;
+      margin-top: 15px;
+      border-radius: 8px;
+      border: 2px dashed #555;
+      display: block;
+    }
+    #update-btn {
+      margin-top: 30px;
+      padding: 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+    #update-btn:hover {
+      background: #218838;
+    }
+    #message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Company Profile</h2>
+
+    <div class="pricing-box">
+      <div class="input-group">
+        <label for="companyName">Company Name</label>
+        <input type="text" id="companyName" />
+      </div>
+      <div class="input-group">
+        <label for="nzbn">NZBN</label>
+        <input type="text" id="nzbn" placeholder="e.g. 90233829" />
+      </div>
+      <div class="input-group">
+        <label for="address">Company Address</label>
+        <input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" />
+      </div>
+      <div class="input-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" placeholder="021 123 4567" />
+      </div>
+      <div class="input-group">
+        <label for="gstNumber">GST Number</label>
+        <input type="text" id="gstNumber" placeholder="123-456-789" />
+      </div>
+      <div class="input-group">
+        <label>Email (cannot be changed)</label>
+        <input type="text" id="email" disabled />
+      </div>
+      <div class="input-group">
+        <label for="logo">Company Logo</label>
+        <input type="file" id="logo" accept="image/*" />
+        <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
+      </div>
+
+      <button id="update-btn">Update Profile</button>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const els = {
+      companyName: document.getElementById('companyName'),
+      nzbn: document.getElementById('nzbn'),
+      address: document.getElementById('address'),
+      phone: document.getElementById('phone'),
+      gstNumber: document.getElementById('gstNumber'),
+      email: document.getElementById('email'),
+      logoInput: document.getElementById('logo'),
+      logoPreview: document.getElementById('logo-preview'),
+      message: document.getElementById('message')
+    };
+
+    function showMessage(text, type = 'success') {
+      els.message.textContent = text;
+      els.message.className = type;
+    }
+
+    async function loadProfile(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const { profile } = await res.json();
+
+        els.companyName.value = profile.companyName || '';
+        els.nzbn.value = profile.nzbn || '';
+        els.address.value = profile.address || '';
+        els.phone.value = profile.phone || '';
+        els.gstNumber.value = profile.gstNumber || '';
+        els.email.value = profile.email || '';
+
+        if (profile.logoUrl) {
+          els.logoPreview.src = profile.logoUrl;
+          els.logoPreview.style.display = 'block';
+        }
+      } catch (e) {
+        showMessage('Failed to load profile: ' + e.message, 'error');
+      }
+    }
+
+    document.getElementById('update-btn').addEventListener('click', async () => {
+      if (!auth.currentUser) return showMessage('Not logged in', 'error');
+
+      const token = await auth.currentUser.getIdToken();  // ← only one declaration
+
+      let logoUrl = els.logoPreview.src;  // ← change to let so we can reassign
+
+      // Handle new logo upload
+      const file = els.logoInput.files[0];
+      if (file) {
+        showMessage('Uploading logo...', 'info');
+
+        // ← REMOVE this line: const token = await auth.currentUser.getIdToken();
+        // We already have token from above
+
+        const res = await fetch(`${WORKER_URL}/api/r2/logo`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': file.type || 'image/jpeg'
+          },
+          body: file
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Upload failed');
+        }
+
+        const { logoUrl: newLogoUrl } = await res.json();  // ← rename to avoid confusion
+
+        els.logoPreview.src = newLogoUrl + '?t=' + Date.now();
+        els.logoPreview.style.display = 'block';
+
+        logoUrl = newLogoUrl;  // ← now allowed because it's let
+      }
+
+      // Save profile
+      const profile = {
+        companyName: els.companyName.value.trim(),
+        nzbn: els.nzbn.value.trim(),
+        address: els.address.value.trim(),
+        phone: els.phone.value.trim(),
+        gstNumber: els.gstNumber.value.trim(),
+        email: els.email.value,
+        logoUrl,  // ← updated if new logo uploaded
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(profile)
+        });
+
+        if (res.ok) {
+          showMessage('Profile updated successfully!', 'success');
+        } else {
+          throw new Error(await res.text());
+        }
+      } catch (e) {
+        showMessage('Failed to save profile: ' + e.message, 'error');
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        await loadProfile(token);
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>
