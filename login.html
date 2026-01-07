@@ -88,57 +88,44 @@
       line-height: 1.4;
     }
     .success { background: #e8f5e9; color: #1b5e20; }
-    .error   { background: #ffebee; color: #b71c1c; }
-    .info    { background: #e3f2fd; color: #0d47a1; }
-    .hidden  { display: none !important; }
+    .error { background: #ffebee; color: #b71c1c; }
+    .info { background: #e3f2fd; color: #0d47a1; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h1>Sign In / Sign Up</h1>
-
     <div class="form-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
     </div>
-
     <div class="form-group">
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
     </div>
-
     <div class="buttons">
       <button id="btnSignUp">Create Account</button>
       <button id="btnSignIn">Sign In</button>
       <button id="btnSignOut" class="hidden">Sign Out</button>
     </div>
-
     <div id="message" class="info">Enter your email and password to continue</div>
   </div>
+  <button id="btnTestApi" style="background:#4caf50; color:white; margin:20px auto; display:block; padding:12px 24px; border:none; border-radius:6px; cursor:pointer;">Test Protected API</button>
 
-  <button id="btnTestApi" style="background:#4caf50; color:white; margin-top:10px;">Test Protected API</button>
-
-  <!-- Firebase SDK -->
   <script type="module">
-    // ───────────────────────────────────────────────────────────────
-    //   Your Firebase configuration (from your message)
-    // ───────────────────────────────────────────────────────────────
     const firebaseConfig = {
-      apiKey:            "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
-      authDomain:        "deep-edge-cc5bd.firebaseapp.com",
-      projectId:         "deep-edge-cc5bd",
-      storageBucket:     "deep-edge-cc5bd.firebasestorage.app",
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
       messagingSenderId: "23198790796",
-      appId:             "1:23198790796:web:616de764b8a8db2ae1f7a9",
-      measurementId:     "G-GLYGPCHRXM"
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
     };
 
-    // ───────────────────────────────────────────────────────────────
-    //   Firebase imports (using the latest stable version as of late 2025)
-    // ───────────────────────────────────────────────────────────────
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAnalytics }        from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
     import {
       getAuth,
       createUserWithEmailAndPassword,
@@ -147,38 +134,77 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
 
-    // DOM elements
-    const emailEl     = document.getElementById('email');
-    const passwordEl  = document.getElementById('password');
-    const msgEl       = document.getElementById('message');
-    const btnSignUp   = document.getElementById('btnSignUp');
-    const btnSignIn   = document.getElementById('btnSignIn');
-    const btnSignOut  = document.getElementById('btnSignOut');
+    const emailEl = document.getElementById('email');
+    const passwordEl = document.getElementById('password');
+    const msgEl = document.getElementById('message');
+    const btnSignUp = document.getElementById('btnSignUp');
+    const btnSignIn = document.getElementById('btnSignIn');
+    const btnSignOut = document.getElementById('btnSignOut');
 
-    // Show message helper
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev"; // your live worker
+
     function showMessage(text, type = 'info') {
-      msgEl.textContent = text;
-      msgEl.className = type;           // info, success, error
+      msgEl.innerHTML = text;
+      msgEl.className = type;
+    }
+
+    // Default profile to create on first login/signup
+    const defaultProfile = {
+      companyName: "My Lawn Business",
+      nzbn: "",
+      address: "",
+      phone: "",
+      email: "",
+      createdAt: new Date().toISOString()
+    };
+
+    // Create or ensure profile exists in KV
+    async function ensureUserProfile(user) {
+      const token = await user.getIdToken();
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Profile loaded:", data.profile);
+          return data.profile;
+        }
+      } catch (e) {
+        console.log("No profile yet — creating default");
+      }
+
+      // Create default
+      try {
+        await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(defaultProfile)
+        });
+        console.log("Default profile created in USERS_KV");
+      } catch (e) {
+        console.error("Failed to create profile:", e);
+      }
     }
 
     // Sign Up
     btnSignUp.addEventListener('click', async () => {
       const email = emailEl.value.trim();
-      const pass  = passwordEl.value;
-
-      if (!email || !pass) {
-        showMessage("Please enter email and password", "error");
-        return;
-      }
+      const pass = passwordEl.value;
+      if (!email || !pass) return showMessage("Please enter email and password", "error");
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        showMessage(`Account created! Welcome ${userCredential.user.email}`, "success");
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        showMessage(`Account created! Setting up your profile...`, "success");
+        await ensureUserProfile(cred.user);
       } catch (error) {
         showMessage(error.message || "Sign-up failed", "error");
       }
@@ -187,16 +213,13 @@
     // Sign In
     btnSignIn.addEventListener('click', async () => {
       const email = emailEl.value.trim();
-      const pass  = passwordEl.value;
-
-      if (!email || !pass) {
-        showMessage("Please enter email and password", "error");
-        return;
-      }
+      const pass = passwordEl.value;
+      if (!email || !pass) return showMessage("Please enter email and password", "error");
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-        showMessage(`Signed in as ${userCredential.user.email}`, "success");
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        showMessage(`Signed in! Loading profile...`, "success");
+        await ensureUserProfile(cred.user);
       } catch (error) {
         showMessage(error.message || "Sign-in failed", "error");
       }
@@ -204,110 +227,40 @@
 
     // Sign Out
     btnSignOut.addEventListener('click', async () => {
-      try {
-        await signOut(auth);
-        // UI will update via onAuthStateChanged
-      } catch (error) {
-        showMessage("Sign-out failed", "error");
-      }
+      await signOut(auth);
     });
 
-    // Listen to authentication state changes (this drives the UI)
+    // Auth state listener
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in
-        showMessage(`Logging in as ${user.email || user.uid}...`, "info");
+        btnSignOut.classList.remove('hidden');
+        btnSignIn.classList.add('hidden');
+        btnSignUp.classList.add('hidden');
+        emailEl.disabled = true;
+        passwordEl.disabled = true;
 
-        try {
-          const token = await user.getIdToken(true);
-          const response = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/protected', {  // change to live URL later
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (!response.ok) {
-            const err = await response.text();
-            showMessage(`Backend check failed: ${err}`, "error");
-            return;
-          }
-
-          const data = await response.json();
-          showMessage(
-            `Welcome back, ${data.user.email}! ` +
-            `You're authenticated. ` +
-            (data.message || 'Protected API says hi.') +
-            `<br><small>UID: ${data.user.uid}</small>`,
-            "success"
-          );
-
-          // Hide sign-in form, show logged-in UI
-          btnSignOut.classList.remove('hidden');
-          btnSignIn.classList.add('hidden');
-          btnSignUp.classList.add('hidden');
-          emailEl.disabled = true;
-          passwordEl.disabled = true;
-
-          // Optional: show a dashboard section here later
-        } catch (err) {
-          showMessage(`Login failed: ${err.message}`, "error");
-        }
+        showMessage(`Welcome ${user.email}! Profile ready.`, "success");
+        await ensureUserProfile(user); // ensure on every login
       } else {
-        // Signed out
         showMessage("Not logged in — sign in or create an account", "info");
         btnSignOut.classList.add('hidden');
         btnSignIn.classList.remove('hidden');
         btnSignUp.classList.remove('hidden');
         emailEl.disabled = false;
         passwordEl.disabled = false;
-        emailEl.value = '';
-        passwordEl.value = '';
       }
     });
 
-    // Test protected endpoint button
+    // Test API button
     document.getElementById('btnTestApi')?.addEventListener('click', async () => {
-      if (!auth.currentUser) {
-        showMessage("You must be signed in first!", "error");
-        return;
-      }
-
-      showMessage("Testing protected API...", "info");
-
-      try {
-        const token = await auth.currentUser.getIdToken(true);
-        const response = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/protected', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          showMessage(`Error ${response.status}: ${errText}`, "error");
-          console.error("API error:", errText);
-          return;
-        }
-
-        const data = await response.json();
-        showMessage(`Success! ${JSON.stringify(data, null, 2)}`, "success");
-        console.log("Protected API response:", data);
-      } catch (err) {
-        showMessage(`Test failed: ${err.message}`, "error");
-        console.error("Test failed:", err);
-      }
-    });
-
-    // Debug: log signed-in status on every page load / auth change
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Signed in as:", user.email, "UID:", user.uid);
-        console.log("Current token (first 50 chars):", user.getIdToken().then(t => t.substring(0, 50) + "..."));
-      } else {
-        console.log("Not signed in");
-      }
+      if (!auth.currentUser) return showMessage("Sign in first!", "error");
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${WORKER_URL}/api/protected`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      showMessage(res.ok ? `API Success: ${JSON.stringify(data)}` : `Error: ${JSON.stringify(data)}`, res.ok ? "success" : "error");
     });
   </script>
-
 </body>
-
 </html>
