@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Quotes • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #1A1A1A;
+      color: #e5e5e5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #222;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+    h1 {
+      text-align: center;
+      color: #8B5CF6;
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+    .quote-list {
+      display: grid;
+      gap: 20px;
+    }
+    .quote-card {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #444;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .quote-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+    }
+    .quote-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .quote-address {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #a78bfa;
+    }
+    .quote-date {
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+    .quote-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+      font-size: 1rem;
+    }
+    .detail-label {
+      color: #d1d5db;
+      font-weight: 600;
+    }
+    .detail-value {
+      color: #28a745;
+      font-weight: bold;
+    }
+    .quote-actions {
+      margin-top: 16px;
+      text-align: right;
+    }
+    .quote-link-btn {
+      display: inline-block;
+      background: #513690;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .quote-link-btn:hover {
+      background: #412e75;
+    }
+    .no-quotes {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+      font-size: 1.2rem;
+    }
+  </style>
+  <script src="header.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Quotes</h1>
+
+    <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">
+      Loading your quotes...
+    </div>
+
+    <div id="quote-list" class="quote-list hidden"></div>
+
+    <div id="no-quotes" class="no-quotes hidden">
+      You haven't created any quotes yet.<br><br>
+      Go to the <a href="index_WebMercatorQuad.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a> to generate one!
+    </div>
+
+    <div id="error" class="error hidden" style="text-align:center; margin-top:30px;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const quoteListEl = document.getElementById('quote-list');
+    const loadingEl = document.getElementById('loading');
+    const noQuotesEl = document.getElementById('no-quotes');
+    const errorEl = document.getElementById('error');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${WORKER_URL}/api/quotes`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Failed to load quotes');
+
+        const { quotes } = await res.json();
+
+        loadingEl.classList.add('hidden');
+
+        if (!quotes || quotes.length === 0) {
+          noQuotesEl.classList.remove('hidden');
+          return;
+        }
+
+        quoteListEl.innerHTML = quotes.map(quote => {
+          const date = new Date(quote.createdAt).toLocaleDateString('en-NZ', {
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+
+          const publicLink = `${window.location.origin}/quote.html?quote=${quote.id}`;
+
+          return `
+            <div class="quote-card">
+              <div class="quote-header">
+                <div class="quote-address">${quote.data.address || 'Unknown Address'}</div>
+                <div class="quote-date">${date}</div>
+              </div>
+              <div class="quote-details">
+                <div><span class="detail-label">Lawn Area:</span> <span class="detail-value">${quote.data.lawnAreaM2.toLocaleString()} m²</span></div>
+                <div><span class="detail-label">Total (incl GST):</span> <span class="detail-value">$${(quote.data.lawnAreaM2 * quote.data.ratePerM2 + quote.data.calloutFee * 1.15).toFixed(2)}</span></div>
+                <div><span class="detail-label">Rate/m²:</span> <span class="detail-value">$${quote.data.ratePerM2.toFixed(2)}</span></div>
+                <div><span class="detail-label">Callout:</span> <span class="detail-value">$${quote.data.calloutFee}</span></div>
+              </div>
+              <div class="quote-actions">
+                <a href="${publicLink}" target="_blank" class="quote-link-btn">Open Quote →</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        quoteListEl.classList.remove('hidden');
+
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        errorEl.textContent = 'Error loading quotes: ' + err.message;
+        errorEl.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

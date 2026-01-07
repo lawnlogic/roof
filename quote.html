@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lawn Care Quote</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* Make Leaflet.Draw edit vertices round circles (kept in case any appear) */
+    .leaflet-editing-icon {
+      border-radius: 50% !important;
+      background-color: #ff4444 !important;
+      border: 2px solid white !important;
+      width: 12px !important;
+      height: 12px !important;
+      margin-left: -6px !important;
+      margin-top: -6px !important;
+    }
+    .pricing-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: #1A1A1A;
+      border-radius: 8px;
+      border: 1px solid #444;
+      color: white;
+    }
+    .pricing-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 17px;
+    }
+    .pricing-row strong {
+      font-size: 19px;
+      color: #28a745;
+    }
+    .summary-box {
+      margin-top: 25px;
+      padding: 18px;
+      background: #222;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .summary-row.total {
+      font-weight: bold;
+      font-size: 19px;
+      border-top: 2px solid #28a745;
+      padding-top: 12px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Lawn Care Quote</h2>
+
+    <!-- map -->
+    <div id="aerial-container" style="margin-top: 40px;">
+      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
+      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+    </div>
+
+    <!-- Professional Job Summary Box (read-only) -->
+    <div id="pricing-box" class="pricing-box">
+      <div class="pricing-row">
+        <span>Property Address:</span>
+        <strong id="address-display"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Lawn Area:</span>
+        <strong id="final-area"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Mowing Revenue (ex GST):</span>
+        <strong id="mowing-revenue"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Total Revenue (ex GST):</span>
+        <strong id="total-revenue"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>GST (15%):</span>
+        <strong id="gst"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>TOTAL (incl GST):</span>
+        <strong id="total-incl"></strong>
+      </div>
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Estimated Cost (time × hourly):</span>
+          <strong id="est-cost"></strong>
+        </div>
+        <div class="summary-row">
+          <span>Estimated Profit (ex GST):</span>
+          <strong id="est-profit"></strong>
+        </div>
+        <div class="summary-row total">
+          <span>Profit per Hour:</span>
+          <strong id="profit-hour"></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    // Optional: Firebase init if you want auth later (not needed for public quotes)
+    // But keep if you plan to add "edit" features later
+
+    // Get quote ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const quoteId = urlParams.get('quote');
+
+    if (!quoteId) {
+      document.body.innerHTML = '<div class="container"><h2>Invalid or missing quote ID</h2></div>';
+    } else {
+      // Fetch public quote
+      fetch(`${WORKER_URL}/api/public/quote/${quoteId}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Quote not found or expired');
+          return res.json();
+        })
+        .then(quoteData => {
+          // Your existing code to populate the page
+          document.getElementById('address-display').textContent = quoteData.address;
+          document.getElementById('final-area').textContent = quoteData.lawnAreaM2.toLocaleString() + ' m²';
+
+          const mowingRevenue = quoteData.lawnAreaM2 * quoteData.ratePerM2;
+          const totalEx = mowingRevenue + quoteData.calloutFee;
+          const gst = totalEx * 0.15;
+          const totalIncl = totalEx + gst;
+          const estCost = quoteData.estimatedHours * quoteData.hourlyCost;
+          const estProfit = totalEx - estCost;
+          const profitPerHour = quoteData.estimatedHours > 0 ? estProfit / quoteData.estimatedHours : 0;
+
+          document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
+          document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
+          document.getElementById('gst').textContent = '$' + gst.toFixed(2);
+          document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+          document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
+          document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
+          document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
+
+          // Map setup
+          const map = L.map('aerial-map').setView([quoteData.mapState.center.lat, quoteData.mapState.center.lng], quoteData.mapState.zoom);
+
+          const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+
+          L.tileLayer(LINZ_AERIAL_URL, {
+            attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+            maxZoom: 24,
+            tileSize: 256,
+            zoomOffset: 0,
+            noWrap: true
+          }).addTo(map);
+
+          // Parcel
+          if (quoteData.mapState.parcelGeometry) {
+            L.geoJSON(quoteData.mapState.parcelGeometry, {
+              style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+            }).addTo(map);
+          }
+
+          // Buildings
+          if (quoteData.mapState.buildingsGeoJSON) {
+            L.geoJSON(quoteData.mapState.buildingsGeoJSON, {
+              style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
+            }).addTo(map);
+          }
+
+          // Negative areas (excluded)
+          if (quoteData.mapState.negativeGeoJSON && quoteData.mapState.negativeGeoJSON.features.length > 0) {
+            L.geoJSON(quoteData.mapState.negativeGeoJSON, {
+              style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
+            }).addTo(map);
+          }
+
+          // Fit map to parcel
+          if (quoteData.mapState.parcelGeometry) {
+            const layer = L.geoJSON(quoteData.mapState.parcelGeometry);
+            map.fitBounds(layer.getBounds().pad(0.2));
+          }
+        })
+        .catch(err => {
+          document.body.innerHTML = `<div class="container"><h2>Error loading quote</h2><p>${err.message}</p></div>`;
+        });
+    }
+  </script>
+</body>
+</html>

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lawn Area Calculator</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+  
   <!-- Leaflet + Draw -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
@@ -109,9 +111,10 @@
   </style>
 </head>
 <body>
+
   <div class="container">
     <h2>Lawn Area Calculator</h2>
-    
+
     <div class="input-group">
       <label for="address">NZ Address:</label>
       <input type="text" id="address" placeholder="687 Hillsborough Road, Mount Roskill, Auckland" />
@@ -202,7 +205,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev/api/building-area";
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
     const resultDiv = document.getElementById('result');
@@ -227,6 +230,12 @@
 
     // Current LINZ Aerial Imagery URL (replace with your own API key)
     const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+
+    function showMessage(text, type = 'success') {
+      // Simple toast or update UI
+      console.log(`${type.toUpperCase()}: ${text}`);
+      // You can add a real toast here later
+    }
 
     function showAerialMap(data) {
       currentData = data;
@@ -461,7 +470,7 @@
         if (auth.currentUser) {
           token = await auth.currentUser.getIdToken(true);
         }
-        const response = await fetch(`${WORKER_URL}?address=${encodeURIComponent(address)}`, {
+        const response = await fetch(`${WORKER_URL}/api/building-area?address=${encodeURIComponent(address)}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -503,14 +512,23 @@
       errorDiv.classList.add('hidden');
       errorDiv.textContent = '';
     }
+
     // Quote Link Generation
-    document.getElementById('generate-pdf-btn').addEventListener('click', () => {
+    document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
       if (!currentData || currentLawnArea === 0) {
         alert('Please load an address and measure the lawn area first.');
         return;
       }
-      const quoteId = Math.random().toString(36).substring(2, 10);
+
+      if (!auth.currentUser) {
+        alert('Please sign in to save quotes');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const token = await auth.currentUser.getIdToken();
       const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
+
       const quoteData = {
         address: addressDisplay.textContent,
         lawnAreaM2: currentLawnArea,
@@ -526,11 +544,34 @@
           negativeGeoJSON: negativeGeoJSON
         }
       };
-      localStorage.setItem(`quote_${quoteId}`, JSON.stringify(quoteData));
-      const link = `${window.location.origin}/quote.html?quote=${quoteId}`;
-      document.getElementById('quote-link').href = link;
-      document.getElementById('quote-link').textContent = link;
-      document.getElementById('quote-link-box').classList.remove('hidden');
+
+      try {
+        showMessage('Saving quote...', 'info'); // Use your existing showMessage if available
+
+        const res = await fetch(`${WORKER_URL}/api/quotes`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(quoteData)
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const { quoteId } = await res.json();
+        const publicLink = `${window.location.origin}/quote.html?quote=${quoteId}`;
+
+        document.getElementById('quote-link').href = publicLink;
+        document.getElementById('quote-link').textContent = publicLink;
+        document.getElementById('quote-link-box').classList.remove('hidden');
+
+        showMessage('Quote saved and link ready!', 'success');
+
+      } catch (err) {
+        console.error('Quote save failed:', err);
+        alert('Failed to save quote: ' + err.message);
+      }
     });
   </script>
 </body>

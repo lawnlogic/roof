@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>Sign In / Sign Up • Deep Edge</title>
   <style>
     body {
@@ -21,10 +22,10 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     h1 {
-      text-align: center;
-      margin-bottom: 1.8rem;
-      font-size: 1.8rem;
-      color: #1a1a1a;
+        text-align: center;
+        margin-bottom: 1.8rem;
+        font-size: 1.8rem;
+        color: #8B5CF6;
     }
     .form-group {
       margin-bottom: 1.4rem;
@@ -64,21 +65,10 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    #btnSignUp {
-      background: #6200ea;
-      color: white;
-    }
-    #btnSignIn {
-      background: #304ffe;
-      color: white;
-    }
-    #btnSignOut {
-      background: #d81b60;
-      color: white;
-    }
-    button:hover {
-      filter: brightness(1.08);
-    }
+    #btnSignUp { background: #6200ea; color: white; }
+    #btnSignIn { background: #304ffe; color: white; }
+    #btnSignOut { background: #d81b60; color: white; }
+    button:hover { filter: brightness(1.08); }
     #message {
       min-height: 1.4em;
       margin-top: 1rem;
@@ -92,7 +82,10 @@
     .info { background: #e3f2fd; color: #0d47a1; }
     .hidden { display: none !important; }
   </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
 </head>
+
 <body>
   <div class="container">
     <h1>Sign In / Sign Up</h1>
@@ -111,7 +104,6 @@
     </div>
     <div id="message" class="info">Enter your email and password to continue</div>
   </div>
-  <button id="btnTestApi" style="background:#4caf50; color:white; margin:20px auto; display:block; padding:12px 24px; border:none; border-radius:6px; cursor:pointer;">Test Protected API</button>
 
   <script type="module">
     const firebaseConfig = {
@@ -125,7 +117,6 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
     import {
       getAuth,
       createUserWithEmailAndPassword,
@@ -135,7 +126,6 @@
     } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const auth = getAuth(app);
 
     const emailEl = document.getElementById('email');
@@ -145,53 +135,53 @@
     const btnSignIn = document.getElementById('btnSignIn');
     const btnSignOut = document.getElementById('btnSignOut');
 
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev"; // your live worker
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
     function showMessage(text, type = 'info') {
       msgEl.innerHTML = text;
       msgEl.className = type;
     }
 
-    // Default profile to create on first login/signup
+    // Default profile created on sign-up
     const defaultProfile = {
       companyName: "My Lawn Business",
       nzbn: "",
       address: "",
       phone: "",
       email: "",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    // Create or ensure profile exists in KV
-    async function ensureUserProfile(user) {
+    // Create user profile in USERS_KV after sign-up
+    async function createUserProfile(user) {
       const token = await user.getIdToken();
+      const profile = {
+        ...defaultProfile,
+        email: user.email || "",
+        uid: user.uid
+      };
+
       try {
         const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Profile loaded:", data.profile);
-          return data.profile;
-        }
-      } catch (e) {
-        console.log("No profile yet — creating default");
-      }
-
-      // Create default
-      try {
-        await fetch(`${WORKER_URL}/api/user/profile`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(defaultProfile)
+          body: JSON.stringify(profile)
         });
-        console.log("Default profile created in USERS_KV");
+
+        if (res.ok) {
+          showMessage("Account created and profile saved!", "success");
+          console.log("User profile created in USERS_KV:", profile);
+        } else {
+          const err = await res.json();
+          showMessage(`Profile save failed: ${err.error || 'Unknown'}`, "error");
+        }
       } catch (e) {
-        console.error("Failed to create profile:", e);
+        showMessage("Network error saving profile", "error");
+        console.error("Profile save error:", e);
       }
     }
 
@@ -199,12 +189,12 @@
     btnSignUp.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-      if (!email || !pass) return showMessage("Please enter email and password", "error");
+      if (!email || !pass) return showMessage("Enter email and password", "error");
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        showMessage(`Account created! Setting up your profile...`, "success");
-        await ensureUserProfile(cred.user);
+        showMessage("Creating your account profile...", "info");
+        await createUserProfile(cred.user);
       } catch (error) {
         showMessage(error.message || "Sign-up failed", "error");
       }
@@ -214,12 +204,11 @@
     btnSignIn.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-      if (!email || !pass) return showMessage("Please enter email and password", "error");
+      if (!email || !pass) return showMessage("Enter email and password", "error");
 
       try {
-        const cred = await signInWithEmailAndPassword(auth, email, pass);
-        showMessage(`Signed in! Loading profile...`, "success");
-        await ensureUserProfile(cred.user);
+        await signInWithEmailAndPassword(auth, email, pass);
+        showMessage("Signed in successfully!", "success");
       } catch (error) {
         showMessage(error.message || "Sign-in failed", "error");
       }
@@ -230,36 +219,23 @@
       await signOut(auth);
     });
 
-    // Auth state listener
-    onAuthStateChanged(auth, async (user) => {
+    // Auth state
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         btnSignOut.classList.remove('hidden');
         btnSignIn.classList.add('hidden');
         btnSignUp.classList.add('hidden');
         emailEl.disabled = true;
         passwordEl.disabled = true;
-
-        showMessage(`Welcome ${user.email}! Profile ready.`, "success");
-        await ensureUserProfile(user); // ensure on every login
+        showMessage(`Welcome ${user.email || 'User'}!`, "success");
       } else {
-        showMessage("Not logged in — sign in or create an account", "info");
+        showMessage("Sign in or create an account", "info");
         btnSignOut.classList.add('hidden');
         btnSignIn.classList.remove('hidden');
         btnSignUp.classList.remove('hidden');
         emailEl.disabled = false;
         passwordEl.disabled = false;
       }
-    });
-
-    // Test API button
-    document.getElementById('btnTestApi')?.addEventListener('click', async () => {
-      if (!auth.currentUser) return showMessage("Sign in first!", "error");
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${WORKER_URL}/api/protected`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      showMessage(res.ok ? `API Success: ${JSON.stringify(data)}` : `Error: ${JSON.stringify(data)}`, res.ok ? "success" : "error");
     });
   </script>
 </body>
