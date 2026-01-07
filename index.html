@@ -6,7 +6,7 @@
   <title>Lawn Area Calculator</title>
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
-  
+
   <!-- Leaflet + Draw -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
@@ -14,8 +14,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <!-- Turf.js -->
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
   <style>
-    /* Make Leaflet.Draw edit vertices round circles */
     .leaflet-editing-icon {
       border-radius: 50% !important;
       background-color: #ff4444 !important;
@@ -60,6 +60,61 @@
       border-radius: 4px;
       background: #222;
       color: white;
+    }
+    .slider-container {
+      margin: 20px 0;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #333;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #8B5CF6;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      font-size: 16px;
+    }
+    .collapsible-header {
+      background: #2a2a2a;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 20px 0 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .collapsible-content {
+      display: none;
+      padding: 20px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .collapsible-content.open {
+      display: block;
     }
     .summary-box {
       margin-top: 25px;
@@ -111,15 +166,12 @@
   </style>
 </head>
 <body>
-
   <div class="container">
     <h2>Lawn Area Calculator</h2>
-
     <div class="input-group">
       <label for="address">NZ Address:</label>
       <input type="text" id="address" placeholder="687 Hillsborough Road, Mount Roskill, Auckland" />
     </div>
-
     <button id="lookup-btn">Calculate Lawn Area</button>
     <div id="result" class="result hidden">
       <div id="address-display"></div>
@@ -142,6 +194,22 @@
         <label for="callout-input">Call-out / Travel Fee (ex GST):</label>
         <input type="number" id="callout-input" value="80" step="10" min="0" />
       </div>
+
+      <!-- Difficulty Multiplier -->
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Job Difficulty Multiplier</span>
+          <span id="difficulty-value">1.0x</span>
+        </div>
+        <input type="range" id="difficulty-slider" min="1.0" max="2.0" step="0.1" value="1.0" />
+      </div>
+
+      <!-- Catch & Mulch -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="catch-mulch" />
+        <label for="catch-mulch">Catch & Mulch Service (+$40 ex GST)</label>
+      </div>
+
       <div class="input-group">
         <label for="estimated-hours">Estimated Time (hours):</label>
         <input type="number" id="estimated-hours" value="1.0" step="0.25" min="0.25" />
@@ -150,6 +218,30 @@
         <label for="hourly-rate">Your Hourly Cost (fuel, labour, etc.):</label>
         <input type="number" id="hourly-rate" value="50" step="5" min="0" />
       </div>
+
+      <!-- Collapsible Client Details -->
+      <div class="collapsible-header" id="client-toggle">
+        Client Details (optional) <span>▼</span>
+      </div>
+      <div class="collapsible-content" id="client-form">
+        <div class="input-group">
+          <label for="client-first">First Name</label>
+          <input type="text" id="client-first" placeholder="John" />
+        </div>
+        <div class="input-group">
+          <label for="client-last">Last Name</label>
+          <input type="text" id="client-last" placeholder="Doe" />
+        </div>
+        <div class="input-group">
+          <label for="client-email">Email</label>
+          <input type="email" id="client-email" placeholder="john@example.com" />
+        </div>
+        <div class="input-group">
+          <label for="client-phone">Phone</label>
+          <input type="tel" id="client-phone" placeholder="021 123 4567" />
+        </div>
+      </div>
+
       <div class="pricing-row">
         <span>Lawn Area:</span>
         <span id="final-area">0 m²</span>
@@ -191,6 +283,7 @@
       </div>
     </div>
   </div>
+
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -201,11 +294,13 @@
       appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
       measurementId: "G-GLYGPCHRXM"
     };
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
     const resultDiv = document.getElementById('result');
@@ -216,8 +311,18 @@
     const aerialContainer = document.getElementById('aerial-container');
     const pricingBox = document.getElementById('pricing-box');
     const rateInput = document.getElementById('rate-input');
+    const calloutInput = document.getElementById('callout-input');
+    const estimatedHoursInput = document.getElementById('estimated-hours');
+    const hourlyRateInput = document.getElementById('hourly-rate');
     const finalAreaDisplay = document.getElementById('final-area');
-    const jobCostDisplay = document.getElementById('job-cost');
+
+    // New elements
+    const difficultySlider = document.getElementById('difficulty-slider');
+    const difficultyValue = document.getElementById('difficulty-value');
+    const catchMulchCheckbox = document.getElementById('catch-mulch');
+    const clientToggle = document.getElementById('client-toggle');
+    const clientForm = document.getElementById('client-form');
+
     let map = null;
     let parcelLayer = null;
     let clippedBuildingsLayer = null;
@@ -228,13 +333,188 @@
     let currentLawnArea = 0;
     let currentData = null;
 
-    // Current LINZ Aerial Imagery URL (replace with your own API key)
     const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
 
-    function showMessage(text, type = 'success') {
-      // Simple toast or update UI
-      console.log(`${type.toUpperCase()}: ${text}`);
-      // You can add a real toast here later
+    // Client form toggle
+    clientToggle.addEventListener('click', () => {
+      clientForm.classList.toggle('open');
+      clientToggle.querySelector('span').textContent = clientForm.classList.contains('open') ? '▲' : '▼';
+    });
+
+    // Difficulty slider display
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+    });
+
+    catchMulchCheckbox.addEventListener('change', updateLawnArea);
+
+    // === Load and save quoteSettings from user profile ===
+    async function loadQuoteSettings(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const { profile } = await res.json();
+          if (profile.quoteSettings) {
+            const s = profile.quoteSettings;
+            rateInput.value = s.ratePerM2 || 0.20;
+            calloutInput.value = s.calloutFee || 80;
+            estimatedHoursInput.value = s.estimatedHours || 1.0;
+            hourlyRateInput.value = s.hourlyCost || 50;
+            difficultySlider.value = s.difficultyMultiplier || 1.0;
+            difficultyValue.textContent = difficultySlider.value + 'x';
+            catchMulchCheckbox.checked = s.catchAndMulch || false;
+            updateLawnArea();
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load quote settings', e);
+      }
+    }
+
+    async function saveQuoteSettings(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const { profile } = await res.json();
+
+        profile.quoteSettings = {
+          ratePerM2: parseFloat(rateInput.value) || 0.20,
+          calloutFee: parseFloat(calloutInput.value) || 80,
+          estimatedHours: parseFloat(estimatedHoursInput.value) || 1.0,
+          hourlyCost: parseFloat(hourlyRateInput.value) || 50,
+          difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0,
+          catchAndMulch: catchMulchCheckbox.checked
+        };
+        profile.updatedAt = new Date().toISOString();
+
+        await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(profile)
+        });
+      } catch (e) {
+        console.warn('Could not save quote settings', e);
+      }
+    }
+
+    // Save settings on change (debounced)
+    let saveTimeout;
+    function scheduleSave(token) {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => saveQuoteSettings(token), 1000);
+    }
+
+    // Attach save listeners
+    [rateInput, calloutInput, estimatedHoursInput, hourlyRateInput].forEach(input => {
+      input.addEventListener('input', () => {
+        updateLawnArea();
+        if (auth.currentUser) {
+          auth.currentUser.getIdToken().then(scheduleSave);
+        }
+      });
+    });
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
+    catchMulchCheckbox.addEventListener('change', () => {
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
+
+    // Load settings when user is authenticated
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        await loadQuoteSettings(token);
+      }
+    });
+
+    function updateLawnArea() {
+      console.log("=== Negative Layer Debug ===");
+      const negativePolys = [];
+      let individualAreas = [];
+      let polygonCount = 0;
+
+      if (negativeLayer) {
+        negativeLayer.eachLayer(layer => {
+          if (layer.getLatLngs && layer.getLatLngs().length > 0) {
+            const latlngs = layer.getLatLngs()[0];
+            if (Array.isArray(latlngs) && latlngs.length >= 3) {
+              polygonCount++;
+              const area = L.GeometryUtil.geodesicArea(latlngs);
+              individualAreas.push(Math.round(area));
+              const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+              coords.push(coords[0]);
+              negativePolys.push(turf.polygon([coords]));
+              console.log(`Polygon ${polygonCount} area: ${Math.round(area)} m²`);
+            }
+          }
+        });
+      }
+
+      console.log(`Total polygons: ${polygonCount}`);
+      console.log(`Individual areas: ${individualAreas.join(', ')} m²`);
+
+      let negativeArea = 0;
+      if (negativePolys.length > 0) {
+        try {
+          let unioned = negativePolys.reduce((acc, poly) => turf.union(acc, poly));
+          negativeArea = turf.area(unioned);
+          console.log(`Unioned negative area (no overlap): ${Math.round(negativeArea)} m²`);
+        } catch (e) {
+          console.warn('Union failed, using sum', e);
+          individualAreas.forEach(a => negativeArea += a);
+          console.log(`Fallback sum negative area: ${Math.round(negativeArea)} m²`);
+        }
+      }
+
+      currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
+      console.log(`Parcel area: ${parcelAreaM2} m²`);
+      console.log(`Final lawn area: ${currentLawnArea} m²`);
+      console.log("=== End Debug ===\n");
+
+      if (areaOverlay && areaOverlay._div) {
+        areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
+      }
+      areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
+      finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
+
+      const rate = parseFloat(rateInput.value) || 0;
+      const callout = parseFloat(calloutInput.value) || 0;
+      const difficulty = parseFloat(difficultySlider.value) || 1.0;
+      const catchMulchFee = catchMulchCheckbox.checked ? 40 : 0;
+      const hours = parseFloat(estimatedHoursInput.value) || 1;
+      const hourlyCost = parseFloat(hourlyRateInput.value) || 0;
+
+      const baseMowing = currentLawnArea * rate;
+      const adjustedRevenue = (baseMowing * difficulty) + callout + catchMulchFee;
+      const gst = adjustedRevenue * 0.15;
+      const totalIncl = adjustedRevenue + gst;
+      const estCost = hours * hourlyCost;
+      const estProfit = adjustedRevenue - estCost;
+      const profitPerHour = hours > 0 ? estProfit / hours : 0;
+
+      document.getElementById('mowing-revenue').textContent = '$' + baseMowing.toFixed(2);
+      document.getElementById('total-revenue').textContent = '$' + adjustedRevenue.toFixed(2);
+      document.getElementById('gst').textContent = '$' + gst.toFixed(2);
+      document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+      document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
+      document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
+      document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
     }
 
     function showAerialMap(data) {
@@ -247,7 +527,6 @@
       if (map) map.remove();
       map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
 
-      // Use current LINZ basemaps endpoint (no fallback plugin needed — tiles load perfectly)
       L.tileLayer(LINZ_AERIAL_URL, {
         attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
         maxZoom: 24,
@@ -262,6 +541,7 @@
           style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
         }).addTo(map);
       }
+
       if (data.parcel_geometry && data.buildings_geometries && data.buildings_geometries.length > 0) {
         try {
           let parcelPoly;
@@ -307,10 +587,12 @@
           console.warn('Building clipping failed', e);
         }
       }
+
       if (parcelLayer) {
         map.fitBounds(parcelLayer.getBounds().pad(0.2));
       }
       pricingBox.classList.remove('hidden');
+
       const editBtn = L.control({ position: 'topright' });
       editBtn.onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
@@ -333,6 +615,7 @@
       };
       editBtn.addTo(map);
     }
+
     function enableNegativeLayerEditing() {
       if (!map) return;
       if (clippedBuildingsLayer) {
@@ -385,72 +668,11 @@
         return div;
       };
       areaOverlay.addTo(map);
-      function updateLawnArea() {
-        console.log("=== Negative Layer Debug ===");
-        const negativePolys = [];
-        let individualAreas = [];
-        let polygonCount = 0;
-        negativeLayer.eachLayer(layer => {
-          if (layer.getLatLngs && layer.getLatLngs().length > 0) {
-            const latlngs = layer.getLatLngs()[0];
-            if (Array.isArray(latlngs) && latlngs.length >= 3) {
-              polygonCount++;
-              const area = L.GeometryUtil.geodesicArea(latlngs);
-              individualAreas.push(Math.round(area));
-              const coords = latlngs.map(ll => [ll.lng, ll.lat]);
-              coords.push(coords[0]);
-              negativePolys.push(turf.polygon([coords]));
-              console.log(`Polygon ${polygonCount} area: ${Math.round(area)} m²`);
-            }
-          }
-        });
-        console.log(`Total polygons: ${polygonCount}`);
-        console.log(`Individual areas: ${individualAreas.join(', ')} m²`);
-        let negativeArea = 0;
-        if (negativePolys.length > 0) {
-          try {
-            let unioned = negativePolys.reduce((acc, poly) => turf.union(acc, poly));
-            negativeArea = turf.area(unioned);
-            console.log(`Unioned negative area (no overlap): ${Math.round(negativeArea)} m²`);
-          } catch (e) {
-            console.warn('Union failed, using sum', e);
-            individualAreas.forEach(a => negativeArea += a);
-            console.log(`Fallback sum negative area: ${Math.round(negativeArea)} m²`);
-          }
-        }
-        currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
-        console.log(`Parcel area: ${parcelAreaM2} m²`);
-        console.log(`Final lawn area: ${currentLawnArea} m²`);
-        console.log("=== End Debug ===\n");
-        areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
-        areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
-        finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
-        const rate = parseFloat(rateInput.value) || 0;
-        const callout = parseFloat(document.getElementById('callout-input').value) || 0;
-        const hours = parseFloat(document.getElementById('estimated-hours').value) || 1;
-        const hourlyCost = parseFloat(document.getElementById('hourly-rate').value) || 0;
-        const mowingRevenue = currentLawnArea * rate;
-        const totalEx = mowingRevenue + callout;
-        const gst = totalEx * 0.15;
-        const totalIncl = totalEx + gst;
-        const estCost = hours * hourlyCost;
-        const estProfit = totalEx - estCost;
-        const profitPerHour = hours > 0 ? estProfit / hours : 0;
-        document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
-        document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
-        document.getElementById('gst').textContent = '$' + gst.toFixed(2);
-        document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
-        document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
-        document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
-        document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
-      }
+
       map.on('draw:edited draw:deleted draw:created', updateLawnArea);
-      rateInput.addEventListener('input', updateLawnArea);
-      document.getElementById('callout-input').addEventListener('input', updateLawnArea);
-      document.getElementById('estimated-hours').addEventListener('input', updateLawnArea);
-      document.getElementById('hourly-rate').addEventListener('input', updateLawnArea);
       updateLawnArea();
     }
+
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
       if (!address) {
@@ -501,25 +723,27 @@
         btn.classList.remove('loading');
       }
     });
+
     addressInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') btn.click();
     });
+
     function showError(msg) {
       errorDiv.textContent = msg;
       errorDiv.classList.remove('hidden');
     }
+
     function hideError() {
       errorDiv.classList.add('hidden');
       errorDiv.textContent = '';
     }
 
-    // Quote Link Generation
+    // Quote Link Generation - NOW WITH COMPANY PROFILE
     document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
       if (!currentData || currentLawnArea === 0) {
         alert('Please load an address and measure the lawn area first.');
         return;
       }
-
       if (!auth.currentUser) {
         alert('Please sign in to save quotes');
         window.location.href = 'login.html';
@@ -527,6 +751,28 @@
       }
 
       const token = await auth.currentUser.getIdToken();
+
+      // === FETCH USER PROFILE ===
+      let companyProfile = {};
+      try {
+        const profileRes = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const { profile } = await profileRes.json();
+          companyProfile = {
+            companyName: profile.companyName || 'Deep Edge',
+            nzbn: profile.nzbn || '',
+            phone: profile.phone || '',
+            gstNumber: profile.gstNumber || '',
+            email: profile.email || '',
+            logoUrl: profile.logoUrl || ''
+          };
+        }
+      } catch (e) {
+        console.warn('Could not fetch company profile for quote', e);
+      }
+
       const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
 
       const quoteData = {
@@ -534,20 +780,29 @@
         lawnAreaM2: currentLawnArea,
         ratePerM2: parseFloat(rateInput.value) || 0,
         calloutFee: parseFloat(document.getElementById('callout-input').value) || 0,
+        difficultyMultiplier: parseFloat(difficultySlider.value),
+        catchAndMulch: catchMulchCheckbox.checked,
         estimatedHours: parseFloat(document.getElementById('estimated-hours').value) || 1,
         hourlyCost: parseFloat(document.getElementById('hourly-rate').value) || 0,
+        client: {
+          firstName: document.getElementById('client-first').value.trim(),
+          lastName: document.getElementById('client-last').value.trim(),
+          email: document.getElementById('client-email').value.trim(),
+          phone: document.getElementById('client-phone').value.trim()
+        },
+        company: companyProfile, // ← NEW: Full company details from profile
         mapState: {
           center: map.getCenter(),
           zoom: map.getZoom(),
           parcelGeometry: currentData.parcel_geometry,
           buildingsGeoJSON: clippedBuildingsGeoJSON,
           negativeGeoJSON: negativeGeoJSON
-        }
+        },
+        generatedAt: new Date().toISOString()
       };
 
       try {
-        showMessage('Saving quote...', 'info'); // Use your existing showMessage if available
-
+        console.log('Saving quote with company details...', quoteData);
         const res = await fetch(`${WORKER_URL}/api/quotes`, {
           method: 'POST',
           headers: {
@@ -557,17 +812,19 @@
           body: JSON.stringify(quoteData)
         });
 
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || 'Failed to save quote');
+        }
 
         const { quoteId } = await res.json();
-        const publicLink = `${window.location.origin}roof/quote.html?quote=${quoteId}`;
+        const publicLink = `${window.location.origin}/quote.html?quote=${quoteId}`;
 
         document.getElementById('quote-link').href = publicLink;
         document.getElementById('quote-link').textContent = publicLink;
         document.getElementById('quote-link-box').classList.remove('hidden');
 
-        showMessage('Quote saved and link ready!', 'success');
-
+        alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
       } catch (err) {
         console.error('Quote save failed:', err);
         alert('Failed to save quote: ' + err.message);

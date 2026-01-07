@@ -9,7 +9,7 @@
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    /* Make Leaflet.Draw edit vertices round circles (kept in case any appear) */
+    /* Existing styles */
     .leaflet-editing-icon {
       border-radius: 50% !important;
       background-color: #ff4444 !important;
@@ -20,7 +20,7 @@
       margin-top: -6px !important;
     }
     .pricing-box {
-      margin-top: 20px;
+      margin-top: 0;
       padding: 20px;
       background: #1A1A1A;
       border-radius: 8px;
@@ -57,19 +57,120 @@
       padding-top: 12px;
       margin-top: 15px;
     }
+
+    /* Company Info Box */
+    .company-box {
+      margin: 0;
+      padding: 24px;
+      background: #1A1A1A;
+      border-radius: 12px;
+      border: 1px solid #444;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .company-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #222;
+      border: 1px solid #444;
+      flex-shrink: 0;
+    }
+    .company-details h3 {
+      margin: 0 0 12px 0;
+      font-size: 1.6rem;
+      color: #8B5CF6;
+    }
+    .company-details p {
+      margin: 8px 0;
+      font-size: 1.1rem;
+      color: #e5e5e5;
+    }
+    .company-details strong {
+      color: #a78bfa;
+    }
+    @media (max-width: 600px) {
+      .company-box {
+        flex-direction: column;
+        text-align: center;
+      }
+      .company-logo {
+        width: 100px;
+        height: 100px;
+      }
+    }
+
+    /* Loading Splash Screen */
+    #loading-splash {
+      position: fixed;
+      top: 60px; /* Below header */
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #1A1A1A;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    #loading-splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #333;
+      border-top: 6px solid #8B5CF6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    #loading-splash p {
+      color: #8B5CF6;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading your quote...</p>
+  </div>
+
   <div class="container">
     <h2>Lawn Care Quote</h2>
 
     <!-- map -->
-    <div id="aerial-container" style="margin-top: 40px;">
-      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
+    <div id="aerial-container" style="margin-top: 0px;">
       <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
     </div>
 
-    <!-- Professional Job Summary Box (read-only) -->
+    <!-- Company Info Box -->
+    <div class="company-box" id="company-box">
+      <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
+      <div class="company-details">
+        <h3 id="company-name">Deep Edge</h3>
+        <p><strong>Phone:</strong> <span id="company-phone">-</span></p>
+        <p><strong>Email:</strong> <a id="company-email" href="mailto:" style="color:#8B5CF6;">-</a></p>
+        <p><strong>NZBN:</strong> <span id="company-nzbn">-</span></p>
+        <p><strong>GST Number:</strong> <span id="company-gst">-</span></p>
+      </div>
+    </div>
+
+    <!-- Professional Job Summary Box -->
     <div id="pricing-box" class="pricing-box">
       <div class="pricing-row">
         <span>Property Address:</span>
@@ -80,11 +181,11 @@
         <strong id="final-area"></strong>
       </div>
       <div class="pricing-row">
-        <span>Mowing Revenue (ex GST):</span>
+        <span>Lawn Cost (ex GST):</span>
         <strong id="mowing-revenue"></strong>
       </div>
       <div class="pricing-row">
-        <span>Total Revenue (ex GST):</span>
+        <span>Total Cost (ex GST):</span>
         <strong id="total-revenue"></strong>
       </div>
       <div class="pricing-row">
@@ -95,20 +196,6 @@
         <span>TOTAL (incl GST):</span>
         <strong id="total-incl"></strong>
       </div>
-      <div class="summary-box">
-        <div class="summary-row">
-          <span>Estimated Cost (time × hourly):</span>
-          <strong id="est-cost"></strong>
-        </div>
-        <div class="summary-row">
-          <span>Estimated Profit (ex GST):</span>
-          <strong id="est-profit"></strong>
-        </div>
-        <div class="summary-row total">
-          <span>Profit per Hour:</span>
-          <strong id="profit-hour"></strong>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -116,44 +203,56 @@
   <script type="module">
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
-    // Optional: Firebase init if you want auth later (not needed for public quotes)
-    // But keep if you plan to add "edit" features later
-
-    // Get quote ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const quoteId = urlParams.get('quote');
 
     if (!quoteId) {
       document.body.innerHTML = '<div class="container"><h2>Invalid or missing quote ID</h2></div>';
     } else {
-      // Fetch public quote
       fetch(`${WORKER_URL}/api/public/quote/${quoteId}`)
         .then(res => {
           if (!res.ok) throw new Error('Quote not found or expired');
           return res.json();
         })
         .then(quoteData => {
-          // Your existing code to populate the page
-          document.getElementById('address-display').textContent = quoteData.address;
-          document.getElementById('final-area').textContent = quoteData.lawnAreaM2.toLocaleString() + ' m²';
+          // === Company Info ===
+          const company = quoteData.company || {};
+          document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
+          document.getElementById('company-phone').textContent = company.phone || 'Not provided';
+          const emailEl = document.getElementById('company-email');
+          if (company.email) {
+            emailEl.href = 'mailto:' + company.email;
+            emailEl.textContent = company.email;
+          } else {
+            emailEl.href = '#';
+            emailEl.textContent = 'Not provided';
+          }
+          document.getElementById('company-nzbn').textContent = company.nzbn || 'Not provided';
+          document.getElementById('company-gst').textContent = company.gstNumber || 'Not provided';
 
-          const mowingRevenue = quoteData.lawnAreaM2 * quoteData.ratePerM2;
-          const totalEx = mowingRevenue + quoteData.calloutFee;
+          const logoEl = document.getElementById('company-logo');
+          if (company.logoUrl) {
+            logoEl.src = company.logoUrl;
+            logoEl.alt = (company.companyName || 'Company') + ' Logo';
+          } else {
+            logoEl.style.display = 'none';
+          }
+
+          // === Quote Details ===
+          document.getElementById('address-display').textContent = quoteData.address || 'Unknown Address';
+          document.getElementById('final-area').textContent = (quoteData.lawnAreaM2 || 0).toLocaleString() + ' m²';
+
+          const mowingRevenue = (quoteData.lawnAreaM2 || 0) * (quoteData.ratePerM2 || 0);
+          const totalEx = mowingRevenue + (quoteData.calloutFee || 0);
           const gst = totalEx * 0.15;
           const totalIncl = totalEx + gst;
-          const estCost = quoteData.estimatedHours * quoteData.hourlyCost;
-          const estProfit = totalEx - estCost;
-          const profitPerHour = quoteData.estimatedHours > 0 ? estProfit / quoteData.estimatedHours : 0;
 
           document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
           document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
           document.getElementById('gst').textContent = '$' + gst.toFixed(2);
           document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
-          document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
-          document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
-          document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
 
-          // Map setup
+          // === Map ===
           const map = L.map('aerial-map').setView([quoteData.mapState.center.lat, quoteData.mapState.center.lng], quoteData.mapState.zoom);
 
           const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
@@ -166,35 +265,39 @@
             noWrap: true
           }).addTo(map);
 
-          // Parcel
           if (quoteData.mapState.parcelGeometry) {
             L.geoJSON(quoteData.mapState.parcelGeometry, {
               style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
             }).addTo(map);
           }
 
-          // Buildings
           if (quoteData.mapState.buildingsGeoJSON) {
             L.geoJSON(quoteData.mapState.buildingsGeoJSON, {
               style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
             }).addTo(map);
           }
 
-          // Negative areas (excluded)
           if (quoteData.mapState.negativeGeoJSON && quoteData.mapState.negativeGeoJSON.features.length > 0) {
             L.geoJSON(quoteData.mapState.negativeGeoJSON, {
               style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
             }).addTo(map);
           }
 
-          // Fit map to parcel
           if (quoteData.mapState.parcelGeometry) {
             const layer = L.geoJSON(quoteData.mapState.parcelGeometry);
             map.fitBounds(layer.getBounds().pad(0.2));
           }
+
+          // === Hide loading splash when everything is ready ===
+          const loadingSplash = document.getElementById('loading-splash');
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => {
+            loadingSplash.style.display = 'none';
+          }, 500);
         })
         .catch(err => {
           document.body.innerHTML = `<div class="container"><h2>Error loading quote</h2><p>${err.message}</p></div>`;
+          document.getElementById('loading-splash').style.display = 'none';
         });
     }
   </script>

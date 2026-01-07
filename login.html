@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
   <title>Sign In / Sign Up • Deep Edge</title>
   <style>
     body {
@@ -85,13 +84,12 @@
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
 </head>
-
 <body>
   <div class="container">
     <h1>Sign In / Sign Up</h1>
     <div class="form-group">
       <label for="email">Email</label>
-      <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+      <input type="email" id="email" placeholder="<you@example.com>" autocomplete="email" required />
     </div>
     <div class="form-group">
       <label for="password">Password</label>
@@ -104,7 +102,6 @@
     </div>
     <div id="message" class="info">Enter your email and password to continue</div>
   </div>
-
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -116,14 +113,16 @@
       measurementId: "G-GLYGPCHRXM"
     };
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import {
       getAuth,
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+      signOut,
+      sendEmailVerification,   // ← Added
+      reload                        // ← Added for refresh
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -161,7 +160,6 @@
         email: user.email || "",
         uid: user.uid
       };
-
       try {
         const res = await fetch(`${WORKER_URL}/api/user/profile`, {
           method: 'POST',
@@ -171,9 +169,7 @@
           },
           body: JSON.stringify(profile)
         });
-
         if (res.ok) {
-          showMessage("Account created and profile saved!", "success");
           console.log("User profile created in USERS_KV:", profile);
         } else {
           const err = await res.json();
@@ -193,8 +189,15 @@
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        showMessage("Creating your account profile...", "info");
-        await createUserProfile(cred.user);
+        const user = cred.user;
+
+        // Send verification email
+        await sendEmailVerification(user);
+        showMessage("Account created! Please check your email to verify your address. Check Spam", "success");
+
+        // Create profile after verification email sent
+        await createUserProfile(user);
+
       } catch (error) {
         showMessage(error.message || "Sign-up failed", "error");
       }
@@ -208,7 +211,7 @@
 
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-        showMessage("Signed in successfully!", "success");
+        // Verification check handled in onAuthStateChanged
       } catch (error) {
         showMessage(error.message || "Sign-in failed", "error");
       }
@@ -219,15 +222,26 @@
       await signOut(auth);
     });
 
-    // Auth state
-    onAuthStateChanged(auth, (user) => {
+    // Auth state observer - now checks email verification
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Refresh user data to get latest emailVerified status
+        await reload(user);
+        const verified = user.emailVerified;
+
         btnSignOut.classList.remove('hidden');
         btnSignIn.classList.add('hidden');
         btnSignUp.classList.add('hidden');
         emailEl.disabled = true;
         passwordEl.disabled = true;
-        showMessage(`Welcome ${user.email || 'User'}!`, "success");
+
+        if (verified) {
+          showMessage(`Welcome back, ${user.email || 'User'}!`, "success");
+        } else {
+          showMessage("Please verify your email first. Check your inbox (and spam).", "info");
+          // Optional: force sign-out until verified
+          // await signOut(auth);
+        }
       } else {
         showMessage("Sign in or create an account", "info");
         btnSignOut.classList.add('hidden');
