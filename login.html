@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <title>Sign In / Sign Up • Deep Edge</title>
   <style>
     body {
@@ -12,21 +16,17 @@
       padding: 20px;
       color: #333;
     }
-    .container {
+    .login-container {
       max-width: 380px;
       margin: 60px auto;
-      background: white;
+      background: linear-gradient(to left, #0a0a0a 0%, #0a0a0a 40%, #000 100%);
+      border: 1px solid #333;
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-    h1 {
-        text-align: center;
-        margin-bottom: 1.8rem;
-        font-size: 1.8rem;
-        color: #8B5CF6;
-    }
-    .form-group {
+    
+    .login-form-group {
       margin-bottom: 1.4rem;
     }
     label {
@@ -85,13 +85,13 @@
   <script src="header.js" defer></script>
 </head>
 <body>
-  <div class="container">
+  <div class="login-container">
     <h1>Sign In / Sign Up</h1>
-    <div class="form-group">
+    <div class="login-form-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="<you@example.com>" autocomplete="email" required />
     </div>
-    <div class="form-group">
+    <div class="login-form-group">
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
     </div>
@@ -237,7 +237,7 @@
 
         if (verified) {
           // Redirect authenticated users to app
-          window.location.href = "/index.html";
+          window.location.href = 'index.html';
         } else {
           showMessage("Please verify your email first. Check your inbox (and spam).", "info");
         }
