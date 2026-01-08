@@ -845,7 +845,7 @@
         }
 
         const { quoteId } = await res.json();
-        const publicLink = `${window.location.origin}/quote.html?quote=${quoteId}`;
+        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
 
         document.getElementById('quote-link').href = publicLink;
         document.getElementById('quote-link').textContent = publicLink;
