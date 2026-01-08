@@ -85,17 +85,18 @@
           return `
             <div class="quote-card">
               <div class="quote-header">
+                <div class="quote-number">#Q_CL001</div>
                 <div class="quote-address">${quote.data.address || 'Unknown Address'}</div>
                 <div class="quote-date">${date}</div>
               </div>
               <div class="quote-details">
-                <div><span class="detail-label">Lawn Area:</span> <span class="detail-value">${quote.data.lawnAreaM2.toLocaleString()} m²</span></div>
+                <div><span class="detail-label">Client:</span> <span class="detail-value-standard">James.B</span></div>
                 <div><span class="detail-label">Total (incl GST):</span> <span class="detail-value">$${(quote.data.lawnAreaM2 * quote.data.ratePerM2 + quote.data.calloutFee * 1.15).toFixed(2)}</span></div>
-                <div><span class="detail-label">Rate/m²:</span> <span class="detail-value">$${quote.data.ratePerM2.toFixed(2)}</span></div>
-                <div><span class="detail-label">Callout:</span> <span class="detail-value">$${quote.data.calloutFee}</span></div>
+                <div><span class="detail-label">Job Profit:</span> <span class="detail-value">$${((quote.data.lawnAreaM2 * quote.data.ratePerM2 + quote.data.calloutFee * 1.15)/2).toFixed(2)}</span></div>
               </div>
               <div class="quote-actions">
-                <a href="${publicLink}" target="_blank" class="quote-link-btn">Open Quote →</a>
+                <a href="${publicLink}" target="_blank" class="quote-link-btn">Email Quote</a>
+                <a href="${publicLink}" target="_blank" class="quote-link-btn">View</a>
               </div>
             </div>
           `;
