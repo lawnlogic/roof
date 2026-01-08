@@ -236,12 +236,12 @@
         passwordEl.disabled = true;
 
         if (verified) {
-          showMessage(`Welcome back, ${user.email || 'User'}!`, "success");
+          // Redirect authenticated users to app
+          window.location.href = "/index.html";
         } else {
           showMessage("Please verify your email first. Check your inbox (and spam).", "info");
-          // Optional: force sign-out until verified
-          // await signOut(auth);
         }
+
       } else {
         showMessage("Sign in or create an account", "info");
         btnSignOut.classList.add('hidden');
