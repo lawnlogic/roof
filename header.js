@@ -3,20 +3,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.insertAdjacentHTML('afterbegin', `
     <header class="deep-edge-header">
       <div class="header-content">
-        <a href="index.html" class="header-logo">Deep Edge</a>
+        <div class="logo-container">
+          <img src="Images/logo.png" alt="Deep Edge Logo" class="logo-img">
+          <div class="logo">Deep Edge</div>
+        </div>
         
-        <button class="hamburger" aria-label="Open menu" id="hamburger-btn">
-          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect y="20" width="100" height="12" rx="6" fill="#e5e5e5"/>
-            <rect y="44" width="100" height="12" rx="6" fill="#e5e5e5"/>
-            <rect y="68" width="100" height="12" rx="6" fill="#e5e5e5"/>
-          </svg>
-        </button>
+        <button class="menu-dots" aria-label="Open menu" id="menu-dots">⋯</button>
       </div>
 
       <nav class="header-nav" id="header-nav">
         <ul>
           <li><a href="index.html">🏡 Home</a></li>
+          <li><a href="create_quote.html">📐 Create Quote</a></li>
           <li><a href="your_quotes.html">📋 Your Quotes</a></li>
           <li><a href="profile.html">⚙️ Profile</a></li>
           <li><a href="#" id="sign-out-link">🚪 Sign Out</a></li>
@@ -28,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `);
 
   // Menu toggle logic
-  const hamburger = document.getElementById('hamburger-btn');
+  const hamburger = document.getElementById('menu-dots');
   const nav = document.getElementById('header-nav');
   const overlay = document.getElementById('header-overlay');
   const signOutLink = document.getElementById('sign-out-link');

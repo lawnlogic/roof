@@ -3,127 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <title>Company Profile • Deep Edge</title>
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
-  <style>
-    .container {
-        max-width: 800px;
-        margin: 40px auto;
-        /* background: white; */
-        padding: 40px;
-        border-radius: 10px;
-        /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
-    }
-    h2 {
-        text-align: center;
-        color: #8B5CF6;
-        margin-bottom: 30px;
-    }
-    .pricing-box {
-        background: #1A1A1A;
-        padding: 30px;
-        border-radius: 8px;
-        /* border: 1px solid #444; */
-        color: white;
-    }
-    .input-group {
-      margin-bottom: 20px;
-    }
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    input[type="text"], input[type="tel"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #555;
-      border-radius: 6px;
-      background: #222;
-      color: white;
-      box-sizing: border-box;
-    }
-    input:disabled {
-      background: #333;
-      color: #aaa;
-    }
-    input[type="file"] {
-      padding: 8px 0;
-    }
-    #logo-preview {
-      max-width: 150px;
-      max-height: auto;
-      margin-top: 15px;
-      border-radius: 8px;
-      border: 2px dashed #555;
-      display: block;
-    }
-    #update-btn {
-      margin-top: 30px;
-      padding: 16px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-    #update-btn:hover {
-      background: #218838;
-    }
-    #message {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 16px;
-      text-align: center;
-    }
-    .success { background: #d4edda; color: #155724; }
-    .error { background: #f8d7da; color: #721c24; }
-  </style>
+
 </head>
 <body>
-  <div class="container">
+  <div class="profile-container">
     <h2>Company Profile</h2>
 
-    <div class="pricing-box">
-      <div class="input-group">
+    <div class="profile-pricing-box">
+      <div class="profile-input-group">
         <label for="companyName">Company Name</label>
         <input type="text" id="companyName" />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label for="nzbn">NZBN</label>
         <input type="text" id="nzbn" placeholder="e.g. 90233829" />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label for="address">Company Address</label>
         <input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label for="phone">Phone</label>
         <input type="tel" id="phone" placeholder="021 123 4567" />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label for="gstNumber">GST Number</label>
         <input type="text" id="gstNumber" placeholder="123-456-789" />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label>Email (cannot be changed)</label>
         <input type="text" id="email" disabled />
       </div>
-      <div class="input-group">
+      <div class="profile-input-group">
         <label for="logo">Company Logo</label>
         <input type="file" id="logo" accept="image/*" />
         <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
       </div>
 
-      <button id="update-btn">Update Profile</button>
-      <div id="message"></div>
+      <button id="profile-update-btn">Update Profile</button>
+      <div id="profile-message"></div>
     </div>
   </div>
 
@@ -155,7 +81,7 @@
       email: document.getElementById('email'),
       logoInput: document.getElementById('logo'),
       logoPreview: document.getElementById('logo-preview'),
-      message: document.getElementById('message')
+      message: document.getElementById('profile-message')
     };
 
     function showMessage(text, type = 'success') {
@@ -187,7 +113,7 @@
       }
     }
 
-    document.getElementById('update-btn').addEventListener('click', async () => {
+    document.getElementById('profile-update-btn').addEventListener('click', async () => {
       if (!auth.currentUser) return showMessage('Not logged in', 'error');
 
       const token = await auth.currentUser.getIdToken();  // ← only one declaration

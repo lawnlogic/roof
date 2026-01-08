@@ -3,103 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <title>My Quotes • Deep Edge</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body {
-      background: #1A1A1A;
-      color: #e5e5e5;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 30px;
-      background: #222;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    }
-    h1 {
-      text-align: center;
-      color: #8B5CF6;
-      font-size: 2rem;
-      margin-bottom: 30px;
-    }
-    .quote-list {
-      display: grid;
-      gap: 20px;
-    }
-    .quote-card {
-      background: #2a2a2a;
-      border-radius: 12px;
-      padding: 20px;
-      border: 1px solid #444;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .quote-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
-    }
-    .quote-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .quote-address {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #a78bfa;
-    }
-    .quote-date {
-      color: #9ca3af;
-      font-size: 0.9rem;
-    }
-    .quote-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin: 16px 0;
-      font-size: 1rem;
-    }
-    .detail-label {
-      color: #d1d5db;
-      font-weight: 600;
-    }
-    .detail-value {
-      color: #28a745;
-      font-weight: bold;
-    }
-    .quote-actions {
-      margin-top: 16px;
-      text-align: right;
-    }
-    .quote-link-btn {
-      display: inline-block;
-      background: #513690;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .quote-link-btn:hover {
-      background: #412e75;
-    }
-    .no-quotes {
-      text-align: center;
-      padding: 60px 20px;
-      color: #9ca3af;
-      font-size: 1.2rem;
-    }
-  </style>
   <script src="header.js" defer></script>
 </head>
 <body>
-  <div class="container">
+  <div class="your-quotes-container">
     <h1>Your Quotes</h1>
 
     <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <title>Lawn Area Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+
+  <!-- Leaflet + Draw -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <!-- Turf.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+</head>
+
+<body>
+  <div class="create-quote-container">
+    <h2>Lawn Area Calculator</h2>
+    <div class="input-group">
+      <label for="address">NZ Address:</label>
+      <input type="text" id="address" placeholder="Start typing an address..." autocomplete="off" />
+    </div>
+    <div id="address-suggestions" class="suggestions hidden"></div>
+    <button id="lookup-btn" class="action-button">Calculate Lawn Area</button>
+    <div id="result" class="result hidden">
+      <div id="address-display"></div>
+      <div id="area"></div>
+      <div id="time"></div>
+    </div>
+    <div id="error" class="error hidden"></div>
+    <!-- map -->
+    <div id="aerial-container" class="hidden" style="margin-top: 40px;">
+      <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
+      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+    </div>
+    <!-- Professional Job Summary Box -->
+    <div id="pricing-box" class="pricing-box hidden">
+      <div class="input-group">
+        <label for="rate-input">Base Rate per m² (ex GST):</label>
+        <input type="number" id="rate-input" value="0.20" step="0.05" min="0" />
+      </div>
+      <div class="input-group">
+        <label for="callout-input">Call-out / Travel Fee (ex GST):</label>
+        <input type="number" id="callout-input" value="80" step="10" min="0" />
+      </div>
+
+      <!-- Difficulty Multiplier -->
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Job Difficulty Multiplier</span>
+          <span id="difficulty-value">1.0x</span>
+        </div>
+        <input type="range" id="difficulty-slider" min="1.0" max="2.0" step="0.1" value="1.0" />
+      </div>
+
+      <!-- Catch & Mulch -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="catch-mulch" />
+        <label for="catch-mulch">Catch & Mulch Service (+$40 ex GST)</label>
+      </div>
+
+      <div class="input-group">
+        <label for="estimated-hours">Estimated Time (hours):</label>
+        <input type="number" id="estimated-hours" value="1.0" step="0.25" min="0.25" />
+      </div>
+      <div class="input-group">
+        <label for="hourly-rate">Your Hourly Cost (fuel, labour, etc.):</label>
+        <input type="number" id="hourly-rate" value="50" step="5" min="0" />
+      </div>
+
+      <!-- Collapsible Client Details -->
+      <div class="collapsible-header" id="client-toggle">
+        Client Details (optional) <span>▼</span>
+      </div>
+      <div class="collapsible-content" id="client-form">
+        <div class="input-group">
+          <label for="client-first">First Name</label>
+          <input type="text" id="client-first" placeholder="John" />
+        </div>
+        <div class="input-group">
+          <label for="client-last">Last Name</label>
+          <input type="text" id="client-last" placeholder="Doe" />
+        </div>
+        <div class="input-group">
+          <label for="client-email">Email</label>
+          <input type="email" id="client-email" placeholder="john@example.com" />
+        </div>
+        <div class="input-group">
+          <label for="client-phone">Phone</label>
+          <input type="tel" id="client-phone" placeholder="021 123 4567" />
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <span>Lawn Area:</span>
+        <span id="final-area">0 m²</span>
+      </div>
+      <div class="pricing-row">
+        <span>Mowing Revenue (ex GST):</span>
+        <strong id="mowing-revenue">$0.00</strong>
+      </div>
+      <div class="pricing-row">
+        <span>Total Revenue (ex GST):</span>
+        <strong id="total-revenue">$0.00</strong>
+      </div>
+      <div class="pricing-row">
+        <span>GST (15%):</span>
+        <strong id="gst">$0.00</strong>
+      </div>
+      <div class="pricing-row">
+        <span>TOTAL (incl GST):</span>
+        <strong id="total-incl">$0.00</strong>
+      </div>
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Estimated Cost (time × hourly):</span>
+          <strong id="est-cost">$0.00</strong>
+        </div>
+        <div class="summary-row">
+          <span>Estimated Profit (ex GST):</span>
+          <strong id="est-profit">$0.00</strong>
+        </div>
+        <div class="summary-row total">
+          <span>Profit per Hour:</span>
+          <strong id="profit-hour">$0.00</strong>
+        </div>
+      </div>
+      <button id="generate-pdf-btn">Generate Quote Link</button>
+      <div id="quote-link-box" class="hidden">
+        Share this quote with your client:<br>
+        <a id="quote-link" href="#" target="_blank"></a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
+    };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const btn = document.getElementById('lookup-btn');
+    const addressInput = document.getElementById('address');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const addressDisplay = document.getElementById('address-display');
+    const areaDisplay = document.getElementById('area');
+    const timeDisplay = document.getElementById('time');
+    const aerialContainer = document.getElementById('aerial-container');
+    const pricingBox = document.getElementById('pricing-box');
+    const rateInput = document.getElementById('rate-input');
+    const calloutInput = document.getElementById('callout-input');
+    const estimatedHoursInput = document.getElementById('estimated-hours');
+    const hourlyRateInput = document.getElementById('hourly-rate');
+    const finalAreaDisplay = document.getElementById('final-area');
+
+    // New elements
+    const difficultySlider = document.getElementById('difficulty-slider');
+    const difficultyValue = document.getElementById('difficulty-value');
+    const catchMulchCheckbox = document.getElementById('catch-mulch');
+    const clientToggle = document.getElementById('client-toggle');
+    const clientForm = document.getElementById('client-form');
+
+    let map = null;
+    let parcelLayer = null;
+    let clippedBuildingsLayer = null;
+    let clippedBuildingsGeoJSON = null;
+    let negativeLayer = null;
+    let areaOverlay = null;
+    let parcelAreaM2 = 0;
+    let currentLawnArea = 0;
+    let currentData = null;
+
+    const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+
+    // Client form toggle
+    clientToggle.addEventListener('click', () => {
+      clientForm.classList.toggle('open');
+      clientToggle.querySelector('span').textContent = clientForm.classList.contains('open') ? '▲' : '▼';
+    });
+
+    // Difficulty slider display
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+    });
+
+    catchMulchCheckbox.addEventListener('change', updateLawnArea);
+
+    // === Load and save quoteSettings from user profile ===
+    async function loadQuoteSettings(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const { profile } = await res.json();
+          if (profile.quoteSettings) {
+            const s = profile.quoteSettings;
+            rateInput.value = s.ratePerM2 || 0.20;
+            calloutInput.value = s.calloutFee || 80;
+            estimatedHoursInput.value = s.estimatedHours || 1.0;
+            hourlyRateInput.value = s.hourlyCost || 50;
+            difficultySlider.value = s.difficultyMultiplier || 1.0;
+            difficultyValue.textContent = difficultySlider.value + 'x';
+            catchMulchCheckbox.checked = s.catchAndMulch || false;
+            updateLawnArea();
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load quote settings', e);
+      }
+    }
+
+    async function saveQuoteSettings(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const { profile } = await res.json();
+
+        profile.quoteSettings = {
+          ratePerM2: parseFloat(rateInput.value) || 0.20,
+          calloutFee: parseFloat(calloutInput.value) || 80,
+          estimatedHours: parseFloat(estimatedHoursInput.value) || 1.0,
+          hourlyCost: parseFloat(hourlyRateInput.value) || 50,
+          difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0,
+          catchAndMulch: catchMulchCheckbox.checked
+        };
+        profile.updatedAt = new Date().toISOString();
+
+        await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(profile)
+        });
+      } catch (e) {
+        console.warn('Could not save quote settings', e);
+      }
+    }
+
+    // Save settings on change (debounced)
+    let saveTimeout;
+    function scheduleSave(token) {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => saveQuoteSettings(token), 1000);
+    }
+
+    // Attach save listeners
+    [rateInput, calloutInput, estimatedHoursInput, hourlyRateInput].forEach(input => {
+      input.addEventListener('input', () => {
+        updateLawnArea();
+        if (auth.currentUser) {
+          auth.currentUser.getIdToken().then(scheduleSave);
+        }
+      });
+    });
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
+    catchMulchCheckbox.addEventListener('change', () => {
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
+
+    // Load settings when user is authenticated
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        await loadQuoteSettings(token);
+      }
+    });
+
+    function updateLawnArea() {
+      console.log("=== Negative Layer Debug ===");
+      const negativePolys = [];
+      let individualAreas = [];
+      let polygonCount = 0;
+
+      if (negativeLayer) {
+        negativeLayer.eachLayer(layer => {
+          if (layer.getLatLngs && layer.getLatLngs().length > 0) {
+            const latlngs = layer.getLatLngs()[0];
+            if (Array.isArray(latlngs) && latlngs.length >= 3) {
+              polygonCount++;
+              const area = L.GeometryUtil.geodesicArea(latlngs);
+              individualAreas.push(Math.round(area));
+              const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+              coords.push(coords[0]);
+              negativePolys.push(turf.polygon([coords]));
+              console.log(`Polygon ${polygonCount} area: ${Math.round(area)} m²`);
+            }
+          }
+        });
+      }
+
+      console.log(`Total polygons: ${polygonCount}`);
+      console.log(`Individual areas: ${individualAreas.join(', ')} m²`);
+
+      let negativeArea = 0;
+      if (negativePolys.length > 0) {
+        try {
+          let unioned = negativePolys.reduce((acc, poly) => turf.union(acc, poly));
+          negativeArea = turf.area(unioned);
+          console.log(`Unioned negative area (no overlap): ${Math.round(negativeArea)} m²`);
+        } catch (e) {
+          console.warn('Union failed, using sum', e);
+          individualAreas.forEach(a => negativeArea += a);
+          console.log(`Fallback sum negative area: ${Math.round(negativeArea)} m²`);
+        }
+      }
+
+      currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
+      console.log(`Parcel area: ${parcelAreaM2} m²`);
+      console.log(`Final lawn area: ${currentLawnArea} m²`);
+      console.log("=== End Debug ===\n");
+
+      if (areaOverlay && areaOverlay._div) {
+        areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
+      }
+      areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
+      finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
+
+      const rate = parseFloat(rateInput.value) || 0;
+      const callout = parseFloat(calloutInput.value) || 0;
+      const difficulty = parseFloat(difficultySlider.value) || 1.0;
+      const catchMulchFee = catchMulchCheckbox.checked ? 40 : 0;
+      const hours = parseFloat(estimatedHoursInput.value) || 1;
+      const hourlyCost = parseFloat(hourlyRateInput.value) || 0;
+
+      const baseMowing = currentLawnArea * rate;
+      const adjustedRevenue = (baseMowing * difficulty) + callout + catchMulchFee;
+      const gst = adjustedRevenue * 0.15;
+      const totalIncl = adjustedRevenue + gst;
+      const estCost = hours * hourlyCost;
+      const estProfit = adjustedRevenue - estCost;
+      const profitPerHour = hours > 0 ? estProfit / hours : 0;
+
+      document.getElementById('mowing-revenue').textContent = '$' + baseMowing.toFixed(2);
+      document.getElementById('total-revenue').textContent = '$' + adjustedRevenue.toFixed(2);
+      document.getElementById('gst').textContent = '$' + gst.toFixed(2);
+      document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+      document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
+      document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
+      document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
+    }
+
+    function showAerialMap(data) {
+      currentData = data;
+      if (!data.aerial) {
+        aerialContainer.style.display = 'none';
+        return;
+      }
+      aerialContainer.classList.remove('hidden');
+      if (map) map.remove();
+      map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
+
+      L.tileLayer(LINZ_AERIAL_URL, {
+        attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+        maxZoom: 24,
+        tileSize: 256,
+        zoomOffset: 0,
+        noWrap: true
+      }).addTo(map);
+
+      parcelAreaM2 = data.parcel_area_m2 || 0;
+      if (data.parcel_geometry) {
+        parcelLayer = L.geoJSON(data.parcel_geometry, {
+          style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+        }).addTo(map);
+      }
+
+      if (data.parcel_geometry && data.buildings_geometries && data.buildings_geometries.length > 0) {
+        try {
+          let parcelPoly;
+          if (data.parcel_geometry.type === "MultiPolygon") {
+            parcelPoly = turf.multiPolygon(data.parcel_geometry.coordinates);
+          } else {
+            parcelPoly = turf.polygon(data.parcel_geometry.coordinates);
+          }
+          const clippedBuildings = [];
+          data.buildings_geometries.forEach(geom => {
+            try {
+              if (geom.type === "Polygon" && geom.coordinates && geom.coordinates.length > 0) {
+                const ring = geom.coordinates[0];
+                if (ring.length >= 4) {
+                  const cleaned = [];
+                  ring.forEach((p, i) => {
+                    const prev = ring[i === 0 ? ring.length - 1 : i - 1];
+                    if (i === 0 || p[0] !== prev[0] || p[1] !== prev[1]) {
+                      cleaned.push(p);
+                    }
+                  });
+                  if (cleaned.length >= 4) {
+                    if (cleaned[0][0] !== cleaned[cleaned.length - 1][0] || cleaned[0][1] !== cleaned[cleaned.length - 1][1]) {
+                      cleaned.push(cleaned[0]);
+                    }
+                    const buildingPoly = turf.polygon([cleaned]);
+                    const intersection = turf.intersect(parcelPoly, buildingPoly);
+                    if (intersection && intersection.geometry) {
+                      clippedBuildings.push(intersection.geometry);
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          });
+          if (clippedBuildings.length > 0) {
+            clippedBuildingsGeoJSON = { type: "FeatureCollection", features: clippedBuildings.map(g => ({ type: "Feature", geometry: g })) };
+            clippedBuildingsLayer = L.geoJSON(clippedBuildings, {
+              style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
+            }).addTo(map);
+          }
+        } catch (e) {
+          console.warn('Building clipping failed', e);
+        }
+      }
+
+      if (parcelLayer) {
+        map.fitBounds(parcelLayer.getBounds().pad(0.2));
+      }
+      pricingBox.classList.remove('hidden');
+
+      const editBtn = L.control({ position: 'topright' });
+      editBtn.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.style.backgroundColor = '#ff4444';
+        div.style.color = 'white';
+        div.style.width = '36px';
+        div.style.height = '36px';
+        div.style.textAlign = 'center';
+        div.style.lineHeight = '36px';
+        div.style.borderRadius = '2px';
+        div.style.cursor = 'pointer';
+        div.style.fontWeight = 'bold';
+        div.innerHTML = '✏️';
+        div.title = 'Edit Negative Layer (areas to exclude from lawn)';
+        div.onclick = (e) => {
+          L.DomEvent.stopPropagation(e);
+          enableNegativeLayerEditing();
+        };
+        return div;
+      };
+      editBtn.addTo(map);
+    }
+
+    function enableNegativeLayerEditing() {
+      if (!map) return;
+      if (clippedBuildingsLayer) {
+        map.removeLayer(clippedBuildingsLayer);
+        clippedBuildingsLayer = null;
+      }
+      if (negativeLayer) map.removeLayer(negativeLayer);
+      if (areaOverlay) areaOverlay.remove();
+      negativeLayer = new L.FeatureGroup();
+      map.addLayer(negativeLayer);
+      if (clippedBuildingsGeoJSON) {
+        L.geoJSON(clippedBuildingsGeoJSON, {
+          style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
+        }).eachLayer(layer => {
+          negativeLayer.addLayer(layer);
+        });
+      }
+      const drawControl = new L.Control.Draw({
+        draw: {
+          polygon: true,
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false,
+          polyline: false
+        },
+        edit: {
+          featureGroup: negativeLayer,
+          edit: true,
+          remove: true
+        }
+      });
+      map.addControl(drawControl);
+      map.on('draw:created', function (e) {
+        const layer = e.layer;
+        negativeLayer.addLayer(layer);
+        updateLawnArea();
+      });
+      areaOverlay = L.control({ position: 'bottomleft' });
+      areaOverlay.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+        div.style.background = 'rgba(255,255,255,0.95)';
+        div.style.padding = '12px 18px';
+        div.style.borderRadius = '8px';
+        div.style.fontSize = '18px';
+        div.style.fontWeight = 'bold';
+        div.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)';
+        div.innerHTML = 'Calculating...';
+        areaOverlay._div = div;
+        return div;
+      };
+      areaOverlay.addTo(map);
+
+      map.on('draw:edited draw:deleted draw:created', updateLawnArea);
+      updateLawnArea();
+    }
+
+    btn.addEventListener('click', async () => {
+      const address = addressInput.value.trim();
+      if (!address) {
+        showError("Please enter a valid address");
+        return;
+      }
+      hideError();
+      resultDiv.classList.add('hidden');
+      aerialContainer.classList.add('hidden');
+      pricingBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = "Looking up...";
+      btn.classList.add('loading');
+      try {
+        const startTime = performance.now();
+        let token = null;
+        if (auth.currentUser) {
+          token = await auth.currentUser.getIdToken(true);
+        }
+        const response = await fetch(`${WORKER_URL}/api/building-area?address=${encodeURIComponent(address)}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Invalid response from server");
+        }
+        const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "Service error");
+        }
+        addressDisplay.textContent = data.address;
+        areaDisplay.textContent = `${data.estimated_lawn_area_m2?.toLocaleString() || 'Calculating...'} m²`;
+        timeDisplay.textContent = `Found in ${timeTaken} seconds`;
+        resultDiv.classList.remove('hidden');
+        showAerialMap(data);
+      } catch (err) {
+        showError(err.message || "Failed to fetch data");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Calculate Lawn Area";
+        btn.classList.remove('loading');
+      }
+    });
+
+    addressInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+
+    function showError(msg) {
+      errorDiv.textContent = msg;
+      errorDiv.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorDiv.classList.add('hidden');
+      errorDiv.textContent = '';
+    }
+
+    // Quote Link Generation - NOW WITH COMPANY PROFILE
+    document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
+      if (!currentData || currentLawnArea === 0) {
+        alert('Please load an address and measure the lawn area first.');
+        return;
+      }
+      if (!auth.currentUser) {
+        alert('Please sign in to save quotes');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const token = await auth.currentUser.getIdToken();
+
+      // === FETCH USER PROFILE ===
+      let companyProfile = {};
+      try {
+        const profileRes = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const { profile } = await profileRes.json();
+          companyProfile = {
+            companyName: profile.companyName || 'Deep Edge',
+            nzbn: profile.nzbn || '',
+            phone: profile.phone || '',
+            gstNumber: profile.gstNumber || '',
+            email: profile.email || '',
+            logoUrl: profile.logoUrl || ''
+          };
+        }
+      } catch (e) {
+        console.warn('Could not fetch company profile for quote', e);
+      }
+
+      const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
+
+      const quoteData = {
+        address: addressDisplay.textContent,
+        lawnAreaM2: currentLawnArea,
+        ratePerM2: parseFloat(rateInput.value) || 0,
+        calloutFee: parseFloat(document.getElementById('callout-input').value) || 0,
+        difficultyMultiplier: parseFloat(difficultySlider.value),
+        catchAndMulch: catchMulchCheckbox.checked,
+        estimatedHours: parseFloat(document.getElementById('estimated-hours').value) || 1,
+        hourlyCost: parseFloat(document.getElementById('hourly-rate').value) || 0,
+        client: {
+          firstName: document.getElementById('client-first').value.trim(),
+          lastName: document.getElementById('client-last').value.trim(),
+          email: document.getElementById('client-email').value.trim(),
+          phone: document.getElementById('client-phone').value.trim()
+        },
+        company: companyProfile, // ← NEW: Full company details from profile
+        mapState: {
+          center: map.getCenter(),
+          zoom: map.getZoom(),
+          parcelGeometry: currentData.parcel_geometry,
+          buildingsGeoJSON: clippedBuildingsGeoJSON,
+          negativeGeoJSON: negativeGeoJSON
+        },
+        generatedAt: new Date().toISOString()
+      };
+
+      try {
+        console.log('Saving quote with company details...', quoteData);
+        const res = await fetch(`${WORKER_URL}/api/quotes`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(quoteData)
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || 'Failed to save quote');
+        }
+
+        const { quoteId } = await res.json();
+        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+
+        document.getElementById('quote-link').href = publicLink;
+        document.getElementById('quote-link').textContent = publicLink;
+        document.getElementById('quote-link-box').classList.remove('hidden');
+
+        alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
+      } catch (err) {
+        console.error('Quote save failed:', err);
+        alert('Failed to save quote: ' + err.message);
+      }
+    });
+
+    const suggestionsBox = document.getElementById("address-suggestions");
+    let debounceTimer = null;
+
+    // Listen for typing
+    addressInput.addEventListener("input", (e) => {
+      const value = e.target.value.trim();
+
+      clearTimeout(debounceTimer);
+
+      if (value.length < 3) {
+        hideSuggestions();
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        fetchSuggestions(value);
+      }, 250); // debounce
+    });
+
+    async function fetchSuggestions(query) {
+      try {
+        const res = await fetch(
+          `${WORKER_URL}/api/address-suggest?q=${encodeURIComponent(query)}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        renderSuggestions(data.addresses || []);
+      } catch (err) {
+        console.warn("Suggest failed", err);
+      }
+    }
+
+    function renderSuggestions(addresses) {
+      suggestionsBox.innerHTML = "";
+
+      if (!addresses.length) {
+        hideSuggestions();
+        return;
+      }
+
+      addresses.forEach(addr => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = addr.FullAddress;
+
+        div.addEventListener("click", () => {
+          addressInput.value = addr.FullAddress;
+          hideSuggestions();
+        });
+
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.classList.remove("hidden");
+    }
+
+    function hideSuggestions() {
+      suggestionsBox.classList.add("hidden");
+      suggestionsBox.innerHTML = "";
+    }
+
+    // Hide dropdown when clicking elsewhere
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".input-group")) {
+        hideSuggestions();
+      }
+    });
+
+
+  </script>
+</body>
+</html>
