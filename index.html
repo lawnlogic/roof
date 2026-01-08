@@ -12,88 +12,8 @@
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
 
+  <!-- NEW STYLES ONLY FOR PRICING CAROUSEL -->
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-      background: #000;
-      color: #f1f1f1;
-      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 440px;           
-      margin: 0 auto;
-      min-height: 100vh;
-      background: linear-gradient(to bottom, #000000, #000 40%);
-      position: relative;
-      overflow-x: hidden;
-      padding-bottom: 80px;
-    }
-
-    .hero {
-      padding: 75px 20px 32px;
-      text-align: center;
-    }
-
-    .hero h1 {
-      font-size: 34px;
-      line-height: 1.12;
-      margin-bottom: 16px;
-      color: white;
-    }
-
-    .hero p {
-      font-size: 15px;
-      color: #B4B4B4;
-      margin-bottom: 32px;
-      line-height: 1.45;
-    }
-
-    .section-title {
-      font-size: 34px;                    
-      font-weight: 500;
-      padding: 0 20px;
-      margin: 40px 0 0;
-      line-height: 1.15;
-      color: white;
-      text-align: center;
-    }
-
-    .home-subheader {
-      font-size: 15px;                   
-      font-weight: 400;
-      color: #B4B4B4;
-      padding: 0 20px;
-      margin: 12px 0 40px;
-      line-height: 1.4;
-      text-align: center;
-    }
-
-    .image-container {
-      margin: 0 20px 32px;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-      position: relative;
-      background: #262626;
-    }
-
-    .image-container img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    /* === PRICING CAROUSEL === */
     .pricing-carousel {
       position: relative;
       max-width: 70%;
@@ -141,7 +61,6 @@
       line-height: 1;
     }
 
-    /* Gradient ONLY for $199 (Performance plan) */
     .gradient-price {
       background: linear-gradient(90deg, #593D99, #8B5CF6);
       -webkit-background-clip: text;
@@ -221,22 +140,6 @@
     .dot.active, .dot:hover {
       background-color: #8B5CF6;
     }
-
-    .bottom-bar {
-      background: #262626;
-      border-top: 1px solid rgba(139,92,246,0.25);
-      border-radius: 15px 15px 0 0;
-      padding: 14px 20px;
-      margin: 40px 20px 40px;
-      text-align: center;
-      font-size: 15px;
-    }
-
-    .bottom-bar a {
-      color: #7553c5;
-      text-decoration: none;
-      font-weight: 500;
-    }
   </style>
 </head>
 <body>
@@ -279,7 +182,7 @@
     <img src="Images/Ipadpic2.png" alt="iPad view">
   </div>
 
-  <!-- New random header + home-subheader -->
+  <!-- Plans available -->
   <div class="section-title">
     Plans available
     <p class="home-subheader">We cater to all business, no matter the size we have a solution.</p>
