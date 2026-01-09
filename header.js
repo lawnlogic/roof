@@ -13,11 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <nav class="header-nav" id="header-nav">
         <ul>
-          <li><a href="index.html">🏡 Home</a></li>
-          <li><a href="create_quote.html">📐 Create Quote</a></li>
-          <li><a href="your_quotes.html">📋 Your Quotes</a></li>
-          <li><a href="profile.html">⚙️ Profile</a></li>
-          <li><a href="#" id="sign-out-link">🚪 Sign Out</a></li>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="create_quote.html">Create Quote</a></li>
+          <li><a href="your_quotes.html">Your Quotes</a></li>
+          <li><a href="profile.html">Profile</a></li>
+          <li><a href="#" id="sign-out-link">Sign Out</a></li>
         </ul>
       </nav>
 
