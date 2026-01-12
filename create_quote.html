@@ -473,6 +473,7 @@
       if (autoStartNewPolygon) {
         const newPolygonDrawer = new L.Draw.Polygon(map, {
           allowDrawingOnDrag: false,
+          touchExtend: false,               // ← very important on mobile!
           shapeOptions: {
             color: '#ff4444',
             weight: 2,
