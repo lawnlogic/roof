@@ -161,6 +161,34 @@
   </div>
 
   <script type="module">
+    // Prevent adding vertex on touchstart → drag (common mobile bug)
+    if (L.Draw && L.Draw.Polyline) {
+        L.Draw.Polyline.include({
+            _onTouch: function (e) {
+                // Only add vertex on real tap/click, not on beginning of drag
+                if (e.type === 'touchstart') {
+                    this._touchStartTime = Date.now();
+                    return;
+                }
+                
+                if (e.type === 'touchend' || e.type === 'touchcancel') {
+                    const duration = Date.now() - (this._touchStartTime || 0);
+                    if (duration < 250) {  // short tap → accept as click
+                        L.Draw.Polyline.prototype._onTouchOriginal.call(this, e);
+                    }
+                    this._touchStartTime = null;
+                }
+            }
+        });
+
+        // Backup original if you ever want to restore
+        if (!L.Draw.Polyline.prototype._onTouchOriginal) {
+            L.Draw.Polyline.prototype._onTouchOriginal = L.Draw.Polyline.prototype._onTouch;
+            L.Draw.Polyline.prototype._onTouch = L.Draw.Polyline.prototype._onTouch; // overridden above
+        }
+    }
+    // ────────────────────────────────────────────────
+    
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
       authDomain: "deep-edge-cc5bd.firebaseapp.com",
