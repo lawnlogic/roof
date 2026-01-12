@@ -52,7 +52,7 @@
         <button id="btn-new-shape" class="action-button" style="min-width: 100px;">
           New Area
         </button>
-        <button id="btn-edit-shapes" class="action-button secondary" style="min-width: 100x;">
+        <button id="btn-edit-shapes" class="action-button secondary" style="min-width: 100px;">
           Edit Areas
         </button>
         <button id="btn-finish-editing" class="action-button" style="min-width: 100px; background: #28a745; color: white;">
@@ -498,10 +498,13 @@
         document.getElementById('btn-new-shape').style.cursor = 'not-allowed';
       }
 
+      // Show Finish button when entering edit/draw mode
+      document.getElementById('btn-finish-editing').style.display = 'inline-block';
+
       if (autoStartNewPolygon) {
         const newPolygonDrawer = new L.Draw.Polygon(map, {
           allowDrawingOnDrag: false,
-          touchExtend: false,               // ← very important on mobile!
+          touchExtend: false,
           shapeOptions: {
             color: '#ff4444',
             weight: 2,
@@ -541,7 +544,9 @@
         areaOverlay = null;
       }
 
-      // Re-enable both buttons
+      // Hide Finish button and restore other buttons
+      document.getElementById('btn-finish-editing').style.display = 'none';
+
       const btnNew = document.getElementById('btn-new-shape');
       const btnEdit = document.getElementById('btn-edit-shapes');
       btnNew.disabled = false;
@@ -632,6 +637,9 @@
       buildingsTransferredToExclusions = false;
       ensureNegativeLayer();
       updateLawnArea();
+
+      // Make sure Finish is hidden when map first loads
+      document.getElementById('btn-finish-editing').style.display = 'none';
 
       pricingBox.classList.remove('hidden');
     }
