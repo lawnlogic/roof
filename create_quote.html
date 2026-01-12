@@ -36,11 +36,30 @@
       <div id="time"></div>
     </div>
     <div id="error" class="error hidden"></div>
+
     <!-- map -->
     <div id="aerial-container" class="hidden" style="margin-top: 40px;">
       <h2 style="margin-bottom: 15px;">Aerial View & Lawn Measurement</h2>
+
+      <p style="margin: 0 0 15px 0; font-weight: 500; color: white; text-align: center;">
+        Edit the map to exclude everything that will not be mowed (buildings, driveways, gardens, etc.)
+      </p>
+
       <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
-    </div>
+      
+      <!-- Control buttons -->
+      <div class="map-controls" style="margin-top: 15px; text-align: center; padding: 20px 0; background: rgba(0,0,0,0.6);">
+        <button id="btn-new-shape" class="action-button" style="min-width: 100px;">
+          New Area
+        </button>
+        <button id="btn-edit-shapes" class="action-button secondary" style="min-width: 100x;">
+          Edit Areas
+        </button>
+        <button id="btn-finish-editing" class="action-button" style="min-width: 100px; background: #28a745; color: white;">
+          Finish
+        </button>
+      </div>
+
     <!-- Professional Job Summary Box -->
     <div id="pricing-box" class="pricing-box hidden">
       <div class="input-group">
@@ -158,7 +177,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = 'login.html';   // ← this line causes the redirect
+        window.location.href = 'login.html';
         return;
       }
     });
@@ -180,7 +199,6 @@
     const hourlyRateInput = document.getElementById('hourly-rate');
     const finalAreaDisplay = document.getElementById('final-area');
 
-    // New elements
     const difficultySlider = document.getElementById('difficulty-slider');
     const difficultyValue = document.getElementById('difficulty-value');
     const catchMulchCheckbox = document.getElementById('catch-mulch');
@@ -196,6 +214,7 @@
     let parcelAreaM2 = 0;
     let currentLawnArea = 0;
     let currentData = null;
+    let buildingsTransferredToExclusions = false;
 
     const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
 
@@ -213,7 +232,6 @@
 
     catchMulchCheckbox.addEventListener('change', updateLawnArea);
 
-    // === Load and save quoteSettings from user profile ===
     async function loadQuoteSettings(token) {
       try {
         const res = await fetch(`${WORKER_URL}/api/user/profile`, {
@@ -269,14 +287,12 @@
       }
     }
 
-    // Save settings on change (debounced)
     let saveTimeout;
     function scheduleSave(token) {
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(() => saveQuoteSettings(token), 1000);
     }
 
-    // Attach save listeners
     [rateInput, calloutInput, estimatedHoursInput, hourlyRateInput].forEach(input => {
       input.addEventListener('input', () => {
         updateLawnArea();
@@ -299,7 +315,6 @@
       }
     });
 
-    // Load settings when user is authenticated
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
@@ -381,6 +396,135 @@
       document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
     }
 
+    function ensureNegativeLayer() {
+      if (!map) return null;
+      if (!negativeLayer || !map.hasLayer(negativeLayer)) {
+        if (negativeLayer) map.removeLayer(negativeLayer);
+        negativeLayer = new L.FeatureGroup();
+        map.addLayer(negativeLayer);
+      }
+      return negativeLayer;
+    }
+
+    function transferBuildingsToExclusions() {
+      if (!clippedBuildingsLayer || buildingsTransferredToExclusions) return;
+
+      ensureNegativeLayer();
+
+      clippedBuildingsLayer.eachLayer(function(layer) {
+        const latlngs = layer.getLatLngs();
+        if (!latlngs || !latlngs.length) return;
+
+        const newPolygon = L.polygon(latlngs, {
+          color: "#ff4444",
+          weight: 2,
+          fillColor: "#ff4444",
+          fillOpacity: 0.6
+        });
+
+        negativeLayer.addLayer(newPolygon);
+      });
+
+      map.removeLayer(clippedBuildingsLayer);
+      clippedBuildingsLayer = null;
+      buildingsTransferredToExclusions = true;
+
+      updateLawnArea();
+    }
+
+    function enterEditMode(autoStartNewPolygon = false) {
+      if (!map) return;
+
+      ensureNegativeLayer();
+      transferBuildingsToExclusions();
+
+      if (!areaOverlay) {
+        areaOverlay = L.control({ position: 'bottomleft' });
+        areaOverlay.onAdd = function () {
+          const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+          div.style.cssText = `
+            background: rgba(255,255,255,0.95);
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+          `;
+          areaOverlay._div = div;
+          div.innerHTML = 'Calculating...';
+          return div;
+        };
+        areaOverlay.addTo(map);
+      }
+
+      updateLawnArea();
+
+      // Grey out the opposite button
+      if (autoStartNewPolygon) {
+        document.getElementById('btn-edit-shapes').disabled = true;
+        document.getElementById('btn-edit-shapes').style.opacity = '0.5';
+        document.getElementById('btn-edit-shapes').style.cursor = 'not-allowed';
+      } else {
+        document.getElementById('btn-new-shape').disabled = true;
+        document.getElementById('btn-new-shape').style.opacity = '0.5';
+        document.getElementById('btn-new-shape').style.cursor = 'not-allowed';
+      }
+
+      if (autoStartNewPolygon) {
+        const newPolygonDrawer = new L.Draw.Polygon(map, {
+          allowDrawingOnDrag: false,
+          shapeOptions: {
+            color: '#ff4444',
+            weight: 2,
+            fillColor: '#ff4444',
+            fillOpacity: 0.6
+          }
+        });
+        newPolygonDrawer.enable();
+
+        map.once('draw:created', (e) => {
+          const layer = e.layer;
+          negativeLayer.addLayer(layer);
+          layer.editing.enable();
+          updateLawnArea();
+        });
+      } else {
+        negativeLayer.eachLayer(layer => {
+          if (layer.editing) layer.editing.enable();
+        });
+      }
+    }
+
+    function finishEditing() {
+      if (!map) return;
+
+      if (map._drawHandler) {
+        map._drawHandler.disable();
+        map._drawHandler = null;
+      }
+
+      negativeLayer.eachLayer(layer => {
+        if (layer.editing) layer.editing.disable();
+      });
+
+      if (areaOverlay) {
+        areaOverlay.remove();
+        areaOverlay = null;
+      }
+
+      // Re-enable both buttons
+      const btnNew = document.getElementById('btn-new-shape');
+      const btnEdit = document.getElementById('btn-edit-shapes');
+      btnNew.disabled = false;
+      btnEdit.disabled = false;
+      btnNew.style.opacity = '1';
+      btnEdit.style.opacity = '1';
+      btnNew.style.cursor = 'pointer';
+      btnEdit.style.cursor = 'pointer';
+
+      updateLawnArea();
+    }
+
     function showAerialMap(data) {
       currentData = data;
       if (!data.aerial) {
@@ -455,87 +599,41 @@
       if (parcelLayer) {
         map.fitBounds(parcelLayer.getBounds().pad(0.2));
       }
-      pricingBox.classList.remove('hidden');
 
-      const editBtn = L.control({ position: 'topright' });
-      editBtn.onAdd = function () {
-        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        div.style.backgroundColor = '#ff4444';
-        div.style.color = 'white';
-        div.style.width = '36px';
-        div.style.height = '36px';
-        div.style.textAlign = 'center';
-        div.style.lineHeight = '36px';
-        div.style.borderRadius = '2px';
-        div.style.cursor = 'pointer';
-        div.style.fontWeight = 'bold';
-        div.innerHTML = '✏️';
-        div.title = 'Edit Negative Layer (areas to exclude from lawn)';
-        div.onclick = (e) => {
-          L.DomEvent.stopPropagation(e);
-          enableNegativeLayerEditing();
-        };
-        return div;
-      };
-      editBtn.addTo(map);
-    }
-
-    function enableNegativeLayerEditing() {
-      if (!map) return;
-      if (clippedBuildingsLayer) {
-        map.removeLayer(clippedBuildingsLayer);
-        clippedBuildingsLayer = null;
-      }
-      if (negativeLayer) map.removeLayer(negativeLayer);
-      if (areaOverlay) areaOverlay.remove();
-      negativeLayer = new L.FeatureGroup();
-      map.addLayer(negativeLayer);
-      if (clippedBuildingsGeoJSON) {
-        L.geoJSON(clippedBuildingsGeoJSON, {
-          style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
-        }).eachLayer(layer => {
-          negativeLayer.addLayer(layer);
-        });
-      }
-      const drawControl = new L.Control.Draw({
-        draw: {
-          polygon: true,
-          rectangle: false,
-          circle: false,
-          circlemarker: false,
-          marker: false,
-          polyline: false
-        },
-        edit: {
-          featureGroup: negativeLayer,
-          edit: true,
-          remove: true
-        }
-      });
-      map.addControl(drawControl);
-      map.on('draw:created', function (e) {
-        const layer = e.layer;
-        negativeLayer.addLayer(layer);
-        updateLawnArea();
-      });
-      areaOverlay = L.control({ position: 'bottomleft' });
-      areaOverlay.onAdd = function () {
-        const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-        div.style.background = 'rgba(255,255,255,0.95)';
-        div.style.padding = '12px 18px';
-        div.style.borderRadius = '8px';
-        div.style.fontSize = '18px';
-        div.style.fontWeight = 'bold';
-        div.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)';
-        div.innerHTML = 'Calculating...';
-        areaOverlay._div = div;
-        return div;
-      };
-      areaOverlay.addTo(map);
-
-      map.on('draw:edited draw:deleted draw:created', updateLawnArea);
+      buildingsTransferredToExclusions = false;
+      ensureNegativeLayer();
       updateLawnArea();
+
+      pricingBox.classList.remove('hidden');
     }
+
+    const btnNewShape = document.getElementById('btn-new-shape');
+    const btnEditShapes = document.getElementById('btn-edit-shapes');
+    const btnFinish = document.getElementById('btn-finish-editing');
+
+    btnNewShape.addEventListener('click', () => {
+      if (!map) {
+        alert('Map not ready yet. Please load a property first.');
+        return;
+      }
+      enterEditMode(true);
+    });
+
+    btnEditShapes.addEventListener('click', () => {
+      if (!map) {
+        alert('Map not ready yet. Please load a property first.');
+        return;
+      }
+      enterEditMode(false);
+    });
+
+    btnFinish.addEventListener('click', () => {
+      if (!map) {
+        alert('Nothing to finish — map not loaded.');
+        return;
+      }
+      finishEditing();
+    });
 
     btn.addEventListener('click', async () => {
       const address = addressInput.value.trim();
@@ -602,7 +700,6 @@
       errorDiv.textContent = '';
     }
 
-    // Quote Link Generation - NOW WITH COMPANY PROFILE
     document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
       if (!currentData || currentLawnArea === 0) {
         alert('Please load an address and measure the lawn area first.');
@@ -616,7 +713,6 @@
 
       const token = await auth.currentUser.getIdToken();
 
-      // === FETCH USER PROFILE ===
       let companyProfile = {};
       try {
         const profileRes = await fetch(`${WORKER_URL}/api/user/profile`, {
@@ -654,7 +750,7 @@
           email: document.getElementById('client-email').value.trim(),
           phone: document.getElementById('client-phone').value.trim()
         },
-        company: companyProfile, // ← NEW: Full company details from profile
+        company: companyProfile,
         mapState: {
           center: map.getCenter(),
           zoom: map.getZoom(),
@@ -666,7 +762,6 @@
       };
 
       try {
-        console.log('Saving quote with company details...', quoteData);
         const res = await fetch(`${WORKER_URL}/api/quotes`, {
           method: 'POST',
           headers: {
@@ -698,7 +793,6 @@
     const suggestionsBox = document.getElementById("address-suggestions");
     let debounceTimer = null;
 
-    // Listen for typing
     addressInput.addEventListener("input", (e) => {
       const value = e.target.value.trim();
 
@@ -711,7 +805,7 @@
 
       debounceTimer = setTimeout(() => {
         fetchSuggestions(value);
-      }, 250); // debounce
+      }, 250);
     });
 
     async function fetchSuggestions(query) {
@@ -758,13 +852,11 @@
       suggestionsBox.innerHTML = "";
     }
 
-    // Hide dropdown when clicking elsewhere
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".input-group")) {
         hideSuggestions();
       }
     });
-
 
   </script>
 </body>
