@@ -106,10 +106,10 @@
 
           return `
             <div class="quote-card" style="position: relative;">
-              <!-- Small red X for future delete (click handler added below) -->
-              <button class="delete-quote-btn" 
+              <!-- Delete button -->
+              <button class="delete-quote-btn"
                       data-quote-id="${quote.id}"
-                      title="Delete this quote (coming soon)">
+                      title="Delete this quote">
                 ×
               </button>
 
@@ -127,7 +127,7 @@
               <div class="quote-actions">
                 <a href="${publicLink}" target="_blank" class="quote-link-btn">Email Quote</a>
                 <a href="${publicLink}" target="_blank" class="quote-link-btn">View</a>
-                <a href="create_invoice.html?from_quote=${quote.id}" 
+                <a href="create_invoice.html?from_quote=${quote.id}"
                    class="quote-link-btn create-invoice-btn">
                   Create Invoice
                 </a>
@@ -138,13 +138,47 @@
 
         quoteListEl.classList.remove('hidden');
 
-        // Optional: Add click listeners for delete buttons (placeholder for now)
+        // Delete functionality
         document.querySelectorAll('.delete-quote-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             const quoteId = e.target.dataset.quoteId;
-            if (confirm(`Are you sure you want to delete quote ${quoteId.slice(-6)}?`)) {
-              alert(`Delete functionality coming soon for quote: ${quoteId}`);
-              // Future: fetch(`${WORKER_URL}/api/quotes/${quoteId}`, { method: 'DELETE', headers... })
+            const quoteNumElement = e.target.closest('.quote-card')?.querySelector('.quote-number');
+            const quoteNum = quoteNumElement?.textContent || quoteId.slice(-6);
+
+            if (!confirm(`Delete quote ${quoteNum}? This action cannot be undone.`)) {
+              return;
+            }
+
+            try {
+              const token = await user.getIdToken();
+
+              const response = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              if (response.ok) {
+                // Remove card from UI
+                e.target.closest('.quote-card').remove();
+
+                // Optional: check if list is now empty
+                if (quoteListEl.children.length === 0) {
+                  quoteListEl.classList.add('hidden');
+                  noQuotesEl.classList.remove('hidden');
+                }
+
+                alert('Quote successfully deleted');
+              } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(`Delete failed: ${errorData.error || 'Unknown error'}`);
+              }
+            } catch (err) {
+              console.error('Delete error:', err);
+              alert('Network error while deleting quote. Please try again.');
             }
           });
         });
