@@ -954,6 +954,47 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 1.2rem;
 }
 
+.quote-link-btn.create-invoice-btn {
+  background: #2e7d32;           /* darker green */
+  color: white;
+}
+
+.quote-link-btn.create-invoice-btn:hover {
+  background: #1b5e20;
+}
+
+.delete-quote-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  color: #c62828;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+}
+
+
+/* Improve quote details spacing */
+.quote-details {
+    padding: 12px 16px;
+    /* background: rgba(255, 255, 255, 0.05); */
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.detail-label {
+  color: #aaa;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
 /* ──────────────────────────────────────────────────────────────
    profile
 ────────────────────────────────────────────────────────────── */

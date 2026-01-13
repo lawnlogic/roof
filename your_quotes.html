@@ -32,7 +32,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -66,14 +66,17 @@
 
         if (!res.ok) throw new Error('Failed to load quotes');
 
-        const { quotes } = await res.json();
+        let { quotes = [] } = await res.json();
 
         loadingEl.classList.add('hidden');
 
-        if (!quotes || quotes.length === 0) {
+        if (quotes.length === 0) {
           noQuotesEl.classList.remove('hidden');
           return;
         }
+
+        // 1. Sort by most recent first (newest createdAt at the top)
+        quotes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         quoteListEl.innerHTML = quotes.map(quote => {
           const date = new Date(quote.createdAt).toLocaleDateString('en-NZ', {
@@ -82,27 +85,69 @@
 
           const publicLink = `${window.location.origin}/roof/quote.html?quote=${quote.id}`;
 
+          // Client name: Firstname + first letter of lastname, or "Undefined"
+          const client = quote.data?.client || {};
+          let clientDisplay = "Undefined";
+          if (client.firstName?.trim()) {
+            const lastInitial = client.lastName?.trim()?.[0]?.toUpperCase() || '';
+            clientDisplay = `${client.firstName.trim()} ${lastInitial}`.trim();
+            if (clientDisplay.endsWith(' ')) clientDisplay = clientDisplay.slice(0, -1);
+          }
+
+          // Total incl GST
+          const total = quote.data?.totalInclGst;
+          const totalDisplay = (typeof total === 'number' && !isNaN(total))
+            ? `$${total.toFixed(2)}`
+            : "Undefined";
+
+          // Quote number
+          const quoteNum = quote.data?.quoteNumber || `Q_${quote.id.slice(-6)}`;
+          const quoteNumDisplay = quoteNum || "Undefined";
+
           return `
-            <div class="quote-card">
+            <div class="quote-card" style="position: relative;">
+              <!-- Small red X for future delete (click handler added below) -->
+              <button class="delete-quote-btn" 
+                      data-quote-id="${quote.id}"
+                      title="Delete this quote (coming soon)">
+                ×
+              </button>
+
               <div class="quote-header">
-                <div class="quote-number">#Q_CL001</div>
-                <div class="quote-address">${quote.data.address || 'Unknown Address'}</div>
+                <div class="quote-number">${quoteNumDisplay}</div>
+                <div class="quote-address">${quote.data?.address || 'Unknown Address'}</div>
                 <div class="quote-date">${date}</div>
               </div>
+
               <div class="quote-details">
-                <div><span class="detail-label">Client:</span> <span class="detail-value-standard">James.B</span></div>
-                <div><span class="detail-label">Total (incl GST):</span> <span class="detail-value">$${(quote.data.lawnAreaM2 * quote.data.ratePerM2 + quote.data.calloutFee * 1.15).toFixed(2)}</span></div>
-                <div><span class="detail-label">Job Profit:</span> <span class="detail-value">$${((quote.data.lawnAreaM2 * quote.data.ratePerM2 + quote.data.calloutFee * 1.15)/2).toFixed(2)}</span></div>
+                <div><span class="detail-label">Client:</span> <span class="detail-value">${clientDisplay}</span></div>
+                <div><span class="detail-label">Total (incl GST):</span> <strong class="detail-value">${totalDisplay}</strong></div>
               </div>
+
               <div class="quote-actions">
                 <a href="${publicLink}" target="_blank" class="quote-link-btn">Email Quote</a>
                 <a href="${publicLink}" target="_blank" class="quote-link-btn">View</a>
+                <a href="create_invoice.html?from_quote=${quote.id}" 
+                   class="quote-link-btn create-invoice-btn">
+                  Create Invoice
+                </a>
               </div>
             </div>
           `;
         }).join('');
 
         quoteListEl.classList.remove('hidden');
+
+        // Optional: Add click listeners for delete buttons (placeholder for now)
+        document.querySelectorAll('.delete-quote-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const quoteId = e.target.dataset.quoteId;
+            if (confirm(`Are you sure you want to delete quote ${quoteId.slice(-6)}?`)) {
+              alert(`Delete functionality coming soon for quote: ${quoteId}`);
+              // Future: fetch(`${WORKER_URL}/api/quotes/${quoteId}`, { method: 'DELETE', headers... })
+            }
+          });
+        });
 
       } catch (err) {
         loadingEl.classList.add('hidden');

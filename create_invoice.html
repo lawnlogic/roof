@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Invoice • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+</head>
+<body>
+  <div class="container" style="max-width: 640px;">
+    <h2>Create Invoice</h2>
+    <p style="color:#aaa; margin: -8px 0 24px 0;">
+      Create invoice from existing quote
+    </p>
+
+    <!-- Quote Selection -->
+    <div class="input-group">
+      <label for="quote-select">Select Quote to Invoice</label>
+      <select id="quote-select">
+        <option value="">-- Choose a quote without invoice --</option>
+      </select>
+    </div>
+
+    <!-- Invoice Details Form (hidden until quote selected) -->
+    <div id="invoice-form" class="hidden">
+      <div class="pricing-box" style="margin: 24px 0;">
+        <div class="pricing-row">
+          <span>Job Address:</span>
+          <strong id="inv-address"></strong>
+        </div>
+        <div class="pricing-row">
+          <span>Client:</span>
+          <strong id="inv-client"></strong>
+        </div>
+        <div class="pricing-row">
+          <span>Quote Amount (incl GST):</span>
+          <strong id="inv-total"></strong>
+        </div>
+      </div>
+
+      <!-- Invoice Specific Fields -->
+      <div class="input-group">
+        <label for="inv-number">Invoice Number</label>
+        <input type="text" id="inv-number" placeholder="INV-2025-001" />
+      </div>
+
+      <div class="input-group">
+        <label for="issue-date">Issue Date</label>
+        <input type="date" id="issue-date" value="" />
+      </div>
+
+      <div class="input-group">
+        <label for="due-date">Due Date</label>
+        <input type="date" id="due-date" value="" />
+      </div>
+
+      <div class="input-group">
+        <label for="payment-terms">Payment Terms</label>
+        <select id="payment-terms">
+          <option value="7">7 Days</option>
+          <option value="14" selected>14 Days</option>
+          <option value="20th-next">20th of following month</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="inv-notes">Notes / Payment Instructions</label>
+        <textarea id="inv-notes" rows="4" placeholder="Bank account: 02-1234-5678901-00&#10;Please pay by internet banking. Thank you!"></textarea>
+      </div>
+
+      <button id="generate-invoice-btn" class="action-button" style="margin-top: 24px; width:100%;">
+        Generate Invoice
+      </button>
+    </div>
+
+    <div id="success-message" class="hidden" style="margin-top:32px; padding:20px; background:#1e3a2e; border-radius:12px; text-align:center;">
+      <h3 style="margin:0 0 12px 0; color:#8B5CF6;">Invoice Created!</h3>
+      <p id="invoice-link-text"></p>
+      <a id="view-invoice-btn" class="quote-link-btn" style="display:inline-block; margin-top:16px;" target="_blank">View Invoice</a>
+    </div>
+
+    <div id="error-message" class="error hidden" style="margin-top:24px;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const app = initializeApp({ /* your config */ });
+    const auth = getAuth(app);
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const quoteSelect = document.getElementById('quote-select');
+    const invoiceForm = document.getElementById('invoice-form');
+    const generateBtn = document.getElementById('generate-invoice-btn');
+
+    // Pre-fill dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('issue-date').value = today;
+    // Default due date 14 days later
+    const due = new Date();
+    due.setDate(due.getDate() + 14);
+    document.getElementById('due-date').value = due.toISOString().split('T')[0];
+
+    // Load user's quotes
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = 'login.html';
+
+      const token = await user.getIdToken();
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/quotes`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to load quotes');
+
+        const { quotes = [] } = await res.json();
+
+        // Only show quotes without invoice (you'll need backend to provide this info)
+        // For now we assume all quotes can be invoiced (later filter by hasInvoice flag)
+        quotes.forEach(q => {
+          const option = document.createElement('option');
+          option.value = q.id;
+          option.textContent = `${q.data.address || 'No address'} — $${(q.data.lawnAreaM2 * q.data.ratePerM2 * 1.15 + q.data.calloutFee * 1.15).toFixed(2)}`;
+          option.dataset.address = q.data.address || '';
+          option.dataset.client = q.data.client ? `${q.data.client.firstName || ''} ${q.data.client.lastName || ''}` : '';
+          option.dataset.total = (q.data.lawnAreaM2 * q.data.ratePerM2 * 1.15 + q.data.calloutFee * 1.15).toFixed(2);
+          quoteSelect.appendChild(option);
+        });
+
+      } catch (err) {
+        document.getElementById('error-message').textContent = 'Error loading quotes: ' + err.message;
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+    });
+
+    // When quote selected → show & fill form
+    quoteSelect.addEventListener('change', () => {
+      const selected = quoteSelect.options[quoteSelect.selectedIndex];
+      if (!selected.value) {
+        invoiceForm.classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('inv-address').textContent = selected.dataset.address || '—';
+      document.getElementById('inv-client').textContent = selected.dataset.client || '—';
+      document.getElementById('inv-total').textContent = '$' + selected.dataset.total;
+
+      invoiceForm.classList.remove('hidden');
+    });
+
+    // Generate Invoice (frontend preview — backend part comes later)
+    generateBtn.addEventListener('click', async () => {
+      const quoteId = quoteSelect.value;
+      if (!quoteId) return alert('Please select a quote first');
+
+      const invoiceData = {
+        quoteId,
+        invoiceNumber: document.getElementById('inv-number').value.trim() || `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+        issueDate: document.getElementById('issue-date').value,
+        dueDate: document.getElementById('due-date').value,
+        paymentTerms: document.getElementById('payment-terms').value,
+        notes: document.getElementById('inv-notes').value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      // TODO: POST to backend → /api/invoices
+      // For now just simulate success
+      alert(`Invoice would be created!\n\nQuote: ${quoteId}\nInvoice #: ${invoiceData.invoiceNumber}\n\n(Backend implementation needed next)`);
+
+      // After real implementation you would:
+      // 1. POST invoice
+      // 2. Get back invoice ID
+      // 3. Show link like: /invoice.html?inv=xxx
+    });
+  </script>
+</body>
+</html>
