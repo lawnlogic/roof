@@ -100,7 +100,20 @@
 
     if (!invId) {
       document.body.innerHTML = '<div class="container"><h2>Invalid or missing invoice ID</h2></div>';
-      return;
+    } else {
+      // the rest of your code (fetch, then, catch...)
+      fetch(`${WORKER_URL}/api/public/invoice/${invId}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Invoice not found or expired');
+          return res.json();
+        })
+        .then(invoiceData => {
+          // ... all your rendering code ...
+        })
+        .catch(err => {
+          document.body.innerHTML = `<div class="container"><h2>Error loading invoice</h2><p>${err.message}</p></div>`;
+          document.getElementById('loading-splash').style.display = 'none';
+        });
     }
 
     fetch(`${WORKER_URL}/api/public/invoice/${invId}`)
