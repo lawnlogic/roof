@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lawn Care Invoice</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading your invoice...</p>
+  </div>
+
+  <div class="container">
+    <h2>Lawn Care Invoice</h2>
+
+    <!-- Invoice Header Info -->
+    <div class="pricing-box" style="margin-bottom: 24px;">
+      <div class="pricing-row">
+        <span>Invoice Number:</span>
+        <strong id="invoice-number">-</strong>
+      </div>
+      <div class="pricing-row">
+        <span>Issue Date:</span>
+        <strong id="issue-date">-</strong>
+      </div>
+      <div class="pricing-row">
+        <span>Due Date:</span>
+        <strong id="due-date">-</strong>
+      </div>
+      <div class="pricing-row">
+        <span>Payment Terms:</span>
+        <strong id="payment-terms">-</strong>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="aerial-container" style="margin-top: 0px;">
+      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+    </div>
+
+    <!-- Company Info Box -->
+    <div class="company-box" id="company-box">
+      <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
+      <div class="company-details">
+        <h3 id="company-name">Deep Edge</h3>
+        <p><strong>Phone:</strong> <span id="company-phone">-</span></p>
+        <p><strong>Email:</strong> <a id="company-email" href="mailto:" style="color:#8B5CF6;">-</a></p>
+        <p><strong>NZBN:</strong> <span id="company-nzbn">-</span></p>
+        <p><strong>GST Number:</strong> <span id="company-gst">-</span></p>
+      </div>
+    </div>
+
+    <!-- Professional Job Summary Box -->
+    <div id="pricing-box" class="pricing-box">
+      <div class="pricing-row">
+        <span>Property Address:</span>
+        <strong id="address-display"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Lawn Area:</span>
+        <strong id="final-area"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Lawn Cost (ex GST):</span>
+        <strong id="mowing-revenue"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>Total Cost (ex GST):</span>
+        <strong id="total-revenue"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>GST (15%):</span>
+        <strong id="gst"></strong>
+      </div>
+      <div class="pricing-row">
+        <span>TOTAL (incl GST):</span>
+        <strong id="total-incl"></strong>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div id="notes-section" class="pricing-box" style="margin-top: 24px;">
+      <h3 style="margin-top: 0;">Payment Instructions / Notes</h3>
+      <p id="invoice-notes" style="white-space: pre-wrap; margin: 12px 0;">-</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const invId = urlParams.get('inv');
+
+    if (!invId) {
+      document.body.innerHTML = '<div class="container"><h2>Invalid or missing invoice ID</h2></div>';
+      return;
+    }
+
+    fetch(`${WORKER_URL}/api/public/invoice/${invId}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Invoice not found or expired');
+        return res.json();
+      })
+      .then(invoiceData => {
+        // === Invoice Header ===
+        document.getElementById('invoice-number').textContent = invoiceData.data.invoiceNumber || '—';
+        document.getElementById('issue-date').textContent = invoiceData.data.issueDate || '—';
+        document.getElementById('due-date').textContent = invoiceData.data.dueDate || '—';
+        document.getElementById('payment-terms').textContent = 
+          invoiceData.data.paymentTerms === '14' ? '14 Days' :
+          invoiceData.data.paymentTerms === '7' ? '7 Days' :
+          invoiceData.data.paymentTerms === '20th-next' ? '20th of following month' :
+          invoiceData.data.paymentTerms || '—';
+
+        // === Company Info ===
+        const company = invoiceData.data.quoteSnapshot?.company || invoiceData.company || {};
+        document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
+        document.getElementById('company-phone').textContent = company.phone || '-';
+        document.getElementById('company-email').href = `mailto:${company.email || ''}`;
+        document.getElementById('company-email').textContent = company.email || '-';
+        document.getElementById('company-nzbn').textContent = company.nzbn || '-';
+        document.getElementById('company-gst').textContent = company.gstNumber || '-';
+
+        if (company.logoUrl) {
+          document.getElementById('company-logo').src = company.logoUrl;
+        }
+
+        // === Job Summary ===
+        const quoteData = invoiceData.data.quoteSnapshot || {};
+        document.getElementById('address-display').textContent = quoteData.address || '—';
+        document.getElementById('final-area').textContent = `${quoteData.lawnAreaM2 || 0} m²`;
+        document.getElementById('mowing-revenue').textContent = `$${(quoteData.lawnAreaM2 * quoteData.ratePerM2 * quoteData.difficultyMultiplier || 0).toFixed(2)}`;
+        const totalEx = (quoteData.lawnAreaM2 * quoteData.ratePerM2 * quoteData.difficultyMultiplier + (quoteData.calloutFee || 0)).toFixed(2);
+        document.getElementById('total-revenue').textContent = `$${totalEx}`;
+        const gst = (parseFloat(totalEx) * 0.15).toFixed(2);
+        document.getElementById('gst').textContent = `$${gst}`;
+        document.getElementById('total-incl').textContent = `$${invoiceData.data.totalInclGst?.toFixed(2) || (parseFloat(totalEx) + parseFloat(gst)).toFixed(2)}`;
+
+        // === Notes ===
+        document.getElementById('invoice-notes').textContent = invoiceData.data.notes?.trim() || 'No additional notes.';
+
+        // === Map (same as quote.html) ===
+        const mapContainer = document.getElementById('aerial-map');
+        if (!mapContainer) return;
+
+        const initialZoom = 20;
+        const map = L.map('aerial-map', {
+          maxZoom: 24,
+          zoomControl: true,
+          attributionControl: true
+        }).setView(
+          [invoiceData.mapState?.center?.lat || -36.8485, invoiceData.mapState?.center?.lng || 174.7633],
+          initialZoom
+        );
+
+        const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+        L.tileLayer(LINZ_AERIAL_URL, {
+          attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+          maxZoom: 24,
+          tileSize: 256,
+          zoomOffset: 0,
+          noWrap: true
+        }).addTo(map);
+
+        // Add layers if available
+        if (invoiceData.mapState?.parcelGeometry) {
+          L.geoJSON(invoiceData.mapState.parcelGeometry, {
+            style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+          }).addTo(map);
+        }
+
+        if (invoiceData.mapState?.buildingsGeoJSON) {
+          L.geoJSON(invoiceData.mapState.buildingsGeoJSON, {
+            style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
+          }).addTo(map);
+        }
+
+        if (invoiceData.mapState?.negativeGeoJSON?.features?.length > 0) {
+          L.geoJSON(invoiceData.mapState.negativeGeoJSON, {
+            style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
+          }).addTo(map);
+        }
+
+        // Fit bounds
+        if (invoiceData.mapState?.parcelGeometry) {
+          const bounds = L.geoJSON(invoiceData.mapState.parcelGeometry).getBounds();
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: initialZoom + 2, animate: true });
+          if (map.getZoom() < initialZoom) map.setZoom(initialZoom);
+        }
+
+        // Hide loading
+        const loadingSplash = document.getElementById('loading-splash');
+        loadingSplash.classList.add('fade-out');
+        setTimeout(() => loadingSplash.style.display = 'none', 500);
+      })
+      .catch(err => {
+        document.body.innerHTML = `<div class="container"><h2>Error loading invoice</h2><p>${err.message}</p></div>`;
+        document.getElementById('loading-splash').style.display = 'none';
+      });
+  </script>
+</body>
+</html>

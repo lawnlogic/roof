@@ -148,6 +148,20 @@
 
 <!-- Slideshow JavaScript -->
 <script>
+
+document.querySelectorAll('.signup-btn').forEach(button => {
+  button.addEventListener('click', function(e) {
+    // Optional: prevent default if it's a link/button with href
+    e.preventDefault();
+    
+    // Redirect to index.html (same page in this case)
+    window.location.href = 'login.html';
+    
+    // Alternative: if you want to reload current page instead:
+    // window.location.reload();
+  });
+});
+
 let slideIndex = 1;
 showSlides(slideIndex);
 

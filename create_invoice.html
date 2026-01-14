@@ -88,7 +88,16 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-    const app = initializeApp({ /* your config */ });
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+    };
+
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
@@ -99,14 +108,19 @@
     // Pre-fill dates
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('issue-date').value = today;
-    // Default due date 14 days later
     const due = new Date();
     due.setDate(due.getDate() + 14);
     document.getElementById('due-date').value = due.toISOString().split('T')[0];
 
-    // Load user's quotes
+    let currentUser = null; // ← Store user here so it's accessible everywhere
+
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = 'login.html';
+      currentUser = user; // ← Save reference
+
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
 
       const token = await user.getIdToken();
 
@@ -118,8 +132,6 @@
 
         const { quotes = [] } = await res.json();
 
-        // Only show quotes without invoice (you'll need backend to provide this info)
-        // For now we assume all quotes can be invoiced (later filter by hasInvoice flag)
         quotes.forEach(q => {
           const option = document.createElement('option');
           option.value = q.id;
@@ -151,29 +163,62 @@
       invoiceForm.classList.remove('hidden');
     });
 
-    // Generate Invoice (frontend preview — backend part comes later)
+    // Generate Invoice – now uses currentUser
     generateBtn.addEventListener('click', async () => {
+      if (!currentUser) {
+        alert('You must be signed in to create an invoice.');
+        window.location.href = 'login.html';
+        return;
+      }
+
       const quoteId = quoteSelect.value;
       if (!quoteId) return alert('Please select a quote first');
 
       const invoiceData = {
         quoteId,
-        invoiceNumber: document.getElementById('inv-number').value.trim() || `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+        invoiceNumber: document.getElementById('inv-number').value.trim() || undefined,
         issueDate: document.getElementById('issue-date').value,
         dueDate: document.getElementById('due-date').value,
         paymentTerms: document.getElementById('payment-terms').value,
         notes: document.getElementById('inv-notes').value.trim(),
-        createdAt: new Date().toISOString()
+        totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace('$', '').replace(',', '')) || 0
       };
 
-      // TODO: POST to backend → /api/invoices
-      // For now just simulate success
-      alert(`Invoice would be created!\n\nQuote: ${quoteId}\nInvoice #: ${invoiceData.invoiceNumber}\n\n(Backend implementation needed next)`);
+      try {
+        const token = await currentUser.getIdToken();
 
-      // After real implementation you would:
-      // 1. POST invoice
-      // 2. Get back invoice ID
-      // 3. Show link like: /invoice.html?inv=xxx
+        const res = await fetch(`${WORKER_URL}/api/invoices`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(invoiceData)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(err.error || 'Failed to create invoice');
+        }
+
+        const { invoiceId, invoice } = await res.json();
+
+        // Show success
+        document.getElementById('invoice-link-text').textContent = 
+          `Invoice created! View it here: ${window.location.origin}/invoice.html?inv=${invoiceId}`;
+
+        document.getElementById('view-invoice-btn').href = 
+          `invoice.html?inv=${invoiceId}`;
+
+        document.getElementById('success-message').classList.remove('hidden');
+        document.getElementById('invoice-form').classList.add('hidden');
+
+        alert(`Invoice #${invoice.data.invoiceNumber} created successfully!`);
+
+      } catch (err) {
+        alert('Error creating invoice: ' + err.message);
+        console.error(err);
+      }
     });
   </script>
 </body>
