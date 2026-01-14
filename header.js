@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Inject header HTML
+  // Inject header HTML with hamburger SVG
   document.body.insertAdjacentHTML('afterbegin', `
     <header class="deep-edge-header">
       <div class="header-content">
@@ -8,15 +8,23 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="logo">Deep Edge</div>
         </div>
         
-        <button class="menu-dots" aria-label="Open menu" id="menu-dots">⋯</button>
+        <!-- Hamburger SVG button -->
+        <button class="menu-hamburger" aria-label="Open menu" id="menu-hamburger">
+          <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="28" height="4" rx="2" fill="#412e75"/>
+            <rect y="10" width="28" height="4" rx="2" fill="#412e75"/>
+            <rect y="20" width="28" height="4" rx="2" fill="#412e75"/>
+          </svg>
+        </button>
       </div>
 
       <nav class="header-nav" id="header-nav">
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="create_quote.html">Create Quote</a></li>
-          <li><a href="create_invoice.html">Create Invoice</a></li>
           <li><a href="your_quotes.html">Your Quotes</a></li>
+          <li><a href="create_invoice.html">Create Invoice</a></li>
+          <li><a href="your_invoices.html">Your Invoices</a></li>
           <li><a href="profile.html">Profile</a></li>
           <li><a href="#" id="sign-out-link">Sign Out</a></li>
         </ul>
@@ -27,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `);
 
   // Menu toggle logic
-  const hamburger = document.getElementById('menu-dots');
+  const hamburger = document.getElementById('menu-hamburger');
   const nav = document.getElementById('header-nav');
   const overlay = document.getElementById('header-overlay');
   const signOutLink = document.getElementById('sign-out-link');
@@ -51,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
   signOutLink.addEventListener('click', (e) => {
     e.preventDefault();
     if (confirm('Sign out of Deep Edge?')) {
-      // Firebase sign out
       import("https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js")
         .then(module => {
           const { getAuth, signOut } = module;
@@ -60,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         })
         .catch(() => {
-          // Fallback: just redirect
           window.location.href = 'login.html';
         });
     }

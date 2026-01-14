@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <title>My Invoices • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+</head>
+<body>
+  <div class="your-quotes-container"> <!-- same class for identical styling -->
+    <h1>Your Invoices</h1>
+
+    <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">
+      Loading your invoices...
+    </div>
+
+    <div id="invoice-list" class="quote-list hidden"></div> <!-- renamed for clarity -->
+
+    <div id="no-invoices" class="no-quotes hidden">
+      You haven't created any invoices yet.<br><br>
+      Go to the <a href="create_invoice.html" style="color:#8B5CF6; text-decoration:underline;">Create Invoice</a> page to generate one!
+    </div>
+
+    <div id="error" class="error hidden" style="text-align:center; margin-top:30px;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const invoiceListEl = document.getElementById('invoice-list');
+    const loadingEl = document.getElementById('loading');
+    const noInvoicesEl = document.getElementById('no-invoices');
+    const errorEl = document.getElementById('error');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${WORKER_URL}/api/invoices`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Failed to load invoices');
+
+        let { invoices = [] } = await res.json();
+
+        loadingEl.classList.add('hidden');
+
+        if (invoices.length === 0) {
+          noInvoicesEl.classList.remove('hidden');
+          return;
+        }
+
+        // Sort by most recent first
+        invoices.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        invoiceListEl.innerHTML = invoices.map(invoice => {
+          const date = new Date(invoice.createdAt).toLocaleDateString('en-NZ', {
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+
+          const publicLink = `${window.location.origin}/invoice.html?inv=${invoice.id}`;
+
+          // Invoice number
+          const invNum = invoice.data?.invoiceNumber || `INV_${invoice.id.slice(-6)}`;
+          const invNumDisplay = invNum || "Undefined";
+
+          // Total (from invoice or fallback to quote snapshot)
+          const total = invoice.data?.totalInclGst;
+          const totalDisplay = (typeof total === 'number' && !isNaN(total))
+            ? `$${total.toFixed(2)}`
+            : "Undefined";
+
+          // Client (from quoteSnapshot if available)
+          const clientSnap = invoice.data?.quoteSnapshot?.data?.client || {};
+          let clientDisplay = "Undefined";
+          if (clientSnap.firstName?.trim()) {
+            const lastInitial = clientSnap.lastName?.trim()?.[0]?.toUpperCase() || '';
+            clientDisplay = `${clientSnap.firstName.trim()} ${lastInitial}`.trim();
+            if (clientDisplay.endsWith(' ')) clientDisplay = clientDisplay.slice(0, -1);
+          }
+
+          return `
+            <div class="quote-card" style="position: relative;">
+              <button class="delete-quote-btn"
+                      data-invoice-id="${invoice.id}"
+                      title="Delete this invoice">
+                ×
+              </button>
+
+              <div class="quote-header" style="display: block; text-align: left;">
+                <div class="quote-number" style="display: block; margin-bottom: 6px;">${invNumDisplay}</div>
+                <div class="quote-address" style="display: block; margin-bottom: 6px;">${invoice.data?.quoteSnapshot?.data?.address || invoice.data?.address || 'Unknown Address'}</div>
+                <div class="quote-date" style="display: block;">${date}</div>
+              </div>
+
+              <div class="quote-details">
+                <div><span class="detail-label">Client:</span> <span class="detail-value">${clientDisplay}</span></div>
+                <div><span class="detail-label">Total (incl GST):</span> <strong class="detail-value">${totalDisplay}</strong></div>
+              </div>
+
+              <div class="quote-actions">
+                <a href="${publicLink}" target="_blank" class="quote-link-btn">View Invoice</a>
+                <a href="edit_invoice.html?inv=${invoice.id}" class="quote-link-btn" style="background:#304ffe;">
+                  Edit Invoice
+                </a>
+                <button class="delete-quote-btn delete-invoice-btn"
+                        data-invoice-id="${invoice.id}">
+                  ×
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        invoiceListEl.classList.remove('hidden');
+
+        // Delete functionality (for invoices)
+        document.querySelectorAll('.delete-invoice-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const invoiceId = e.target.dataset.invoiceId;
+            const invNumElement = e.target.closest('.quote-card')?.querySelector('.quote-number');
+            const invNum = invNumElement?.textContent || invoiceId.slice(-6);
+
+            if (!confirm(`Delete invoice ${invNum}? This action cannot be undone.`)) {
+              return;
+            }
+
+            try {
+              const token = await user.getIdToken();
+
+              const response = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              if (response.ok) {
+                e.target.closest('.quote-card').remove();
+
+                if (invoiceListEl.children.length === 0) {
+                  invoiceListEl.classList.add('hidden');
+                  noInvoicesEl.classList.remove('hidden');
+                }
+
+                alert('Invoice successfully deleted');
+              } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(`Delete failed: ${errorData.error || 'Unknown error'}`);
+              }
+            } catch (err) {
+              console.error('Delete error:', err);
+              alert('Network error while deleting invoice. Please try again.');
+            }
+          });
+        });
+
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        errorEl.textContent = 'Error loading invoices: ' + err.message;
+        errorEl.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

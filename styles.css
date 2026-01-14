@@ -629,6 +629,33 @@ body {
   }
 }
 
+.menu-hamburger {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: 16px; /* space from logo */
+}
+
+.menu-hamburger svg {
+  width: 20px;   /* adjust if needed to match your logo height */
+  height: 20px;
+  transition: opacity 0.2s;
+}
+
+.menu-hamburger:hover svg {
+  opacity: 0.8; /* subtle hover feedback */
+}
+
+/* Optional: make logo and hamburger same vertical alignment */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 
 /* ──────────────────────────────────────────────────────────────
    Create_quote
@@ -879,6 +906,7 @@ input[type="range"]::-webkit-slider-thumb {
     padding: 20px;
     /* border: 1px solid #444; */
     transition: transform 0.2s, box-shadow 0.2s;
+    white-space: normal !important;
 }
 }
 .quote-card:hover {
@@ -1222,3 +1250,8 @@ input[type="file"] {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.quote-header {
+  white-space: normal !important;
+}
+

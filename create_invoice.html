@@ -112,10 +112,11 @@
     due.setDate(due.getDate() + 14);
     document.getElementById('due-date').value = due.toISOString().split('T')[0];
 
-    let currentUser = null; // ← Store user here so it's accessible everywhere
+    let currentUser = null;
+    let selectedQuoteData = null; // ← Store full quote here when selected
 
     onAuthStateChanged(auth, async (user) => {
-      currentUser = user; // ← Save reference
+      currentUser = user;
 
       if (!user) {
         window.location.href = 'login.html';
@@ -139,6 +140,10 @@
           option.dataset.address = q.data.address || '';
           option.dataset.client = q.data.client ? `${q.data.client.firstName || ''} ${q.data.client.lastName || ''}` : '';
           option.dataset.total = (q.data.lawnAreaM2 * q.data.ratePerM2 * 1.15 + q.data.calloutFee * 1.15).toFixed(2);
+          
+          // Store full quote data in the option (as JSON string)
+          option.dataset.fullQuote = JSON.stringify(q);
+          
           quoteSelect.appendChild(option);
         });
 
@@ -148,13 +153,17 @@
       }
     });
 
-    // When quote selected → show & fill form
+    // When quote selected → store full data + show form
     quoteSelect.addEventListener('change', () => {
       const selected = quoteSelect.options[quoteSelect.selectedIndex];
       if (!selected.value) {
         invoiceForm.classList.add('hidden');
+        selectedQuoteData = null;
         return;
       }
+
+      // Parse the full quote data from dataset
+      selectedQuoteData = JSON.parse(selected.dataset.fullQuote);
 
       document.getElementById('inv-address').textContent = selected.dataset.address || '—';
       document.getElementById('inv-client').textContent = selected.dataset.client || '—';
@@ -163,7 +172,7 @@
       invoiceForm.classList.remove('hidden');
     });
 
-    // Generate Invoice – now uses currentUser
+    // Generate Invoice – send full quote snapshot to backend
     generateBtn.addEventListener('click', async () => {
       if (!currentUser) {
         alert('You must be signed in to create an invoice.');
@@ -174,6 +183,10 @@
       const quoteId = quoteSelect.value;
       if (!quoteId) return alert('Please select a quote first');
 
+      if (!selectedQuoteData) {
+        return alert('Selected quote data not loaded. Please try again.');
+      }
+
       const invoiceData = {
         quoteId,
         invoiceNumber: document.getElementById('inv-number').value.trim() || undefined,
@@ -181,7 +194,10 @@
         dueDate: document.getElementById('due-date').value,
         paymentTerms: document.getElementById('payment-terms').value,
         notes: document.getElementById('inv-notes').value.trim(),
-        totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace('$', '').replace(',', '')) || 0
+        totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace(/[$,]/g, '')) || 0,
+        
+        // Attach full quote snapshot (this is the key change)
+        quoteSnapshot: selectedQuoteData
       };
 
       try {

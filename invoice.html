@@ -19,8 +19,8 @@
   <div class="container">
     <h2>Lawn Care Invoice</h2>
 
-    <!-- Invoice Header Info -->
-    <div class="pricing-box" style="margin-bottom: 24px;">
+    <!-- Invoice Specific Info -->
+    <div class="pricing-box">
       <div class="pricing-row">
         <span>Invoice Number:</span>
         <strong id="invoice-number">-</strong>
@@ -41,7 +41,7 @@
 
     <!-- Map -->
     <div id="aerial-container" style="margin-top: 0px;">
-      <div id="aerial-map" style="width:100%; height:600px; border:2px solid #ccc; border-radius:8px;"></div>
+      <div id="aerial-map" style="width:100%; height:500px; border:2px solid #444; border-radius:8px;"></div>
     </div>
 
     <!-- Company Info Box -->
@@ -56,38 +56,46 @@
       </div>
     </div>
 
-    <!-- Professional Job Summary Box -->
+    <!-- Job Summary -->
     <div id="pricing-box" class="pricing-box">
       <div class="pricing-row">
         <span>Property Address:</span>
-        <strong id="address-display"></strong>
+        <strong id="address-display">-</strong>
       </div>
       <div class="pricing-row">
         <span>Lawn Area:</span>
-        <strong id="final-area"></strong>
+        <strong id="final-area">-</strong>
       </div>
       <div class="pricing-row">
         <span>Lawn Cost (ex GST):</span>
-        <strong id="mowing-revenue"></strong>
+        <strong id="mowing-revenue">-</strong>
       </div>
       <div class="pricing-row">
         <span>Total Cost (ex GST):</span>
-        <strong id="total-revenue"></strong>
+        <strong id="total-revenue">-</strong>
       </div>
       <div class="pricing-row">
         <span>GST (15%):</span>
-        <strong id="gst"></strong>
+        <strong id="gst">-</strong>
       </div>
-      <div class="pricing-row">
+      <div class="pricing-row total">
         <span>TOTAL (incl GST):</span>
-        <strong id="total-incl"></strong>
+        <strong id="total-incl">-</strong>
       </div>
     </div>
 
-    <!-- Notes Section -->
-    <div id="notes-section" class="pricing-box" style="margin-top: 24px;">
-      <h3 style="margin-top: 0;">Payment Instructions / Notes</h3>
-      <p id="invoice-notes" style="white-space: pre-wrap; margin: 12px 0;">-</p>
+    <!-- Client Info -->
+    <div class="pricing-box">
+      <h3 style="margin: 0 0 12px 0;">Client</h3>
+      <p id="client-name">-</p>
+      <p id="client-email">-</p>
+      <p id="client-phone">-</p>
+    </div>
+
+    <!-- Notes -->
+    <div class="pricing-box">
+      <h3 style="margin: 0 0 12px 0;">Notes / Payment Instructions</h3>
+      <p id="invoice-notes" style="white-space: pre-wrap; margin: 8px 0;">-</p>
     </div>
   </div>
 
@@ -101,122 +109,113 @@
     if (!invId) {
       document.body.innerHTML = '<div class="container"><h2>Invalid or missing invoice ID</h2></div>';
     } else {
-      // the rest of your code (fetch, then, catch...)
       fetch(`${WORKER_URL}/api/public/invoice/${invId}`)
         .then(res => {
           if (!res.ok) throw new Error('Invoice not found or expired');
           return res.json();
         })
-        .then(invoiceData => {
-          // ... all your rendering code ...
+        .then(invoice => {
+          const data = invoice.data || {};
+          const quoteSnap = data.quoteSnapshot?.data || {};
+
+          // Invoice Details
+          document.getElementById('invoice-number').textContent = data.invoiceNumber || '—';
+          document.getElementById('issue-date').textContent = data.issueDate || '—';
+          document.getElementById('due-date').textContent = data.dueDate || '—';
+          document.getElementById('payment-terms').textContent = 
+            data.paymentTerms === '14' ? '14 Days' :
+            data.paymentTerms === '7' ? '7 Days' :
+            data.paymentTerms === '20th-next' ? '20th of following month' :
+            data.paymentTerms || '—';
+
+          // Notes
+          document.getElementById('invoice-notes').textContent = data.notes?.trim() || 'No additional notes provided.';
+
+          // Client
+          const client = quoteSnap.client || {};
+          document.getElementById('client-name').textContent = 
+            client.firstName || client.lastName 
+              ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Client Name not provided' 
+              : 'Not provided';
+          document.getElementById('client-email').textContent = client.email || 'Client Email not provided';
+          document.getElementById('client-phone').textContent = client.phone || 'Client Phone not provided';
+
+          // Company (from quoteSnapshot)
+          const company = quoteSnap.company || {};
+          document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
+          document.getElementById('company-phone').textContent = company.phone || '-';
+          document.getElementById('company-email').href = `mailto:${company.email || ''}`;
+          document.getElementById('company-email').textContent = company.email || '-';
+          document.getElementById('company-nzbn').textContent = company.nzbn || '-';
+          document.getElementById('company-gst').textContent = company.gstNumber || '-';
+          if (company.logoUrl) {
+            document.getElementById('company-logo').src = company.logoUrl;
+          }
+
+          // Job Summary (from quoteSnapshot)
+          document.getElementById('address-display').textContent = quoteSnap.address || '—';
+          const area = quoteSnap.lawnAreaM2 || 0;
+          document.getElementById('final-area').textContent = `${area} m²`;
+
+          const rate = quoteSnap.ratePerM2 || 0;
+          const multiplier = quoteSnap.difficultyMultiplier || 1;
+          const callout = quoteSnap.calloutFee || 0;
+          const mowingEx = area * rate * multiplier;
+          const totalEx = mowingEx + callout;
+          const gst = totalEx * 0.15;
+
+          document.getElementById('mowing-revenue').textContent = `$${mowingEx.toFixed(2)}`;
+          document.getElementById('total-revenue').textContent = `$${totalEx.toFixed(2)}`;
+          document.getElementById('gst').textContent = `$${gst.toFixed(2)}`;
+          document.getElementById('total-incl').textContent = 
+            `$${data.totalInclGst?.toFixed(2) || (totalEx + gst).toFixed(2)}`;
+
+          // Map (from quoteSnapshot.mapState)
+          const mapContainer = document.getElementById('aerial-map');
+          if (mapContainer && quoteSnap.mapState) {
+            const initialZoom = 20;
+            const map = L.map('aerial-map', {
+              maxZoom: 24,
+              zoomControl: true,
+              attributionControl: true
+            }).setView(
+              [quoteSnap.mapState.center?.lat || -36.8485, quoteSnap.mapState.center?.lng || 174.7633],
+              initialZoom
+            );
+
+            const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+            L.tileLayer(LINZ_AERIAL_URL, {
+              attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+              maxZoom: 24
+            }).addTo(map);
+
+            if (quoteSnap.mapState.parcelGeometry) {
+              L.geoJSON(quoteSnap.mapState.parcelGeometry, { style: { color: "#0066ff", weight: 2, fillOpacity: 0 } }).addTo(map);
+            }
+            if (quoteSnap.mapState.buildingsGeoJSON) {
+              L.geoJSON(quoteSnap.mapState.buildingsGeoJSON, { style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 } }).addTo(map);
+            }
+            if (quoteSnap.mapState.negativeGeoJSON?.features?.length > 0) {
+              L.geoJSON(quoteSnap.mapState.negativeGeoJSON, { style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 } }).addTo(map);
+            }
+
+            if (quoteSnap.mapState.parcelGeometry) {
+              const bounds = L.geoJSON(quoteSnap.mapState.parcelGeometry).getBounds();
+              map.fitBounds(bounds, { padding: [40, 40], maxZoom: initialZoom + 2, animate: true });
+              if (map.getZoom() < initialZoom) map.setZoom(initialZoom);
+            }
+          }
+
+          // Hide loading
+          const loadingSplash = document.getElementById('loading-splash');
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
         })
         .catch(err => {
           document.body.innerHTML = `<div class="container"><h2>Error loading invoice</h2><p>${err.message}</p></div>`;
           document.getElementById('loading-splash').style.display = 'none';
         });
-    }
-
-    fetch(`${WORKER_URL}/api/public/invoice/${invId}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Invoice not found or expired');
-        return res.json();
-      })
-      .then(invoiceData => {
-        // === Invoice Header ===
-        document.getElementById('invoice-number').textContent = invoiceData.data.invoiceNumber || '—';
-        document.getElementById('issue-date').textContent = invoiceData.data.issueDate || '—';
-        document.getElementById('due-date').textContent = invoiceData.data.dueDate || '—';
-        document.getElementById('payment-terms').textContent = 
-          invoiceData.data.paymentTerms === '14' ? '14 Days' :
-          invoiceData.data.paymentTerms === '7' ? '7 Days' :
-          invoiceData.data.paymentTerms === '20th-next' ? '20th of following month' :
-          invoiceData.data.paymentTerms || '—';
-
-        // === Company Info ===
-        const company = invoiceData.data.quoteSnapshot?.company || invoiceData.company || {};
-        document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
-        document.getElementById('company-phone').textContent = company.phone || '-';
-        document.getElementById('company-email').href = `mailto:${company.email || ''}`;
-        document.getElementById('company-email').textContent = company.email || '-';
-        document.getElementById('company-nzbn').textContent = company.nzbn || '-';
-        document.getElementById('company-gst').textContent = company.gstNumber || '-';
-
-        if (company.logoUrl) {
-          document.getElementById('company-logo').src = company.logoUrl;
-        }
-
-        // === Job Summary ===
-        const quoteData = invoiceData.data.quoteSnapshot || {};
-        document.getElementById('address-display').textContent = quoteData.address || '—';
-        document.getElementById('final-area').textContent = `${quoteData.lawnAreaM2 || 0} m²`;
-        document.getElementById('mowing-revenue').textContent = `$${(quoteData.lawnAreaM2 * quoteData.ratePerM2 * quoteData.difficultyMultiplier || 0).toFixed(2)}`;
-        const totalEx = (quoteData.lawnAreaM2 * quoteData.ratePerM2 * quoteData.difficultyMultiplier + (quoteData.calloutFee || 0)).toFixed(2);
-        document.getElementById('total-revenue').textContent = `$${totalEx}`;
-        const gst = (parseFloat(totalEx) * 0.15).toFixed(2);
-        document.getElementById('gst').textContent = `$${gst}`;
-        document.getElementById('total-incl').textContent = `$${invoiceData.data.totalInclGst?.toFixed(2) || (parseFloat(totalEx) + parseFloat(gst)).toFixed(2)}`;
-
-        // === Notes ===
-        document.getElementById('invoice-notes').textContent = invoiceData.data.notes?.trim() || 'No additional notes.';
-
-        // === Map (same as quote.html) ===
-        const mapContainer = document.getElementById('aerial-map');
-        if (!mapContainer) return;
-
-        const initialZoom = 20;
-        const map = L.map('aerial-map', {
-          maxZoom: 24,
-          zoomControl: true,
-          attributionControl: true
-        }).setView(
-          [invoiceData.mapState?.center?.lat || -36.8485, invoiceData.mapState?.center?.lng || 174.7633],
-          initialZoom
-        );
-
-        const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
-        L.tileLayer(LINZ_AERIAL_URL, {
-          attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
-          maxZoom: 24,
-          tileSize: 256,
-          zoomOffset: 0,
-          noWrap: true
-        }).addTo(map);
-
-        // Add layers if available
-        if (invoiceData.mapState?.parcelGeometry) {
-          L.geoJSON(invoiceData.mapState.parcelGeometry, {
-            style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
-          }).addTo(map);
-        }
-
-        if (invoiceData.mapState?.buildingsGeoJSON) {
-          L.geoJSON(invoiceData.mapState.buildingsGeoJSON, {
-            style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
-          }).addTo(map);
-        }
-
-        if (invoiceData.mapState?.negativeGeoJSON?.features?.length > 0) {
-          L.geoJSON(invoiceData.mapState.negativeGeoJSON, {
-            style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
-          }).addTo(map);
-        }
-
-        // Fit bounds
-        if (invoiceData.mapState?.parcelGeometry) {
-          const bounds = L.geoJSON(invoiceData.mapState.parcelGeometry).getBounds();
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: initialZoom + 2, animate: true });
-          if (map.getZoom() < initialZoom) map.setZoom(initialZoom);
-        }
-
-        // Hide loading
-        const loadingSplash = document.getElementById('loading-splash');
-        loadingSplash.classList.add('fade-out');
-        setTimeout(() => loadingSplash.style.display = 'none', 500);
-      })
-      .catch(err => {
-        document.body.innerHTML = `<div class="container"><h2>Error loading invoice</h2><p>${err.message}</p></div>`;
-        document.getElementById('loading-splash').style.display = 'none';
-      });
+  }
   </script>
 </body>
 </html>
