@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <title>Jobs • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+
+  <style>
+    /* Quick extra styles for collapsible + job cards (can move to styles.css later) */
+    .job-card {
+      background: linear-gradient(to top, #000000 0%, #0f0f0f 100%);
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .job-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+    }
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .job-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+    .job-subtitle {
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+    .collapsible-header {
+      background: #2a2a2a;
+      padding: 14px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      margin: 12px 0 8px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .collapsible-header:hover {
+      background: #333;
+    }
+    .collapsible-header::after {
+      content: '▼';
+      font-size: 0.9rem;
+      transition: transform 0.3s;
+    }
+    .collapsible-header.open::after {
+      transform: rotate(180deg);
+    }
+    .collapsible-content {
+      display: none;
+      padding: 0 8px 12px;
+    }
+    .collapsible-content.open {
+      display: block;
+    }
+    .quote-item, .invoice-item {
+      background: rgba(40, 40, 60, 0.4);
+      border-radius: 8px;
+      padding: 14px;
+      margin: 10px 0;
+      border-left: 4px solid #8B5CF6;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .item-actions a {
+      color: #8B5CF6;
+      text-decoration: underline;
+      margin-left: 12px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="your-quotes-container">  <!-- reusing container class for consistency -->
+    <h1>Your Jobs</h1>
+
+    <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">
+      Loading your jobs...
+    </div>
+
+    <div id="job-list" class="quote-list"></div>  <!-- quote-list class reused for grid -->
+
+    <div id="no-jobs" class="no-quotes hidden">
+      You don't have any jobs yet.<br><br>
+      Create your first quote in the <a href="create_quote.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a>!
+    </div>
+
+    <div id="error" class="error hidden" style="text-align:center; margin-top:30px;"></div>
+  </div>
+
+  <script>
+    // ── Dummy data (replace this with real fetch later) ────────────────────────────
+    const dummyJobs = [
+      {
+        id: "job_abc123",
+        address: "42 Sunrise Blvd, Albany, Auckland",
+        client: { firstName: "Sarah", lastName: "Thompson" },
+        createdAt: "2025-11-10T14:30:00Z",
+        status: "Active",
+        quotes: [
+          { id: "q1", number: "Q-0251", date: "15 Nov 2025", total: 1248.50, link: "/roof/quote.html?quote=q1" },
+          { id: "q2", number: "Q-0289", date: "2 Dec 2025", total: 1395.00, link: "/roof/quote.html?quote=q2" }
+        ],
+        invoices: [
+          { id: "inv1", number: "INV-0018", date: "20 Nov 2025", total: 1248.50, status: "Paid", link: "/invoice.html?inv=inv1" }
+        ]
+      },
+      {
+        id: "job_def456",
+        address: "17 Ocean View Rd, Takapuna",
+        client: { firstName: "Michael", lastName: "Chen" },
+        createdAt: "2025-12-03T09:15:00Z",
+        status: "In Progress",
+        quotes: [
+          { id: "q3", number: "Q-0312", date: "5 Dec 2025", total: 875.00, link: "/roof/quote.html?quote=q3" }
+        ],
+        invoices: []
+      },
+      {
+        id: "job_ghi789",
+        address: "8A Park Rise, Remuera",
+        client: { firstName: "Emma", lastName: "Wilson" },
+        createdAt: "2026-01-05T16:45:00Z",
+        status: "Completed",
+        quotes: [
+          { id: "q4", number: "Q-0347", date: "7 Jan 2026", total: 2100.00, link: "/roof/quote.html?quote=q4" }
+        ],
+        invoices: [
+          { id: "inv2", number: "INV-0021", date: "10 Jan 2026", total: 2100.00, status: "Pending", link: "/invoice.html?inv=inv2" }
+        ]
+      }
+    ];
+
+    // ── Render function ───────────────────────────────────────────────────────────
+    function renderJobs(jobs) {
+      const container = document.getElementById('job-list');
+      container.innerHTML = '';
+
+      if (jobs.length === 0) {
+        document.getElementById('no-jobs').classList.remove('hidden');
+        return;
+      }
+
+      // Sort newest first
+      jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      container.innerHTML = jobs.map(job => {
+        const date = new Date(job.createdAt).toLocaleDateString('en-NZ', {
+          day: 'numeric', month: 'short', year: 'numeric'
+        });
+
+        const clientName = job.client?.firstName 
+          ? `${job.client.firstName} ${job.client.lastName?.[0]?.toUpperCase() || ''}`.trim()
+          : "Unknown Client";
+
+        return `
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <div class="job-title">${job.address}</div>
+                <div class="job-subtitle">${clientName} • Created ${date} • ${job.status}</div>
+              </div>
+            </div>
+
+            <!-- Quotes Section -->
+            <div class="collapsible-header" data-target="quotes-${job.id}">
+              Quotes (${job.quotes.length})
+            </div>
+            <div class="collapsible-content" id="quotes-${job.id}">
+              ${job.quotes.map(q => `
+                <div class="quote-item">
+                  <div class="item-header">
+                    <strong>${q.number}</strong>
+                    <span>${q.date} • $${q.total.toFixed(2)}</span>
+                  </div>
+                  <div class="item-actions">
+                    <a href="${q.link}" target="_blank">View Quote</a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Invoices Section -->
+            <div class="collapsible-header" data-target="invoices-${job.id}">
+              Invoices (${job.invoices.length})
+            </div>
+            <div class="collapsible-content" id="invoices-${job.id}">
+              ${job.invoices.length === 0 
+                ? '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'
+                : job.invoices.map(inv => `
+                  <div class="invoice-item">
+                    <div class="item-header">
+                      <strong>${inv.number}</strong>
+                      <span>${inv.date} • $${inv.total.toFixed(2)} • ${inv.status}</span>
+                    </div>
+                    <div class="item-actions">
+                      <a href="${inv.link}" target="_blank">View Invoice</a>
+                    </div>
+                  </div>
+                `).join('')
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add collapsible toggle behavior
+      document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const targetId = header.dataset.target;
+          const content = document.getElementById(targetId);
+          header.classList.toggle('open');
+          content.classList.toggle('open');
+        });
+      });
+    }
+
+    // ── Init with dummy data (replace with real fetch later) ──────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('loading').classList.add('hidden');
+      
+      // Simulate loading delay
+      setTimeout(() => {
+        renderJobs(dummyJobs);
+      }, 800);
+    });
+  </script>
+</body>
+</html>
