@@ -12,153 +12,198 @@
   <script src="header.js" defer></script>
 
   <style>
-    /* Quick extra styles for collapsible + job cards (can move to styles.css later) */
+    /* Job card enhancements — can be moved to styles.css later */
     .job-card {
       background: linear-gradient(to top, #000000 0%, #0f0f0f 100%);
       border-top: 1px solid #333;
       border-bottom: 1px solid #333;
       border-radius: 12px;
       padding: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       position: relative;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.25s ease;
     }
     .job-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.18);
     }
-    .job-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 16px;
+
+    .job-summary {
+      margin-bottom: 18px;
     }
-    .job-title {
-      font-size: 1.4rem;
+    .job-address {
+      font-size: 1.38rem;
       font-weight: 700;
       color: #a78bfa;
+      margin-bottom: 6px;
     }
-    .job-subtitle {
-      color: #9ca3af;
+    .job-client {
+      font-size: 1.05rem;
+      color: #d1d5db;
+      margin-bottom: 12px;
+    }
+    .job-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
       font-size: 0.95rem;
+      color: #9ca3af;
+      margin-bottom: 16px;
     }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .status-lead     { background: #4b5563; color: white; }
+    .status-quoted   { background: #7c3aed44; color: #c4b5fd; }
+    .status-won      { background: #166534; color: #86efac; }
+    .status-progress { background: #b45309; color: #fcd34d; }
+    .status-completed{ background: #14532d; color: #6ee7b7; }
+    .status-invoiced { background: #1e40af; color: #93c5fd; }
+    .status-paid     { background: #166534; color: #86efac; }
+    .status-problem  { background: #991b1b; color: #fca5a5; }
+
+    .job-value {
+      font-weight: 600;
+      color: #86efac;
+    }
+
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0 20px;
+    }
+    .action-btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: #28a745;
+      color: white;
+    }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary {
+      background: #412e75;
+      color: white;
+    }
+    .btn-secondary:hover { background: #513690; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #8B5CF6;
+      color: #8B5CF6;
+    }
+    .btn-outline:hover {
+      background: rgba(139, 92, 246, 0.15);
+    }
+
+    /* Collapsible - keeping your existing style pattern */
     .collapsible-header {
       background: #2a2a2a;
       padding: 14px 18px;
       border-radius: 8px;
       cursor: pointer;
-      user-select: none;
       margin: 12px 0 8px;
       font-weight: 600;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background 0.2s;
     }
-    .collapsible-header:hover {
-      background: #333;
-    }
+    .collapsible-header:hover { background: #333; }
     .collapsible-header::after {
       content: '▼';
-      font-size: 0.9rem;
       transition: transform 0.3s;
     }
-    .collapsible-header.open::after {
-      transform: rotate(180deg);
-    }
+    .collapsible-header.open::after { transform: rotate(180deg); }
     .collapsible-content {
       display: none;
-      padding: 0 8px 12px;
+      padding: 8px 0;
     }
-    .collapsible-content.open {
-      display: block;
-    }
-    .quote-item, .invoice-item {
-      background: rgba(40, 40, 60, 0.4);
-      border-radius: 8px;
-      padding: 14px;
-      margin: 10px 0;
-      border-left: 4px solid #8B5CF6;
-    }
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .item-actions a {
-      color: #8B5CF6;
-      text-decoration: underline;
-      margin-left: 12px;
-      font-size: 0.9rem;
-    }
+    .collapsible-content.open { display: block; }
   </style>
 </head>
 <body>
 
-  <div class="your-quotes-container">  <!-- reusing container class for consistency -->
+  <div class="your-quotes-container">
     <h1>Your Jobs</h1>
 
     <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">
       Loading your jobs...
     </div>
 
-    <div id="job-list" class="quote-list"></div>  <!-- quote-list class reused for grid -->
+    <div id="job-list"></div>
 
     <div id="no-jobs" class="no-quotes hidden">
-      You don't have any jobs yet.<br><br>
-      Create your first quote in the <a href="create_quote.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a>!
+      No jobs yet.<br><br>
+      Start by creating a quote in the 
+      <a href="create_quote.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a>!
     </div>
-
-    <div id="error" class="error hidden" style="text-align:center; margin-top:30px;"></div>
   </div>
 
   <script>
-    // ── Dummy data (replace this with real fetch later) ────────────────────────────
+    // Dummy data with more realistic fields
     const dummyJobs = [
       {
         id: "job_abc123",
         address: "42 Sunrise Blvd, Albany, Auckland",
-        client: { firstName: "Sarah", lastName: "Thompson" },
-        createdAt: "2025-11-10T14:30:00Z",
-        status: "Active",
+        client: { firstName: "Sarah", lastName: "Thompson", phone: "021 123 4567" },
+        createdAt: "2026-01-01T09:30:00Z",
+        status: "progress",
+        nextAction: "Service scheduled: 22–23 Jan 2026",
+        quotedTotal: 2450,
+        invoicedTotal: 1200,
+        paidTotal: 0,
         quotes: [
-          { id: "q1", number: "Q-0251", date: "15 Nov 2025", total: 1248.50, link: "/roof/quote.html?quote=q1" },
-          { id: "q2", number: "Q-0289", date: "2 Dec 2025", total: 1395.00, link: "/roof/quote.html?quote=q2" }
+          { number: "Q-0251", date: "5 Jan", total: 2450, link: "#" },
+          { number: "Q-0263", date: "12 Jan", total: 2380, link: "#" }
         ],
         invoices: [
-          { id: "inv1", number: "INV-0018", date: "20 Nov 2025", total: 1248.50, status: "Paid", link: "/invoice.html?inv=inv1" }
+          { number: "INV-0017", date: "15 Jan", total: 1200, status: "Pending", link: "#" }
         ]
       },
       {
         id: "job_def456",
         address: "17 Ocean View Rd, Takapuna",
         client: { firstName: "Michael", lastName: "Chen" },
-        createdAt: "2025-12-03T09:15:00Z",
-        status: "In Progress",
-        quotes: [
-          { id: "q3", number: "Q-0312", date: "5 Dec 2025", total: 875.00, link: "/roof/quote.html?quote=q3" }
-        ],
+        createdAt: "2026-01-10T14:15:00Z",
+        status: "quoted",
+        nextAction: "Follow-up call due today",
+        quotedTotal: 875,
+        invoicedTotal: 0,
+        paidTotal: 0,
+        quotes: [{ number: "Q-0312", date: "12 Jan", total: 875, link: "#" }],
         invoices: []
       },
       {
         id: "job_ghi789",
         address: "8A Park Rise, Remuera",
         client: { firstName: "Emma", lastName: "Wilson" },
-        createdAt: "2026-01-05T16:45:00Z",
-        status: "Completed",
-        quotes: [
-          { id: "q4", number: "Q-0347", date: "7 Jan 2026", total: 2100.00, link: "/roof/quote.html?quote=q4" }
-        ],
-        invoices: [
-          { id: "inv2", number: "INV-0021", date: "10 Jan 2026", total: 2100.00, status: "Pending", link: "/invoice.html?inv=inv2" }
-        ]
+        createdAt: "2025-12-20T11:00:00Z",
+        status: "paid",
+        nextAction: "Job completed – ready for next cycle",
+        quotedTotal: 2100,
+        invoicedTotal: 2100,
+        paidTotal: 2100,
+        quotes: [{ number: "Q-0347", date: "22 Dec", total: 2100, link: "#" }],
+        invoices: [{ number: "INV-0021", date: "5 Jan", total: 2100, status: "Paid", link: "#" }]
       }
     ];
 
-    // ── Render function ───────────────────────────────────────────────────────────
     function renderJobs(jobs) {
       const container = document.getElementById('job-list');
       container.innerHTML = '';
@@ -171,85 +216,98 @@
       // Sort newest first
       jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
+      const today = new Date();
       container.innerHTML = jobs.map(job => {
-        const date = new Date(job.createdAt).toLocaleDateString('en-NZ', {
-          day: 'numeric', month: 'short', year: 'numeric'
-        });
+        const created = new Date(job.createdAt);
+        const ageDays = Math.floor((today - created) / (1000*60*60*24));
+        const ageText = ageDays === 0 ? "Today" : ageDays === 1 ? "1 day ago" : `${ageDays} days ago`;
+
+        const statusClass = `status-${job.status}`;
+        const statusText = {
+          lead: "Lead", quoted: "Quoted", won: "Job Won",
+          progress: "In Progress", completed: "Completed",
+          invoiced: "Invoiced", paid: "Paid", problem: "Problem"
+        }[job.status] || job.status;
+
+        const valueText = job.quotedTotal 
+          ? `Quoted $${job.quotedTotal.toFixed(0)}${job.paidTotal ? ` • Paid $${job.paidTotal.toFixed(0)}` : ''}`
+          : "Not quoted yet";
 
         const clientName = job.client?.firstName 
-          ? `${job.client.firstName} ${job.client.lastName?.[0]?.toUpperCase() || ''}`.trim()
+          ? `${job.client.firstName} ${job.client.lastName?.[0]?.toUpperCase() || ''}`
           : "Unknown Client";
 
         return `
           <div class="job-card">
-            <div class="job-header">
-              <div>
-                <div class="job-title">${job.address}</div>
-                <div class="job-subtitle">${clientName} • Created ${date} • ${job.status}</div>
+            <div class="job-summary">
+              <div class="job-address">${job.address}</div>
+              <div class="job-client">${clientName}${job.client?.phone ? ` • ${job.client.phone}` : ''}</div>
+              
+              <div class="job-meta">
+                <div class="meta-item">
+                  <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="meta-item job-value">${valueText}</div>
+                <div class="meta-item">${ageText}</div>
               </div>
+
+              ${job.nextAction ? `<div style="color:#c4b5fd; font-weight:500;">${job.nextAction}</div>` : ''}
             </div>
 
-            <!-- Quotes Section -->
+            <div class="actions-bar">
+              <button class="action-btn btn-primary">Schedule Service</button>
+              <button class="action-btn btn-secondary">New Quote</button>
+              <button class="action-btn btn-outline">Create Invoice</button>
+              <button class="action-btn btn-outline">Update Status</button>
+            </div>
+
+            <!-- Quotes -->
             <div class="collapsible-header" data-target="quotes-${job.id}">
               Quotes (${job.quotes.length})
             </div>
             <div class="collapsible-content" id="quotes-${job.id}">
               ${job.quotes.map(q => `
-                <div class="quote-item">
-                  <div class="item-header">
-                    <strong>${q.number}</strong>
-                    <span>${q.date} • $${q.total.toFixed(2)}</span>
-                  </div>
-                  <div class="item-actions">
-                    <a href="${q.link}" target="_blank">View Quote</a>
+                <div class="quote-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
+                  <strong>${q.number}</strong> • ${q.date} • $${q.total.toFixed(2)}
+                  <div style="margin-top:6px;">
+                    <a href="${q.link}" style="color:#8B5CF6;">View</a>
                   </div>
                 </div>
-              `).join('')}
+              `).join('') || '<p style="color:#9ca3af; padding:12px;">No quotes yet</p>'}
             </div>
 
-            <!-- Invoices Section -->
+            <!-- Invoices -->
             <div class="collapsible-header" data-target="invoices-${job.id}">
               Invoices (${job.invoices.length})
             </div>
             <div class="collapsible-content" id="invoices-${job.id}">
-              ${job.invoices.length === 0 
-                ? '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'
-                : job.invoices.map(inv => `
-                  <div class="invoice-item">
-                    <div class="item-header">
-                      <strong>${inv.number}</strong>
-                      <span>${inv.date} • $${inv.total.toFixed(2)} • ${inv.status}</span>
-                    </div>
-                    <div class="item-actions">
-                      <a href="${inv.link}" target="_blank">View Invoice</a>
-                    </div>
+              ${job.invoices.map(inv => `
+                <div class="invoice-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
+                  <strong>${inv.number}</strong> • ${inv.date} • $${inv.total.toFixed(2)} • ${inv.status}
+                  <div style="margin-top:6px;">
+                    <a href="${inv.link}" style="color:#8B5CF6;">View</a>
                   </div>
-                `).join('')
-              }
+                </div>
+              `).join('') || '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'}
             </div>
           </div>
         `;
       }).join('');
 
-      // Add collapsible toggle behavior
-      document.querySelectorAll('.collapsible-header').forEach(header => {
-        header.addEventListener('click', () => {
-          const targetId = header.dataset.target;
-          const content = document.getElementById(targetId);
-          header.classList.toggle('open');
-          content.classList.toggle('open');
+      // Collapsible toggle
+      document.querySelectorAll('.collapsible-header').forEach(h => {
+        h.addEventListener('click', () => {
+          const target = document.getElementById(h.dataset.target);
+          h.classList.toggle('open');
+          target.classList.toggle('open');
         });
       });
     }
 
-    // ── Init with dummy data (replace with real fetch later) ──────────────────────
+    // Init
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loading').classList.add('hidden');
-      
-      // Simulate loading delay
-      setTimeout(() => {
-        renderJobs(dummyJobs);
-      }, 800);
+      setTimeout(() => renderJobs(dummyJobs), 600);
     });
   </script>
 </body>
