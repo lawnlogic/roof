@@ -170,6 +170,38 @@
   </div>
 
   <script type="module">
+    // Detect jobId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
+
+    // If jobId exists, fetch job details and prefill
+    if (jobId) {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const token = await user.getIdToken();
+          const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (res.ok) {
+            const job = await res.json();
+
+            // Prefill fields
+            document.getElementById('client-first').value = job.client?.firstName || '';
+            document.getElementById('client-last').value = job.client?.lastName || '';
+            document.getElementById('client-phone').value = job.client?.phone || '';
+            document.getElementById('client-email').value = ''; // no email in job yet
+
+            // Optional: prefill address if you add address field later
+            // document.getElementById('address').value = job.address || '';
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load job data for prefill", err);
+      }
+    }
+
     // Prevent adding vertex on touchstart → drag (common mobile bug)
     if (L.Draw && L.Draw.Polyline) {
         L.Draw.Polyline.include({
@@ -820,7 +852,10 @@
           buildingsGeoJSON: clippedBuildingsGeoJSON,
           negativeGeoJSON: negativeGeoJSON
         },
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+
+        // ── ADD THIS LINE HERE (inside the object, before the closing })
+        jobId: jobId || null
       };
 
       try {

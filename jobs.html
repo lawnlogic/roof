@@ -12,9 +12,7 @@
   <script src="header.js" defer></script>
 
   <style>
-    /* ── Previous styles remain unchanged ── */
-
-    /* Existing styles (job-card, summary, meta, actions-bar, collapsible, filter-btn, recurring-badge, etc.) */
+    /* ── All your existing styles remain unchanged ── */
     .job-card { background: linear-gradient(to top, #000000 0%, #0f0f0f 100%); border-top: 1px solid #333; border-bottom: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 28px; position: relative; transition: all 0.25s ease; }
     .job-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(139, 92, 246, 0.18); }
     .job-summary { margin-bottom: 18px; }
@@ -52,31 +50,38 @@
     .recurring-badge { display: inline-block; padding: 4px 10px; background: #166534; color: #86efac; border-radius: 16px; font-size: 0.82rem; font-weight: 600; margin-left: 8px; }
     .recurring-info { margin-top: 8px; color: #86efac; font-weight: 500; font-size: 0.95rem; }
     .notes-preview { color: #9ca3af; font-style: italic; margin-top: 6px; line-height: 1.4; }
-
-    /* New: Schedule modal styles */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .modal-content {
-      background: #1f1f1f; border-radius: 12px; padding: 28px; max-width: 420px; width: 90%;
-      color: white; box-shadow: 0 12px 40px rgba(0,0,0,0.7);
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #1f1f1f; border-radius: 12px; padding: 28px; max-width: 420px; width: 90%; color: white; box-shadow: 0 12px 40px rgba(0,0,0,0.7); }
     .modal-header { margin: 0 0 20px; color: #8B5CF6; }
     .modal-label { display: block; margin: 0 0 8px; font-weight: 600; color: #d1d5db; }
-    .modal-select, .modal-date {
-      width: 100%; padding: 12px; background: #2a2a2a; color: white; border: 1px solid #444;
-      border-radius: 8px; font-size: 1rem; margin-bottom: 20px;
-    }
+    .modal-select, .modal-date { width: 100%; padding: 12px; background: #2a2a2a; color: white; border: 1px solid #444; border-radius: 8px; font-size: 1rem; margin-bottom: 20px; }
     .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
     .modal-cancel { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; }
     .modal-save { padding: 10px 20px; background: #8B5CF6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+    /* New: Data source toggle button */
+    #data-toggle {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: #412e75;
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    #data-toggle.use-dummy {
+      background: #28a745;
+    }
   </style>
 </head>
 <body>
 
   <div class="your-quotes-container">
     <h1>Your Jobs</h1>
+
+    <!-- New: Data source toggle -->
+    <button id="data-toggle" class="use-dummy">Using Dummy Data (click to use real)</button>
 
     <!-- Status Filter Bar -->
     <div id="status-filter" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 28px; justify-content: center;">
@@ -95,17 +100,37 @@
       Loading your jobs...
     </div>
 
+    <div id="error-message" style="display:none; text-align:center; padding:20px; color:#fca5a5;"></div>
+
     <div id="job-list"></div>
 
     <div id="no-jobs" class="no-quotes hidden">
       No jobs yet.<br><br>
       Start by creating a quote in the 
       <a href="create_quote.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a>!
+      or use the <a href="create_job.html" style="color:#8B5CF6;">Create Job</a> page.
     </div>
   </div>
 
-  <script>
-    // Dummy data - now includes schedule fields
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    // ── Dummy data (for toggle) ──────────────────────────────────────────────
     const dummyJobs = [
       {
         id: "job_abc123",
@@ -129,40 +154,7 @@
           { number: "INV-0017", date: "15 Jan", total: 1200, status: "Pending", link: "#" }
         ]
       },
-      {
-        id: "job_def456",
-        address: "17 Ocean View Rd, Takapuna",
-        client: { firstName: "Michael", lastName: "Chen" },
-        createdAt: "2026-01-10T14:15:00Z",
-        status: "quoted",
-        nextAction: "Follow-up call due today",
-        quotedTotal: 875,
-        invoicedTotal: 0,
-        paidTotal: 0,
-        isRecurring: false,
-        recurrence: null,
-        nextServiceDate: null,
-        jobNotes: "",
-        quotes: [{ number: "Q-0312", date: "12 Jan", total: 875, link: "#" }],
-        invoices: []
-      },
-      {
-        id: "job_ghi789",
-        address: "8A Park Rise, Remuera",
-        client: { firstName: "Emma", lastName: "Wilson" },
-        createdAt: "2025-12-20T11:00:00Z",
-        status: "paid",
-        nextAction: "Job completed – ready for next cycle",
-        quotedTotal: 2100,
-        invoicedTotal: 2100,
-        paidTotal: 2100,
-        isRecurring: true,
-        recurrence: "fortnightly",
-        nextServiceDate: "2026-01-28",
-        jobNotes: "Fortnightly full maintenance including hedge trim. Client has dog - please close gate.",
-        quotes: [{ number: "Q-0347", date: "22 Dec", total: 2100, link: "#" }],
-        invoices: [{ number: "INV-0021", date: "5 Jan", total: 2100, status: "Paid", link: "#" }]
-      }
+      // ... (keep your other dummy jobs here if you want more)
     ];
 
     const statusOptions = [
@@ -183,8 +175,66 @@
       { value: "monthly",   label: "Monthly" }
     ];
 
-    let currentJobs = [...dummyJobs];
+    let currentJobs = [];
+    let useDummy = true; // Start with dummy by default
     let currentFilter = "all";
+
+    const toggleBtn = document.getElementById('data-toggle');
+
+    function updateToggleButton() {
+      toggleBtn.textContent = useDummy 
+        ? "Using Dummy Data (click for real)" 
+        : "Using Real Data (click for dummy)";
+      toggleBtn.classList.toggle('use-dummy', useDummy);
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      useDummy = !useDummy;
+      updateToggleButton();
+      loadJobs();
+    });
+
+    async function loadJobs() {
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error-message');
+      const jobList = document.getElementById('job-list');
+      const noJobs = document.getElementById('no-jobs');
+
+      loadingEl.style.display = 'block';
+      errorEl.style.display = 'none';
+      jobList.innerHTML = '';
+      noJobs.classList.add('hidden');
+
+      try {
+        if (useDummy) {
+          currentJobs = [...dummyJobs];
+        } else {
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not signed in");
+
+          const token = await user.getIdToken();
+          const response = await fetch(`${WORKER_URL}/api/jobs`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Server error ${response.status}`);
+          }
+
+          const data = await response.json();
+          currentJobs = data.jobs || [];
+        }
+
+        renderJobs();
+      } catch (err) {
+        console.error("Jobs load error:", err);
+        errorEl.textContent = `Error loading jobs: ${err.message}`;
+        errorEl.style.display = 'block';
+      } finally {
+        loadingEl.style.display = 'none';
+      }
+    }
 
     function getFilteredJobs() {
       if (currentFilter === "all") return currentJobs;
@@ -196,10 +246,11 @@
       const container = document.getElementById('job-list');
       container.innerHTML = '';
 
+      const noJobs = document.getElementById('no-jobs');
       if (jobsToShow.length === 0) {
-        document.getElementById('no-jobs').classList.remove('hidden');
+        noJobs.classList.remove('hidden');
       } else {
-        document.getElementById('no-jobs').classList.add('hidden');
+        noJobs.classList.add('hidden');
       }
 
       const today = new Date();
@@ -257,21 +308,21 @@
 
             <div class="actions-bar">
               <button class="action-btn btn-primary schedule-service-btn">Schedule Service</button>
-              <button class="action-btn btn-secondary">New Quote</button>
+              <a href="create_quote.html?jobId=${job.id}" class="action-btn btn-secondary">New Quote</a>
               <button class="action-btn btn-outline">Create Invoice</button>
               <button class="action-btn btn-outline update-status-btn">Update Status</button>
             </div>
 
             <!-- Quotes -->
             <div class="collapsible-header" data-target="quotes-${job.id}">
-              Quotes (${job.quotes.length})
+              Quotes (${job.quotes?.length || 0})
             </div>
             <div class="collapsible-content" id="quotes-${job.id}">
-              ${job.quotes.map(q => `
+              ${job.quotes?.map(q => `
                 <div class="quote-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
-                  <strong>${q.number}</strong> • ${q.date} • $${q.total.toFixed(2)}
+                  <strong>${q.number}</strong> • ${q.date} • $${q.total?.toFixed(2) || 'N/A'}
                   <div style="margin-top:6px;">
-                    <a href="${q.link}" style="color:#8B5CF6;">View</a>
+                    <a href="${q.link || '#'}" style="color:#8B5CF6;">View</a>
                   </div>
                 </div>
               `).join('') || '<p style="color:#9ca3af; padding:12px;">No quotes yet</p>'}
@@ -279,14 +330,14 @@
 
             <!-- Invoices -->
             <div class="collapsible-header" data-target="invoices-${job.id}">
-              Invoices (${job.invoices.length})
+              Invoices (${job.invoices?.length || 0})
             </div>
             <div class="collapsible-content" id="invoices-${job.id}">
-              ${job.invoices.map(inv => `
+              ${job.invoices?.map(inv => `
                 <div class="invoice-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
-                  <strong>${inv.number}</strong> • ${inv.date} • $${inv.total.toFixed(2)} • ${inv.status}
+                  <strong>${inv.number}</strong> • ${inv.date} • $${inv.total?.toFixed(2) || 'N/A'} • ${inv.status || 'Unknown'}
                   <div style="margin-top:6px;">
-                    <a href="${inv.link}" style="color:#8B5CF6;">View</a>
+                    <a href="${inv.link || '#'}" style="color:#8B5CF6;">View</a>
                   </div>
                 </div>
               `).join('') || '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'}
@@ -306,7 +357,7 @@
         `;
       }).join('');
 
-      // Attach event listeners
+      // Re-attach event listeners
       document.querySelectorAll('.collapsible-header').forEach(h => {
         h.addEventListener('click', () => {
           const target = document.getElementById(h.dataset.target);
@@ -325,7 +376,6 @@
         });
       });
 
-      // New: Schedule Service button handler
       document.querySelectorAll('.schedule-service-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const card = btn.closest('.job-card');
@@ -379,7 +429,7 @@
       modal.onclick = e => { if (e.target === modal) modal.remove(); };
     }
 
-    // New: Schedule Service modal
+    // Schedule modal (unchanged)
     function showScheduleModal(job) {
       const modal = document.createElement('div');
       modal.className = 'modal-overlay';
@@ -429,7 +479,6 @@
         job.recurrence = frequency !== 'one-off' ? frequency : null;
         job.nextServiceDate = nextDateStr;
 
-        // Optional: update nextAction if needed
         if (job.isRecurring) {
           job.nextAction = `Next ${frequency} service on ${new Date(nextDateStr).toLocaleDateString('en-NZ', {weekday: 'long', day: 'numeric', month: 'short'})}`;
         }
@@ -453,13 +502,12 @@
       });
     }
 
-    // Init
+    // Load jobs on init
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('loading').classList.add('hidden');
-      setTimeout(() => {
-        setupFilters();
-        renderJobs();
-      }, 600);
+      document.getElementById('loading').style.display = 'block';
+      updateToggleButton();
+      setupFilters();
+      loadJobs();
     });
   </script>
 </body>

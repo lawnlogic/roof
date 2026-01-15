@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <title>Create New Job • Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+
+  <style>
+    .create-job-container { max-width: 480px; margin: 40px auto; padding: 0 20px; }
+    .form-group { margin-bottom: 24px; position: relative; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #d1d5db; font-size: 1rem; }
+    input, select, textarea { 
+      width: 100%; padding: 12px 16px; background: #2a2a2a; border: 1px solid #444; 
+      border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box; 
+    }
+    input:focus, select:focus, textarea:focus { 
+      outline: none; border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25); 
+    }
+    .recurring-fields { margin-top: 12px; padding-top: 16px; border-top: 1px solid #333; }
+    .success-message, .error-message { padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .success-message { background: rgba(22, 101, 52, 0.3); color: #86efac; border: 1px solid #166534; }
+    .error-message { background: rgba(153, 27, 27, 0.3); color: #fca5a5; border: 1px solid #991b1b; }
+    .btn-submit { width: 100%; padding: 16px; background: #8B5CF6; color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-submit:hover { background: #7c3aed; }
+    .btn-submit:disabled { background: #4b5563; cursor: not-allowed; }
+
+    /* Address suggestions (copied from create_quote.html) */
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      margin-top: 4px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    }
+    .suggestions.hidden { display: none; }
+    .suggestion-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="create-job-container">
+    <h1>Create New Job</h1>
+    <p style="color:#9ca3af; margin-bottom: 32px;">Enter the basic details for the new job.</p>
+
+    <form id="createJobForm">
+      <div class="form-group">
+        <label for="address">Property Address *</label>
+        <input type="text" id="address" name="address" placeholder="Start typing an address..." autocomplete="off" required>
+        <div id="address-suggestions" class="suggestions hidden"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="clientFirstName">Client First Name *</label>
+        <input type="text" id="clientFirstName" name="clientFirstName" required>
+      </div>
+
+      <div class="form-group">
+        <label for="clientLastName">Client Last Name</label>
+        <input type="text" id="clientLastName" name="clientLastName">
+      </div>
+
+      <div class="form-group">
+        <label for="clientPhone">Client Phone</label>
+        <input type="tel" id="clientPhone" name="clientPhone" placeholder="e.g. 021 123 4567">
+      </div>
+
+      <div class="form-group">
+        <label for="isRecurring">Is this a recurring service?</label>
+        <select id="isRecurring" name="isRecurring">
+          <option value="no">No — one-off job</option>
+          <option value="yes">Yes — recurring service</option>
+        </select>
+      </div>
+
+      <div class="recurring-fields" id="recurringFields" style="display: none;">
+        <div class="form-group">
+          <label for="recurrence">How often?</label>
+          <select id="recurrence" name="recurrence">
+            <option value="weekly">Weekly</option>
+            <option value="fortnightly" selected>Fortnightly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nextServiceDate">Next Service Date *</label>
+          <input type="date" id="nextServiceDate" name="nextServiceDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="jobNotes">Job Notes / Special Instructions</label>
+        <textarea id="jobNotes" name="jobNotes" rows="4" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:8px; color:white; resize:vertical;"></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Create Job</button>
+    </form>
+
+    <div id="formMessage" style="display:none;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    const form = document.getElementById('createJobForm');
+    const addressInput = document.getElementById('address');
+    const suggestionsBox = document.getElementById('address-suggestions');
+    const recurringSelect = document.getElementById('isRecurring');
+    const recurringFields = document.getElementById('recurringFields');
+    const messageDiv = document.getElementById('formMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let debounceTimer = null;
+
+    // Toggle recurring fields
+    recurringSelect.addEventListener('change', () => {
+      recurringFields.style.display = recurringSelect.value === 'yes' ? 'block' : 'none';
+      const dateInput = document.getElementById('nextServiceDate');
+      if (recurringSelect.value === 'yes') {
+        dateInput.setAttribute('required', '');
+      } else {
+        dateInput.removeAttribute('required');
+      }
+    });
+
+    // Address suggestions (copied & adapted from create_quote.html)
+    addressInput.addEventListener("input", (e) => {
+      const value = e.target.value.trim();
+
+      clearTimeout(debounceTimer);
+
+      if (value.length < 3) {
+        hideSuggestions();
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        fetchSuggestions(value);
+      }, 250);
+    });
+
+    async function fetchSuggestions(query) {
+      try {
+        const res = await fetch(
+          `${WORKER_URL}/api/address-suggest?q=${encodeURIComponent(query)}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        renderSuggestions(data.addresses || []);
+      } catch (err) {
+        console.warn("Address suggest failed", err);
+      }
+    }
+
+    function renderSuggestions(addresses) {
+      suggestionsBox.innerHTML = "";
+
+      if (!addresses.length) {
+        hideSuggestions();
+        return;
+      }
+
+      addresses.forEach(addr => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = addr.FullAddress;
+
+        div.addEventListener("click", () => {
+          addressInput.value = addr.FullAddress;
+          hideSuggestions();
+        });
+
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.classList.remove("hidden");
+    }
+
+    function hideSuggestions() {
+      suggestionsBox.classList.add("hidden");
+      suggestionsBox.innerHTML = "";
+    }
+
+    // Close suggestions on outside click
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".form-group")) {
+        hideSuggestions();
+      }
+    });
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      messageDiv.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating...';
+
+      const formData = {
+        address: addressInput.value.trim(),
+        client: {
+          firstName: document.getElementById('clientFirstName').value.trim(),
+          lastName: document.getElementById('clientLastName').value.trim() || null,
+          phone: document.getElementById('clientPhone').value.trim() || null
+        },
+        isRecurring: recurringSelect.value === 'yes',
+        recurrence: recurringSelect.value === 'yes' ? document.getElementById('recurrence').value : null,
+        nextServiceDate: recurringSelect.value === 'yes' ? document.getElementById('nextServiceDate').value : null,
+        jobNotes: document.getElementById('jobNotes').value.trim()
+      };
+
+      // Validation
+      if (!formData.address || !formData.client.firstName) {
+        showMessage('Please fill in all required fields.', 'error');
+        resetButton();
+        return;
+      }
+
+      if (formData.isRecurring && !formData.nextServiceDate) {
+        showMessage('Please select a next service date for recurring jobs.', 'error');
+        resetButton();
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showMessage('You must be signed in to create a job.', 'error');
+          resetButton();
+          return;
+        }
+
+        const token = await user.getIdToken();
+
+        const response = await fetch(`${WORKER_URL}/api/jobs`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create job');
+        }
+
+        showMessage('Job created successfully!', 'success');
+
+        setTimeout(() => {
+          window.location.href = 'jobs.html';
+        }, 1500);
+
+      } catch (err) {
+        showMessage(err.message || 'An error occurred while creating the job.', 'error');
+        console.error('Job creation error:', err);
+      } finally {
+        resetButton();
+      }
+    });
+
+    function showMessage(text, type) {
+      messageDiv.textContent = text;
+      messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+      messageDiv.style.display = 'block';
+    }
+
+    function resetButton() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Job';
+    }
+  </script>
+</body>
+</html>
