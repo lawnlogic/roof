@@ -80,9 +80,6 @@
   <div class="your-quotes-container">
     <h1>Your Jobs</h1>
 
-    <!-- New: Data source toggle -->
-    <button id="data-toggle" class="use-dummy">Using Dummy Data (click to use real)</button>
-
     <!-- Status Filter Bar -->
     <div id="status-filter" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 28px; justify-content: center;">
       <button class="filter-btn active" data-status="all">All</button>
@@ -176,41 +173,26 @@
     ];
 
     let currentJobs = [];
-    let useDummy = true; // Start with dummy by default
+    //let useDummy = true; // Start with dummy by default
     let currentFilter = "all";
 
-    const toggleBtn = document.getElementById('data-toggle');
+    //const toggleBtn = document.getElementById('data-toggle');
 
-    function updateToggleButton() {
-      toggleBtn.textContent = useDummy 
-        ? "Using Dummy Data (click for real)" 
-        : "Using Real Data (click for dummy)";
-      toggleBtn.classList.toggle('use-dummy', useDummy);
-    }
+    // Remove the direct loadJobs() call at the top
 
-    toggleBtn.addEventListener('click', () => {
-      useDummy = !useDummy;
-      updateToggleButton();
-      loadJobs();
-    });
-
-    async function loadJobs() {
+    // Replace the DOMContentLoaded block with this:
+    document.addEventListener('DOMContentLoaded', () => {
       const loadingEl = document.getElementById('loading');
       const errorEl = document.getElementById('error-message');
-      const jobList = document.getElementById('job-list');
-      const noJobs = document.getElementById('no-jobs');
 
       loadingEl.style.display = 'block';
-      errorEl.style.display = 'none';
-      jobList.innerHTML = '';
-      noJobs.classList.add('hidden');
 
-      try {
-        if (useDummy) {
-          currentJobs = [...dummyJobs];
-        } else {
-          const user = auth.currentUser;
-          if (!user) throw new Error("Not signed in");
+      // Listen for auth state (this is the correct way)
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        try {
+          if (!user) {
+            throw new Error("Not signed in");
+          }
 
           const token = await user.getIdToken();
           const response = await fetch(`${WORKER_URL}/api/jobs`, {
@@ -224,17 +206,21 @@
 
           const data = await response.json();
           currentJobs = data.jobs || [];
-        }
+          renderJobs();
 
-        renderJobs();
-      } catch (err) {
-        console.error("Jobs load error:", err);
-        errorEl.textContent = `Error loading jobs: ${err.message}`;
-        errorEl.style.display = 'block';
-      } finally {
-        loadingEl.style.display = 'none';
-      }
-    }
+        } catch (err) {
+          console.error("Jobs load error:", err);
+          errorEl.textContent = `Error loading jobs: ${err.message}`;
+          errorEl.style.display = 'block';
+        } finally {
+          loadingEl.style.display = 'none';
+          // Optional: only unsubscribe after first successful load or error
+          // unsubscribe(); 
+        }
+      });
+
+      setupFilters();
+    });
 
     function getFilteredJobs() {
       if (currentFilter === "all") return currentJobs;
@@ -636,7 +622,6 @@
     // Load jobs on init
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loading').style.display = 'block';
-      updateToggleButton();
       setupFilters();
       loadJobs();
     });
