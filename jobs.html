@@ -262,9 +262,12 @@
         const ageText = ageDays <= 0 ? "Today" : ageDays === 1 ? "1 day ago" : `${ageDays} days ago`;
 
         const currentStatus = statusOptions.find(s => s.value === job.status) || statusOptions[1];
-        const valueText = job.quotedTotal 
-          ? `Quoted $${job.quotedTotal.toFixed(0)}${job.paidTotal ? ` • Paid $${job.paidTotal.toFixed(0)}` : ''}`
-          : "Not quoted yet";
+        let valueText = "Not quoted yet";
+        if (job.quotes?.length > 0) {
+          // Calculate total from all quotes (safest)
+          const totalQuoted = job.quotes.reduce((sum, q) => sum + (q.total || 0), 0);
+          valueText = `Quoted $${totalQuoted.toFixed(2)}`; 
+        }
 
         const clientName = job.client?.firstName 
           ? `${job.client.firstName} ${job.client.lastName?.[0]?.toUpperCase() || ''}`
@@ -279,6 +282,16 @@
               weekday: 'long', day: 'numeric', month: 'short'
             })
           : null;
+
+        const statusNextActions = {
+          lead: "Send first quote",
+          quoted: "Follow up with client",
+          progress: "Service in progress",
+          completed: "Prepare invoice",
+          invoiced: "Await payment"
+        };
+
+        let nextActionDisplay = job.nextAction || statusNextActions[job.status] || '';
 
         return `
           <div class="job-card" data-job-id="${job.id}">
@@ -297,7 +310,7 @@
                 <div class="meta-item">${ageText}</div>
               </div>
 
-              ${job.nextAction ? `<div style="color:#c4b5fd; font-weight:500;">${job.nextAction}</div>` : ''}
+              ${nextActionDisplay ? `<div style="color:#c4b5fd; font-weight:500;">${nextActionDisplay}</div>` : ''}
               
               ${nextServiceDisplay ? `
                 <div class="recurring-info">
@@ -322,7 +335,10 @@
                 <div class="quote-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
                   <strong>${q.number}</strong> • ${q.date} • $${q.total?.toFixed(2) || 'N/A'}
                   <div style="margin-top:6px;">
-                    <a href="${q.link || '#'}" style="color:#8B5CF6;">View</a>
+                    <a href="${window.location.origin}/roof/quote.html?quote=${q.id}" 
+                       style="color:#8B5CF6;" target="_blank">
+                      View Quote
+                    </a>
                   </div>
                 </div>
               `).join('') || '<p style="color:#9ca3af; padding:12px;">No quotes yet</p>'}

@@ -15,14 +15,13 @@
     .create-job-container { max-width: 480px; margin: 40px auto; padding: 0 20px; }
     .form-group { margin-bottom: 24px; position: relative; }
     label { display: block; margin-bottom: 8px; font-weight: 600; color: #d1d5db; font-size: 1rem; }
-    input, select, textarea { 
+    input, textarea { 
       width: 100%; padding: 12px 16px; background: #2a2a2a; border: 1px solid #444; 
       border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box; 
     }
-    input:focus, select:focus, textarea:focus { 
+    input:focus, textarea:focus { 
       outline: none; border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25); 
     }
-    .recurring-fields { margin-top: 12px; padding-top: 16px; border-top: 1px solid #333; }
     .success-message, .error-message { padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center; }
     .success-message { background: rgba(22, 101, 52, 0.3); color: #86efac; border: 1px solid #166534; }
     .error-message { background: rgba(153, 27, 27, 0.3); color: #fca5a5; border: 1px solid #991b1b; }
@@ -30,7 +29,7 @@
     .btn-submit:hover { background: #7c3aed; }
     .btn-submit:disabled { background: #4b5563; cursor: not-allowed; }
 
-    /* Address suggestions (copied from create_quote.html) */
+    /* Address suggestions */
     .suggestions {
       position: absolute;
       top: 100%;
@@ -84,30 +83,6 @@
       </div>
 
       <div class="form-group">
-        <label for="isRecurring">Is this a recurring service?</label>
-        <select id="isRecurring" name="isRecurring">
-          <option value="no">No — one-off job</option>
-          <option value="yes">Yes — recurring service</option>
-        </select>
-      </div>
-
-      <div class="recurring-fields" id="recurringFields" style="display: none;">
-        <div class="form-group">
-          <label for="recurrence">How often?</label>
-          <select id="recurrence" name="recurrence">
-            <option value="weekly">Weekly</option>
-            <option value="fortnightly" selected>Fortnightly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="nextServiceDate">Next Service Date *</label>
-          <input type="date" id="nextServiceDate" name="nextServiceDate">
-        </div>
-      </div>
-
-      <div class="form-group">
         <label for="jobNotes">Job Notes / Special Instructions</label>
         <textarea id="jobNotes" name="jobNotes" rows="4" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:8px; color:white; resize:vertical;"></textarea>
       </div>
@@ -139,25 +114,12 @@
     const form = document.getElementById('createJobForm');
     const addressInput = document.getElementById('address');
     const suggestionsBox = document.getElementById('address-suggestions');
-    const recurringSelect = document.getElementById('isRecurring');
-    const recurringFields = document.getElementById('recurringFields');
     const messageDiv = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBtn');
 
     let debounceTimer = null;
 
-    // Toggle recurring fields
-    recurringSelect.addEventListener('change', () => {
-      recurringFields.style.display = recurringSelect.value === 'yes' ? 'block' : 'none';
-      const dateInput = document.getElementById('nextServiceDate');
-      if (recurringSelect.value === 'yes') {
-        dateInput.setAttribute('required', '');
-      } else {
-        dateInput.removeAttribute('required');
-      }
-    });
-
-    // Address suggestions (copied & adapted from create_quote.html)
+    // Address suggestions
     addressInput.addEventListener("input", (e) => {
       const value = e.target.value.trim();
 
@@ -217,7 +179,6 @@
       suggestionsBox.innerHTML = "";
     }
 
-    // Close suggestions on outside click
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".form-group")) {
         hideSuggestions();
@@ -239,21 +200,12 @@
           lastName: document.getElementById('clientLastName').value.trim() || null,
           phone: document.getElementById('clientPhone').value.trim() || null
         },
-        isRecurring: recurringSelect.value === 'yes',
-        recurrence: recurringSelect.value === 'yes' ? document.getElementById('recurrence').value : null,
-        nextServiceDate: recurringSelect.value === 'yes' ? document.getElementById('nextServiceDate').value : null,
         jobNotes: document.getElementById('jobNotes').value.trim()
       };
 
       // Validation
       if (!formData.address || !formData.client.firstName) {
         showMessage('Please fill in all required fields.', 'error');
-        resetButton();
-        return;
-      }
-
-      if (formData.isRecurring && !formData.nextServiceDate) {
-        showMessage('Please select a next service date for recurring jobs.', 'error');
         resetButton();
         return;
       }

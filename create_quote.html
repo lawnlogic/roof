@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <title>Lawn Area Calculator</title>
+  <title>Quote Creator</title>
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
 
@@ -23,7 +23,7 @@
 
 <body>
   <div class="create-quote-container">
-    <h2>Lawn Area Calculator</h2>
+    <h2>Quote Creator</h2>
     <p style="margin: 8px 0 24px 0; color: #aaa; font-size: 1.05rem; text-align: center;">
       Enter the NZ address you would like to create a quote for
     </p>
@@ -170,38 +170,6 @@
   </div>
 
   <script type="module">
-    // Detect jobId from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const jobId = urlParams.get('jobId');
-
-    // If jobId exists, fetch job details and prefill
-    if (jobId) {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const token = await user.getIdToken();
-          const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (res.ok) {
-            const job = await res.json();
-
-            // Prefill fields
-            document.getElementById('client-first').value = job.client?.firstName || '';
-            document.getElementById('client-last').value = job.client?.lastName || '';
-            document.getElementById('client-phone').value = job.client?.phone || '';
-            document.getElementById('client-email').value = ''; // no email in job yet
-
-            // Optional: prefill address if you add address field later
-            // document.getElementById('address').value = job.address || '';
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to load job data for prefill", err);
-      }
-    }
-
     // Prevent adding vertex on touchstart → drag (common mobile bug)
     if (L.Draw && L.Draw.Polyline) {
         L.Draw.Polyline.include({
@@ -241,8 +209,39 @@
     };
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+
+    // Detect jobId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
+
+    // If jobId exists → fetch job and pre-fill address (no autosuggest trigger)
+    if (jobId) {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+              const job = await res.json();
+              if (job.address) {
+                document.getElementById('address').value = job.address;
+                document.getElementById('lookup-btn').click();
+                // IMPORTANT: No fetchSuggestions() call here → autosuggest stays inactive
+                // User can still type/edit to trigger suggestions normally
+              }
+            }
+          } catch (err) {
+            console.warn("Failed to pre-fill job address:", err);
+          }
+        }
+      });
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -759,7 +758,7 @@
         showError(err.message || "Failed to fetch data");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Calculate Lawn Area";
+        btn.textContent = "Search Property";
         btn.classList.remove('loading');
       }
     });
