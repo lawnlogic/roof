@@ -295,6 +295,7 @@
 
         return `
           <div class="job-card" data-job-id="${job.id}">
+            <button class="delete-job-btn" title="Delete this job">×</button>
             <div class="job-summary">
               <div class="job-address">
                 ${job.address}
@@ -322,7 +323,11 @@
             <div class="actions-bar">
               <button class="action-btn btn-primary schedule-service-btn">Schedule Service</button>
               <a href="create_quote.html?jobId=${job.id}" class="action-btn btn-secondary">New Quote</a>
-              <button class="action-btn btn-outline">Create Invoice</button>
+              <button class="action-btn btn-outline create-invoice-btn" 
+                      ${job.invoices?.length > 0 ? 'disabled' : ''} 
+                      title="${job.invoices?.length > 0 ? 'Invoice already exists' : 'Create invoice from quote'}">
+                Create Invoice
+              </button>
               <button class="action-btn btn-outline update-status-btn">Update Status</button>
             </div>
 
@@ -353,7 +358,7 @@
                 <div class="invoice-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
                   <strong>${inv.number}</strong> • ${inv.date} • $${inv.total?.toFixed(2) || 'N/A'} • ${inv.status || 'Unknown'}
                   <div style="margin-top:6px;">
-                    <a href="${inv.link || '#'}" style="color:#8B5CF6;">View</a>
+                    <a href="${window.location.origin}/invoice.html?inv=${inv.id}" style="color:#8B5CF6;">View</a>
                   </div>
                 </div>
               `).join('') || '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'}
@@ -382,6 +387,27 @@
         });
       });
 
+      document.querySelectorAll('.create-invoice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.job-card');
+          const jobId = card.dataset.jobId;
+          if (btn.disabled) return;
+          
+          window.location.href = `create_invoice.html?jobId=${jobId}`;
+        });
+      });
+
+      document.querySelectorAll('.delete-job-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.job-card');
+          const jobId = card.dataset.jobId;
+          const job = currentJobs.find(j => j.id === jobId);
+          if (job) {
+            deleteJob(jobId, job.address);
+          }
+        });
+      });
+
       document.querySelectorAll('.update-status-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const card = btn.closest('.job-card');
@@ -404,16 +430,17 @@
     }
 
     // Status modal (unchanged)
-    function showStatusModal(job) {
+    async function showStatusModal(job) {
       const modal = document.createElement('div');
       modal.className = 'modal-overlay';
-      const current = statusOptions.find(s => s.value === job.status) || statusOptions[1];
+
+      const currentStatus = statusOptions.find(s => s.value === job.status) || statusOptions[0];
 
       modal.innerHTML = `
         <div class="modal-content">
           <h3 class="modal-header">Update Job Status</h3>
           <p style="margin:0 0 16px; color:#d1d5db;">
-            Current status: <strong>${current.label}</strong>
+            Current: <strong>${currentStatus.label}</strong>
           </p>
           <select id="newStatusSelect" class="modal-select">
             ${statusOptions.map(opt => `
@@ -424,25 +451,72 @@
           </select>
           <div class="modal-buttons">
             <button id="cancelStatusBtn" class="modal-cancel">Cancel</button>
-            <button id="saveStatusBtn" class="modal-save">Update Status</button>
+            <button id="saveStatusBtn" class="modal-save">Save Status</button>
           </div>
         </div>
       `;
 
       document.body.appendChild(modal);
 
+      // Close on cancel / outside click
       modal.querySelector('#cancelStatusBtn').onclick = () => modal.remove();
-      modal.querySelector('#saveStatusBtn').onclick = () => {
+      modal.onclick = e => { if (e.target === modal) modal.remove(); };
+
+      // Save to backend
+      modal.querySelector('#saveStatusBtn').onclick = async () => {
         const newValue = modal.querySelector('#newStatusSelect').value;
-        const newStatus = statusOptions.find(s => s.value === newValue);
-        if (newStatus) {
-          job.status = newStatus.value;
-          if (newStatus.nextAction) job.nextAction = newStatus.nextAction;
+        const newStatusObj = statusOptions.find(s => s.value === newValue);
+
+        if (!newStatusObj) return;
+
+        try {
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not signed in");
+
+          const token = await user.getIdToken();
+
+          const response = await fetch(`${WORKER_URL}/api/jobs/${job.id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              status: newValue,
+              // Optional: update nextAction if you want to auto-set it
+              nextAction: newStatusObj.nextAction || job.nextAction || ""
+            })
+          });
+
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || `Failed to update (${response.status})`);
+          }
+
+          // Success: update local data & re-render
+          job.status = newValue;
+          if (newStatusObj.nextAction) job.nextAction = newStatusObj.nextAction;
+
           renderJobs();
+
+          // Quick success feedback
+          const toast = document.createElement('div');
+          toast.textContent = `Status updated to "${newStatusObj.label}"`;
+          toast.style.cssText = `
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #166534; color: #86efac; padding: 12px 24px;
+            border-radius: 12px; z-index: 10001; font-weight: 500;
+          `;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+
+        } catch (err) {
+          console.error("Status update error:", err);
+          alert(`Failed to update status: ${err.message}`);
         }
+
         modal.remove();
       };
-      modal.onclick = e => { if (e.target === modal) modal.remove(); };
     }
 
     // Schedule modal (unchanged)
@@ -504,6 +578,47 @@
       };
 
       modal.onclick = e => { if (e.target === modal) modal.remove(); };
+    }
+
+    async function deleteJob(jobId, jobAddress) {
+      const confirmed = confirm(
+        `Are you sure you want to delete this job?\n\n` +
+        `"${jobAddress}"\n\n` +
+        `This action cannot be undone.`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not signed in");
+
+        const token = await user.getIdToken();
+
+        const response = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Delete failed (${response.status})`);
+        }
+
+        // Remove from local array
+        currentJobs = currentJobs.filter(j => j.id !== jobId);
+
+        // Refresh UI
+        renderJobs();
+
+        // Optional: nice feedback
+        alert("Job deleted successfully.");
+      } catch (err) {
+        console.error("Delete job error:", err);
+        alert(`Failed to delete job: ${err.message}`);
+      }
     }
 
     // Filter setup

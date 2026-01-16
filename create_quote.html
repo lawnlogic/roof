@@ -858,32 +858,42 @@
       };
 
       try {
-        const res = await fetch(`${WORKER_URL}/api/quotes`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(quoteData)
-        });
+			  const res = await fetch(`${WORKER_URL}/api/quotes`, {
+			    method: 'POST',
+			    headers: {
+			      'Authorization': `Bearer ${token}`,
+			      'Content-Type': 'application/json'
+			    },
+			    body: JSON.stringify(quoteData)
+			  });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || 'Failed to save quote');
-        }
+			  if (!res.ok) {
+			    const errText = await res.text();
+			    throw new Error(errText || 'Failed to save quote');
+			  }
 
-        const { quoteId } = await res.json();
-        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+			  const { quoteId } = await res.json();
+			  const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
 
-        document.getElementById('quote-link').href = publicLink;
-        document.getElementById('quote-link').textContent = publicLink;
-        document.getElementById('quote-link-box').classList.remove('hidden');
+			  document.getElementById('quote-link').href = publicLink;
+			  document.getElementById('quote-link').textContent = publicLink;
+			  document.getElementById('quote-link-box').classList.remove('hidden');
 
-        alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
-      } catch (err) {
-        console.error('Quote save failed:', err);
-        alert('Failed to save quote: ' + err.message);
-      }
+			  // ── NEW: Success handling with conditional redirect ─────────────────────
+			  alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
+
+			  // If this quote was created from a job → redirect back to jobs list
+			  if (jobId) {
+			    // Small delay so user can see the success message
+			    setTimeout(() => {
+			      window.location.href = 'jobs.html';
+			    }, 1800); // 1.8 seconds — enough to read the alert
+			  }
+
+			} catch (err) {
+			  console.error('Quote save failed:', err);
+			  alert('Failed to save quote: ' + err.message);
+			}
     });
 
     const suggestionsBox = document.getElementById("address-suggestions");

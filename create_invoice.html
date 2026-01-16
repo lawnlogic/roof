@@ -104,6 +104,8 @@
     const quoteSelect = document.getElementById('quote-select');
     const invoiceForm = document.getElementById('invoice-form');
     const generateBtn = document.getElementById('generate-invoice-btn');
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
 
     // Pre-fill dates
     const today = new Date().toISOString().split('T')[0];
@@ -117,57 +119,78 @@
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
-
       if (!user) {
         window.location.href = 'login.html';
+        return;
+      }
+
+      if (!jobId) {
+        document.getElementById('error-message').textContent = 'No job selected. Please come from a job card.';
+        document.getElementById('error-message').classList.remove('hidden');
         return;
       }
 
       const token = await user.getIdToken();
 
       try {
-        const res = await fetch(`${WORKER_URL}/api/quotes`, {
+        // Fetch the specific job to get its quotes
+        const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error('Failed to load quotes');
 
-        const { quotes = [] } = await res.json();
+        if (!jobRes.ok) throw new Error('Failed to load job details');
+
+        const job = await jobRes.json();
+
+        // Use job.quotes array directly
+        const quotes = job.quotes || [];
+
+        if (quotes.length === 0) {
+          document.getElementById('error-message').textContent = 'No quotes found for this job yet.';
+          document.getElementById('error-message').classList.remove('hidden');
+          return;
+        }
 
         quotes.forEach(q => {
           const option = document.createElement('option');
           option.value = q.id;
-          option.textContent = `${q.data.address || 'No address'} — $${(q.data.lawnAreaM2 * q.data.ratePerM2 * 1.15 + q.data.calloutFee * 1.15).toFixed(2)}`;
-          option.dataset.address = q.data.address || '';
-          option.dataset.client = q.data.client ? `${q.data.client.firstName || ''} ${q.data.client.lastName || ''}` : '';
-          option.dataset.total = (q.data.lawnAreaM2 * q.data.ratePerM2 * 1.15 + q.data.calloutFee * 1.15).toFixed(2);
+          const dateStr = new Date(q.date || q.createdAt).toLocaleDateString('en-NZ', {
+            day: 'numeric', month: 'short', year: 'numeric'
+          });
+          option.textContent = `${q.number || 'Quote'} – $${q.total?.toFixed(2) || '—'} (${dateStr})`;
+          option.dataset.address = job.address || '';
+          option.dataset.client = job.client 
+            ? `${job.client.firstName || ''} ${job.client.lastName || ''}` 
+            : '';
+          option.dataset.total = q.total?.toFixed(2) || '0.00';
           
-          // Store full quote data in the option (as JSON string)
-          option.dataset.fullQuote = JSON.stringify(q);
-          
+          // We still store full quote snapshot if needed, but job already has most info
           quoteSelect.appendChild(option);
         });
 
       } catch (err) {
-        document.getElementById('error-message').textContent = 'Error loading quotes: ' + err.message;
+        document.getElementById('error-message').textContent = 'Error loading job quotes: ' + err.message;
         document.getElementById('error-message').classList.remove('hidden');
       }
     });
 
     // When quote selected → store full data + show form
+    // When quote is selected → show form with job-level details
     quoteSelect.addEventListener('change', () => {
-      const selected = quoteSelect.options[quoteSelect.selectedIndex];
-      if (!selected.value) {
+      const selectedOption = quoteSelect.options[quoteSelect.selectedIndex];
+      if (!selectedOption.value) {
         invoiceForm.classList.add('hidden');
         selectedQuoteData = null;
         return;
       }
 
-      // Parse the full quote data from dataset
-      selectedQuoteData = JSON.parse(selected.dataset.fullQuote);
+      // No need for fullQuote anymore - we use the job data from earlier
+      document.getElementById('inv-address').textContent = selectedOption.dataset.address || '—';
+      document.getElementById('inv-client').textContent = selectedOption.dataset.client || '—';
+      document.getElementById('inv-total').textContent = '$' + (selectedOption.dataset.total || '0.00');
 
-      document.getElementById('inv-address').textContent = selected.dataset.address || '—';
-      document.getElementById('inv-client').textContent = selected.dataset.client || '—';
-      document.getElementById('inv-total').textContent = '$' + selected.dataset.total;
+      // Still store the selected quote ID for sending to backend
+      selectedQuoteData = { id: selectedOption.value };  // minimal object
 
       invoiceForm.classList.remove('hidden');
     });
@@ -189,6 +212,7 @@
 
       const invoiceData = {
         quoteId,
+        jobId: jobId,
         invoiceNumber: document.getElementById('inv-number').value.trim() || undefined,
         issueDate: document.getElementById('issue-date').value,
         dueDate: document.getElementById('due-date').value,
