@@ -238,7 +238,7 @@
         showMessage('Job created successfully!', 'success');
 
         setTimeout(() => {
-          window.location.href = 'jobs.html';
+          window.location.href = `jobs.html?jobId=${data.jobId}`;
         }, 1500);
 
       } catch (err) {

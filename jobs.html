@@ -78,7 +78,13 @@
 <body>
 
   <div class="your-quotes-container">
-    <h1>Your Jobs</h1>
+    <div class="page-header">
+    <div class="title-and-button">
+      <h1>Your Jobs</h1>
+      <a href="create_job.html" class="btn-new-job" title="Create a new job">
+        + New Job
+      </a>
+    </div>
 
     <!-- Status Filter Bar -->
     <div id="status-filter" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 28px; justify-content: center;">
@@ -155,8 +161,9 @@
     ];
 
     const statusOptions = [
-      { value: "lead",      label: "Lead",        colorClass: "status-lead",      nextAction: "Send first quote" },
-      { value: "quoted",    label: "Quoted",      colorClass: "status-quoted",    nextAction: "Follow up with client" },
+      { value: "lead",      label: "Lead",        colorClass: "status-lead",      nextAction: "First, create a quote" },
+      { value: "quoted",    label: "Quote Created",      colorClass: "status-quoted",    nextAction: "Send quote to client" },
+      { value: "quoteSent",    label: "Quote Sent",      colorClass: "status-quoted",    nextAction: "Follow up with client" },
       { value: "won",       label: "Job Won",     colorClass: "status-won",       nextAction: "Schedule service" },
       { value: "progress",  label: "In Progress", colorClass: "status-progress", nextAction: "Service in progress" },
       { value: "completed", label: "Completed",   colorClass: "status-completed", nextAction: "Prepare invoice" },
@@ -271,7 +278,7 @@
 
         const statusNextActions = {
           lead: "Send first quote",
-          quoted: "Follow up with client",
+          quoted: "Send quote to client",
           progress: "Service in progress",
           completed: "Prepare invoice",
           invoiced: "Await payment"
@@ -309,9 +316,7 @@
             <div class="actions-bar">
               <button class="action-btn btn-primary schedule-service-btn">Schedule Service</button>
               <a href="create_quote.html?jobId=${job.id}" class="action-btn btn-secondary">New Quote</a>
-              <button class="action-btn btn-outline create-invoice-btn" 
-                      ${job.invoices?.length > 0 ? 'disabled' : ''} 
-                      title="${job.invoices?.length > 0 ? 'Invoice already exists' : 'Create invoice from quote'}">
+              <button class="action-btn btn-outline create-invoice-btn"> 
                 Create Invoice
               </button>
               <button class="action-btn btn-outline update-status-btn">Update Status</button>
@@ -414,6 +419,60 @@
         });
       });
     }
+
+    
+    // ── Focus/highlight job from URL param ──────────────────────────────────────
+    function focusOnJobFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetJobId = urlParams.get('jobId');
+
+      if (!targetJobId) return;
+
+      // Give renderJobs() time to finish (especially on first load)
+      setTimeout(() => {
+        const targetCard = document.querySelector(`.job-card[data-job-id="${targetJobId}"]`);
+
+        if (targetCard) {
+          // 1. Scroll smoothly into view (a bit higher than the card itself)
+          targetCard.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center'          // or 'start' if you prefer top-aligned
+          });
+
+          // 2. Visual highlight (temporary pulse/glow effect)
+          targetCard.style.transition = 'all 0.8s ease';
+          targetCard.style.boxShadow = '0 0 0 4px #8B5CF6, 0 0 25px rgba(139, 92, 246, 0.6)';
+          targetCard.style.background = 'linear-gradient(to top, #1a0033, #0f001a)';
+
+          // 3. Fade out highlight after ~4 seconds
+          setTimeout(() => {
+            targetCard.style.boxShadow = '';
+            targetCard.style.background = ''; // reset to original gradient
+          }, 4200);
+
+          // Optional: remove jobId from URL so refresh doesn't keep highlighting
+          // (uncomment if desired)
+          // window.history.replaceState({}, '', 'jobs.html');
+        } else {
+          console.warn(`Could not find job card with id: ${targetJobId}`);
+        }
+      }, 800); // small delay — adjust if needed (depends on how fast jobs render)
+    }
+
+    // Call it after jobs are loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // ... your existing code ...
+
+      // Add this line at the end of DOMContentLoaded
+      focusOnJobFromUrl();
+    });
+
+    // Also call it after renderJobs() finishes (important when filters change)
+    const originalRenderJobs = renderJobs;
+    renderJobs = function() {
+      originalRenderJobs.apply(this, arguments);
+      focusOnJobFromUrl();
+    };
 
     // Status modal (unchanged)
     async function showStatusModal(job) {

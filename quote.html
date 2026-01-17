@@ -95,7 +95,6 @@
           }
           document.getElementById('company-nzbn').textContent = company.nzbn || 'Not provided';
           document.getElementById('company-gst').textContent = company.gstNumber || 'Not provided';
-
           const logoEl = document.getElementById('company-logo');
           if (company.logoUrl) {
             logoEl.src = company.logoUrl;
@@ -119,19 +118,18 @@
           document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
 
           // === Map ===
-          const initialZoom = quoteData.mapState.zoom || 19;   // Use saved zoom, fallback to quite zoomed-in
+          const initialZoom = quoteData.mapState?.zoom || 19;
 
           const map = L.map('aerial-map', {
-            minZoom: initialZoom,          // ← cannot zoom out beyond this
-            maxZoom: 24,                   // LINZ aerial goes high — allow zooming in a lot
-            zoomControl: true,             // keep + / - buttons
+            minZoom: initialZoom,
+            maxZoom: 24,
+            zoomControl: true,
             attributionControl: true
           }).setView(
-            [quoteData.mapState.center.lat, quoteData.mapState.center.lng],
+            [quoteData.mapState?.center?.lat || -36.8485, quoteData.mapState?.center?.lng || 174.7633], // fallback to Auckland if missing
             initialZoom
           );
 
-          // LINZ Aerial tiles (unchanged)
           const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
           L.tileLayer(LINZ_AERIAL_URL, {
             attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
@@ -141,54 +139,51 @@
             noWrap: true
           }).addTo(map);
 
-          // Add layers (parcel, buildings, negative) — unchanged
-          if (quoteData.mapState.parcelGeometry) {
+          if (quoteData.mapState?.parcelGeometry) {
             L.geoJSON(quoteData.mapState.parcelGeometry, {
               style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
             }).addTo(map);
           }
 
-          if (quoteData.mapState.buildingsGeoJSON) {
+          if (quoteData.mapState?.buildingsGeoJSON) {
             L.geoJSON(quoteData.mapState.buildingsGeoJSON, {
               style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
             }).addTo(map);
           }
 
-          if (quoteData.mapState.negativeGeoJSON && quoteData.mapState.negativeGeoJSON.features.length > 0) {
+          if (quoteData.mapState?.negativeGeoJSON && quoteData.mapState.negativeGeoJSON.features?.length > 0) {
             L.geoJSON(quoteData.mapState.negativeGeoJSON, {
               style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
             }).addTo(map);
           }
 
-          // Fit to parcel bounds, but respect minZoom
-          if (quoteData.mapState.parcelGeometry) {
+          if (quoteData.mapState?.parcelGeometry) {
             const bounds = L.geoJSON(quoteData.mapState.parcelGeometry).getBounds();
-            
-            // Fit bounds but clamp zoom so it doesn't go below initialZoom / minZoom
             map.fitBounds(bounds, {
-              padding: [40, 40],           // some breathing room
-              maxZoom: initialZoom + 2,    // allow zooming in a bit more during fit
+              padding: [40, 40],
+              maxZoom: initialZoom + 2,
               animate: true
             });
-            
-            // After fitting, enforce we don't go below the original min zoom
+
             if (map.getZoom() < initialZoom) {
               map.setZoom(initialZoom);
             }
           }
-
-          // Hide loading splash (unchanged)
-          const loadingSplash = document.getElementById('loading-splash');
-          loadingSplash.classList.add('fade-out');
-          setTimeout(() => {
-            loadingSplash.style.display = 'none';
-          }, 500);
         })
         .catch(err => {
           document.body.innerHTML = `<div class="container"><h2>Error loading quote</h2><p>${err.message}</p></div>`;
-          document.getElementById('loading-splash').style.display = 'none';
         });
     }
-  </script>
+
+    // Safe hide
+    const splash = document.getElementById('loading-splash');
+    if (splash) {
+      splash.classList.add('fade-out');
+      setTimeout(() => {
+        if (splash) splash.style.display = 'none';
+      }, 500);
+    }
+
+</script>
 </body>
 </html>

@@ -115,7 +115,7 @@
     document.getElementById('due-date').value = due.toISOString().split('T')[0];
 
     let currentUser = null;
-    let selectedQuoteData = null; // ← Store full quote here when selected
+    let selectedQuoteFull = null;
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
@@ -133,7 +133,6 @@
       const token = await user.getIdToken();
 
       try {
-        // Fetch the specific job to get its quotes
         const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -141,8 +140,6 @@
         if (!jobRes.ok) throw new Error('Failed to load job details');
 
         const job = await jobRes.json();
-
-        // Use job.quotes array directly
         const quotes = job.quotes || [];
 
         if (quotes.length === 0) {
@@ -154,17 +151,19 @@
         quotes.forEach(q => {
           const option = document.createElement('option');
           option.value = q.id;
-          const dateStr = new Date(q.date || q.createdAt).toLocaleDateString('en-NZ', {
+          const dateStr = new Date(q.date || q.createdAt || Date.now()).toLocaleDateString('en-NZ', {
             day: 'numeric', month: 'short', year: 'numeric'
           });
-          option.textContent = `${q.number || 'Quote'} – $${q.total?.toFixed(2) || '—'} (${dateStr})`;
+          option.textContent = `${q.number || 'Quote'} – $${(q.total || 0).toFixed(2)} (${dateStr})`;
           option.dataset.address = job.address || '';
           option.dataset.client = job.client 
-            ? `${job.client.firstName || ''} ${job.client.lastName || ''}` 
+            ? `${job.client.firstName || ''} ${job.client.lastName || ''}`.trim()
             : '';
-          option.dataset.total = q.total?.toFixed(2) || '0.00';
-          
-          // We still store full quote snapshot if needed, but job already has most info
+          option.dataset.total = (q.total || 0).toFixed(2);
+
+          // Store whatever data we have in job.quotes (this is the safe part)
+          option.dataset.fullQuote = JSON.stringify(q);
+
           quoteSelect.appendChild(option);
         });
 
@@ -174,28 +173,27 @@
       }
     });
 
-    // When quote selected → store full data + show form
-    // When quote is selected → show form with job-level details
     quoteSelect.addEventListener('change', () => {
-      const selectedOption = quoteSelect.options[quoteSelect.selectedIndex];
-      if (!selectedOption.value) {
+      const opt = quoteSelect.options[quoteSelect.selectedIndex];
+      if (!opt.value) {
         invoiceForm.classList.add('hidden');
-        selectedQuoteData = null;
+        selectedQuoteFull = null;
         return;
       }
 
-      // No need for fullQuote anymore - we use the job data from earlier
-      document.getElementById('inv-address').textContent = selectedOption.dataset.address || '—';
-      document.getElementById('inv-client').textContent = selectedOption.dataset.client || '—';
-      document.getElementById('inv-total').textContent = '$' + (selectedOption.dataset.total || '0.00');
+      document.getElementById('inv-address').textContent = opt.dataset.address || '—';
+      document.getElementById('inv-client').textContent = opt.dataset.client || '—';
+      document.getElementById('inv-total').textContent = '$' + (opt.dataset.total || '0.00');
 
-      // Still store the selected quote ID for sending to backend
-      selectedQuoteData = { id: selectedOption.value };  // minimal object
+      try {
+        selectedQuoteFull = JSON.parse(opt.dataset.fullQuote || '{}');
+      } catch {
+        selectedQuoteFull = { id: opt.value };
+      }
 
       invoiceForm.classList.remove('hidden');
     });
 
-    // Generate Invoice – send full quote snapshot to backend
     generateBtn.addEventListener('click', async () => {
       if (!currentUser) {
         alert('You must be signed in to create an invoice.');
@@ -206,7 +204,7 @@
       const quoteId = quoteSelect.value;
       if (!quoteId) return alert('Please select a quote first');
 
-      if (!selectedQuoteData) {
+      if (!selectedQuoteFull) {
         return alert('Selected quote data not loaded. Please try again.');
       }
 
@@ -220,8 +218,7 @@
         notes: document.getElementById('inv-notes').value.trim(),
         totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace(/[$,]/g, '')) || 0,
         
-        // Attach full quote snapshot (this is the key change)
-        quoteSnapshot: selectedQuoteData
+        quoteSnapshot: selectedQuoteFull
       };
 
       try {
@@ -241,9 +238,8 @@
           throw new Error(err.error || 'Failed to create invoice');
         }
 
-        const { invoiceId, invoice } = await res.json();
+        window.location.href = `jobs.html?jobId=${jobId}`;
 
-        // Show success
         document.getElementById('invoice-link-text').textContent = 
           `Invoice created! View it here: ${window.location.origin}/invoice.html?inv=${invoiceId}`;
 
@@ -253,7 +249,7 @@
         document.getElementById('success-message').classList.remove('hidden');
         document.getElementById('invoice-form').classList.add('hidden');
 
-        alert(`Invoice #${invoice.data.invoiceNumber} created successfully!`);
+        alert(`Invoice created successfully!`);
 
       } catch (err) {
         alert('Error creating invoice: ' + err.message);
