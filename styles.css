@@ -1340,3 +1340,8 @@ input[type="file"] {
     width: 100%;           /* full width when stacked */
   }
 }
+
+.email-quote-btn:hover {
+  color: #218838 !important;
+  text-decoration: underline;
+}

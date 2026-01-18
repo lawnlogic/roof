@@ -115,7 +115,7 @@
           return res.json();
         })
         .then(invoice => {
-          const data = invoice.data || {};
+          const data = invoice;
           const quoteSnap = data.quoteSnapshot?.data || {};
 
           // Invoice Details

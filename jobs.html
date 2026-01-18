@@ -330,10 +330,18 @@
               ${job.quotes?.map(q => `
                 <div class="quote-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
                   <strong>${q.number}</strong> • ${q.date} • $${q.total?.toFixed(2) || 'N/A'}
-                  <div style="margin-top:6px;">
-                    <a href="${window.location.origin}/roof/quote.html?quote=${q.id}" 
+                  <div style="margin-top:6px; display:flex; gap:16px; flex-wrap:wrap;">
+                    <a href="${window.location.origin}/roof/quote.html?quote=${q.id}"
                        style="color:#8B5CF6;" target="_blank">
                       View Quote
+                    </a>
+                    
+                    <!-- NEW: Email Quote button -->
+                    <a href="#" 
+                       class="email-quote-btn"
+                       data-quote-id="${q.id}"
+                       style="color:#28a745; text-decoration:none; font-weight:600;">
+                      Email Quote
                     </a>
                   </div>
                 </div>
@@ -677,6 +685,21 @@
         });
       });
     }
+
+    // Handle Email Quote clicks (placeholder)
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('email-quote-btn')) {
+        e.preventDefault();
+        const quoteId = e.target.dataset.quoteId;
+        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+        
+        // Placeholder – replace with real email logic later
+        alert(`Emailing quote ${quoteId}\n\nShareable link:\n${publicLink}`);
+        
+        // Future real example:
+        // window.open(`mailto:client@example.com?subject=Your Lawn Care Quote&body=Hi! Here's your quote:\n\n${publicLink}`);
+      }
+    });
 
     // Load jobs on init
     document.addEventListener('DOMContentLoaded', () => {
