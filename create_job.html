@@ -69,12 +69,12 @@
 
       <div class="form-group">
         <label for="clientFirstName">Client First Name *</label>
-        <input type="text" id="clientFirstName" name="clientFirstName" required>
+        <input type="text" id="clientFirstName" name="client.firstName" required>
       </div>
 
       <div class="form-group">
         <label for="clientLastName">Client Last Name</label>
-        <input type="text" id="clientLastName" name="clientLastName">
+        <input type="text" id="clientLastName" name="client.lastName">
       </div>
 
       <div class="form-group">
@@ -203,6 +203,7 @@
         client: {
           firstName: document.getElementById('clientFirstName').value.trim(),
           lastName: document.getElementById('clientLastName').value.trim() || null,
+          email: document.getElementById('clientEmail').value.trim() || null,     // ← ADD THIS LINE
           phone: document.getElementById('clientPhone').value.trim() || null
         },
         jobNotes: document.getElementById('jobNotes').value.trim()
