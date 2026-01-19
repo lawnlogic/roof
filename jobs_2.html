@@ -220,7 +220,6 @@
 
     .notes-preview:hover { background: #f3f4f6; }
 
-    /* Modal Styles */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -327,9 +326,7 @@
 
   <div class="job-card" data-stage="created">
     <div class="overflow">⋯</div>
-    <div class="menu">
-      <!-- Dynamically filled based on stage -->
-    </div>
+    <div class="menu"></div>
 
     <div class="job-address">40 Griffen Park Road, Mount Roskill</div>
     <div class="job-client">Smith Family • 021 555 1234 • Gate: 2232</div>
@@ -351,12 +348,18 @@
   </div>
 </div>
 
-<!-- Modal Container -->
 <div id="modalOverlay" class="modal-overlay">
   <div class="modal-content" id="modalContent"></div>
 </div>
 
 <script>
+/* ✅ REQUIRED: mockQuotes (minimal necessary fix) */
+const mockQuotes = [
+  { id: 'Q-1021', date: '2026-01-10', total: 285.50 },
+  { id: 'Q-1018', date: '2025-12-22', total: 260.00 },
+  { id: 'Q-1012', date: '2025-11-30', total: 240.75 }
+];
+
 // Full lifecycle
 const STAGES = [
   {
@@ -450,11 +453,9 @@ function updateCard(card) {
   card.querySelector('.progress-fill').style.width = `${config.progress}%`;
   card.querySelector('.primary-action').textContent = config.primary;
 
-  // Populate overflow menu
   const menu = card.querySelector('.menu');
   menu.innerHTML = '';
 
-  // Quick section
   if (config.menuQuick?.length) {
     const section = document.createElement('div');
     section.className = 'menu-section';
@@ -467,7 +468,6 @@ function updateCard(card) {
     menu.appendChild(section);
   }
 
-  // Manage section (if present)
   if (config.menuManage?.length) {
     const section = document.createElement('div');
     section.className = 'menu-section';
@@ -480,7 +480,6 @@ function updateCard(card) {
     menu.appendChild(section);
   }
 
-  // Danger section
   if (config.menuDanger?.length) {
     const danger = document.createElement('div');
     danger.className = 'menu-section menu-danger';
@@ -520,14 +519,12 @@ function advanceStage(card) {
   }, 220);
 }
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const card = document.querySelector('.job-card');
   if (!card) return;
 
   updateCard(card);
 
-  // Primary action click
   card.querySelector('.primary-action').addEventListener('click', () => {
     const stage = card.dataset.stage;
 
@@ -547,21 +544,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (stage === 'quoted') {
       showModal(`
         <h2 class="modal-title">Schedule Service</h2>
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Frequency</label>
-        <select class="modal-select" id="freqSelect">
-          <option value="one-off">One-off</option>
-          <option value="weekly">Weekly</option>
-          <option value="fortnightly" selected>Fortnightly</option>
-          <option value="monthly">Monthly</option>
+        <label style="display:block; margin-bottom:8px; font-weight:600;">Frequency</label>
+        <select class="modal-select">
+          <option>One-off</option>
+          <option>Weekly</option>
+          <option selected>Fortnightly</option>
+          <option>Monthly</option>
         </select>
-
-        <label style="display:block; margin:16px 0 8px; font-weight:600; color:#374151;">Start Date</label>
+        <label style="display:block; margin:16px 0 8px; font-weight:600;">Start Date</label>
         <input type="date" class="modal-input" value="2026-01-28">
-
-        <p style="margin:20px 0; color:#4b5563; font-weight:500;">
-          Estimated job duration: <strong>1h 30m</strong>
-        </p>
-
         <div class="modal-buttons">
           <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Schedule</button>
@@ -570,7 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (stage === 'won') {
       showModal(`
         <h2 class="modal-title">Confirm On Site</h2>
-        <p style="margin-bottom:24px; color:#4b5563;">Are you currently at the job location?</p>
         <div class="modal-buttons">
           <button class="btn-modal btn-cancel" onclick="closeModal()">No</button>
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Yes – Start Job</button>
@@ -580,42 +570,33 @@ document.addEventListener('DOMContentLoaded', () => {
       showModal(`
         <div id="invoiceStep1">
           <h2 class="modal-title">Create Invoice</h2>
-          <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Base invoice on:</label>
-          <select class="modal-select" id="quoteSelect">
-            ${mockQuotes.map(q => `<option value="${q.id}">${q.id} - ${q.date} - $${q.total.toFixed(2)}</option>`).join('')}
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Base invoice on:</label>
+          <select class="modal-select">
+            ${mockQuotes.map(q => `<option>${q.id} - ${q.date} - $${q.total.toFixed(2)}</option>`).join('')}
           </select>
           <div class="modal-buttons">
             <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
             <button class="btn-modal btn-primary-modal" onclick="document.getElementById('invoiceStep1').style.display='none'; document.getElementById('invoiceStep2').style.display='block';">Next →</button>
           </div>
         </div>
-
         <div id="invoiceStep2" style="display:none;">
           <h2 class="modal-title">Send Invoice</h2>
-          <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the invoice:</p>
           <div class="send-options">
             <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Email</button>
             <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">SMS</button>
             <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Copy to Clipboard</button>
-          </div>
-          <div class="modal-buttons" style="margin-top:24px;">
-            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
           </div>
         </div>
       `);
     } else if (stage === 'invoiced') {
       showModal(`
         <h2 class="modal-title">Mark as Paid</h2>
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Payment Method</label>
         <select class="modal-select">
           <option>Cash</option>
-          <option selected>Digital (Bank Transfer)</option>
+          <option selected>Digital</option>
           <option>Credit Card</option>
         </select>
-
-        <label style="display:block; margin:16px 0 8px; font-weight:600; color:#374151;">Amount Paid</label>
-        <input type="number" class="modal-input" value="285.50" step="0.01">
-
+        <input type="number" class="modal-input" value="285.50">
         <div class="modal-buttons">
           <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Payment</button>
@@ -626,14 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Close modal on outside click
   document.getElementById('modalOverlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('modalOverlay')) {
-      closeModal();
-    }
+    if (e.target === e.currentTarget) closeModal();
   });
 
-  // Overflow menu toggle (mobile-friendly)
   const overflow = card.querySelector('.overflow');
   const menu = card.querySelector('.menu');
   overflow.addEventListener('click', e => {
