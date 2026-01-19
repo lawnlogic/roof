@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jobs • Deep Edge (Dynamic Job Flow - Light Mode)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #f8f9fc;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #7c3aed;
+      --green: #10b981;
+      --green-dark: #059669;
+      --yellow: #d97706;
+      --blue: #2563eb;
+      --red: #dc2626;
+      --border: #e5e7eb;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --modal-bg: rgba(0,0,0,0.65);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 16px;
+      line-height: 1.45;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    h1 { font-size: 2.25rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+
+    .btn-new {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+    }
+
+    .btn-new:hover { background: #6d28d9; transform: translateY(-1px); }
+
+    .job-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 32px;
+      position: relative;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    .job-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(124,58,237,0.15);
+    }
+
+    .job-address {
+      font-size: 1.48rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .job-client {
+      font-size: 1.08rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+      margin-bottom: 16px;
+      font-size: 0.94rem;
+      color: var(--muted);
+    }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .status-created   { background: #f3f4f6; color: #4b5563; }
+    .status-quoted    { background: #ede9fe; color: #6d28d9; }
+    .status-won       { background: #ecfdf5; color: #059669; }
+    .status-progress  { background: #fffbeb; color: #d97706; }
+    .status-completed { background: #f0fdf4; color: #059669; }
+    .status-invoiced  { background: #eff6ff; color: #2563eb; }
+    .status-paid      { background: #f0fdf4; color: #059669; }
+
+    .last-activity { 
+      font-style: normal; 
+      color: #4b5563; 
+      font-weight: 500;
+    }
+
+    .primary-action {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 24px auto;
+      padding: 16px 20px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.14rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 5px 16px rgba(16,185,129,0.25);
+    }
+
+    .primary-action:hover {
+      background: var(--green-dark);
+      transform: translateY(-2px);
+    }
+
+    .overflow { 
+      position: absolute; 
+      top: 20px; 
+      right: 20px; 
+      font-size: 1.9rem; 
+      color: var(--muted); 
+      cursor: pointer; 
+      user-select: none; 
+    }
+
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-width: 240px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      z-index: 10;
+      display: none;
+    }
+
+    .menu.show { display: block; }
+
+    .menu-section { padding: 6px 0; }
+
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      color: var(--text);
+    }
+
+    .menu-item:hover { background: #f3f4f6; }
+
+    .menu-danger {
+      color: var(--red);
+      border-top: 1px solid var(--border);
+    }
+
+    .menu-danger:hover { background: #fee2e2; }
+
+    .progress-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      margin: 18px 0 22px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.6s ease;
+    }
+
+    .notes-preview {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: #4b5563;
+      line-height: 1.4;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+    }
+
+    .notes-preview:hover { background: #f3f4f6; }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      transform: translateY(30px);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .modal-select, .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #f9fafb;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn-modal {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-cancel {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .btn-primary-modal {
+      background: var(--green);
+      color: white;
+    }
+
+    .btn-send {
+      background: var(--accent);
+      color: white;
+      flex: 1;
+    }
+
+    .send-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .primary-action { font-size: 1.04rem; padding: 14px 18px; }
+      .job-address { font-size: 1.32rem; }
+      .modal-content { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Your Jobs</h1>
+    <button class="btn-new">+ New Job</button>
+  </div>
+
+  <div class="job-card" data-stage="created">
+    <div class="overflow">⋯</div>
+    <div class="menu"></div>
+
+    <div class="job-address">40 Griffen Park Road, Mount Roskill</div>
+    <div class="job-client">Smith Family • 021 555 1234 • Gate: 2232</div>
+
+    <div class="meta">
+      <span class="status-badge">Quote Created</span>
+      <span class="last-activity">Last activity: Quote created</span>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+
+    <button class="primary-action">Send Quote</button>
+
+    <div class="notes-preview">
+      Client requested fortnightly service. Prefers Tuesday mornings. Avoid rose bushes.
+    </div>
+  </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script>
+// Full lifecycle
+const STAGES = [
+  { id: 'created',   label: 'Quote Created',   color: 'status-created',   progress: 14.29, primary: 'Send Quote',          lastActivity: 'Quote created' },
+  { id: 'quoted',    label: 'Quote Sent',      color: 'status-quoted',    progress: 28.57, primary: 'Schedule Service',     lastActivity: 'Quote sent to client' },
+  { id: 'won',       label: 'Job Won',         color: 'status-won',       progress: 42.86, primary: 'Start Job',            lastActivity: 'Job accepted by client' },
+  { id: 'progress',  label: 'In Progress',     color: 'status-progress',  progress: 57.14, primary: 'Complete Job',          lastActivity: 'Service started on site' },
+  { id: 'completed', label: 'Completed',       color: 'status-completed', progress: 71.43, primary: 'Create Invoice',        lastActivity: 'Job completed' },
+  { id: 'invoiced',  label: 'Invoiced',        color: 'status-invoiced',  progress: 85.71, primary: 'Mark Paid',             lastActivity: 'Invoice sent' },
+  { id: 'paid',      label: 'Paid ✓',          color: 'status-paid',      progress: 100,   primary: 'Schedule Next Visit',   lastActivity: 'Payment received' }
+];
+
+const mockQuotes = [
+  { id: 'Q-0251', date: '5 Jan 2026', total: 285.50 },
+  { id: 'Q-0263', date: '12 Jan 2026', total: 272.00 },
+  { id: 'Q-0278', date: '18 Jan 2026', total: 295.00 }
+];
+
+function getStageConfig(stageId) {
+  return STAGES.find(s => s.id === stageId) || STAGES[0];
+}
+
+function updateCard(card) {
+  const stage = card.dataset.stage;
+  const config = getStageConfig(stage);
+
+  card.querySelector('.status-badge').textContent = config.label;
+  card.querySelector('.status-badge').className = `status-badge ${config.color}`;
+  card.querySelector('.last-activity').textContent = `Last activity: ${config.lastActivity}`;
+  card.querySelector('.progress-fill').style.width = `${config.progress}%`;
+  card.querySelector('.primary-action').textContent = config.primary;
+}
+
+function showModal(contentHTML) {
+  const overlay = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = contentHTML;
+  overlay.classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function advanceStage(card) {
+  const current = card.dataset.stage;
+  const idx = STAGES.findIndex(s => s.id === current);
+  const nextIdx = (idx + 1) % STAGES.length;
+  card.dataset.stage = STAGES[nextIdx].id;
+
+  card.style.opacity = '0.65';
+  card.style.transform = 'scale(0.98)';
+  setTimeout(() => {
+    updateCard(card);
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+  }, 220);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const card = document.querySelector('.job-card');
+  if (!card) return;
+
+  updateCard(card);
+
+  card.querySelector('.primary-action').addEventListener('click', () => {
+    const stage = card.dataset.stage;
+
+    if (stage === 'created') {
+      showModal(`
+        <h2 class="modal-title">Send Quote</h2>
+        <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the quote to the client:</p>
+        <div class="send-options">
+          <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Email</button>
+          <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">SMS</button>
+          <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Copy to Clipboard</button>
+        </div>
+        <div class="modal-buttons" style="margin-top:24px;">
+          <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+        </div>
+      `);
+    }
+
+    else if (stage === 'quoted') {
+      showModal(`
+        <h2 class="modal-title">Schedule Service</h2>
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Frequency</label>
+        <select class="modal-select" id="freqSelect">
+          <option value="one-off">One-off</option>
+          <option value="weekly">Weekly</option>
+          <option value="fortnightly" selected>Fortnightly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+
+        <label style="display:block; margin:16px 0 8px; font-weight:600; color:#374151;">Start Date</label>
+        <input type="date" class="modal-input" value="2026-01-28">
+
+        <p style="margin:20px 0; color:#4b5563; font-weight:500;">
+          Estimated job duration: <strong>1h 30m</strong>
+        </p>
+
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Schedule</button>
+        </div>
+      `);
+    }
+
+    else if (stage === 'won') {
+      showModal(`
+        <h2 class="modal-title">Confirm On Site</h2>
+        <p style="margin-bottom:24px; color:#4b5563;">Are you currently at the job location?</p>
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel" onclick="closeModal()">No</button>
+          <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Yes – Start Job</button>
+        </div>
+      `);
+    }
+
+    else if (stage === 'completed') {
+      showModal(`
+        <div id="invoiceStep1">
+          <h2 class="modal-title">Create Invoice</h2>
+          <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Base invoice on:</label>
+          <select class="modal-select" id="quoteSelect">
+            ${mockQuotes.map(q => `<option value="${q.id}">${q.id} - ${q.date} - $${q.total.toFixed(2)}</option>`).join('')}
+          </select>
+          <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-primary-modal" onclick="document.getElementById('invoiceStep1').style.display='none'; document.getElementById('invoiceStep2').style.display='block';">Next →</button>
+          </div>
+        </div>
+
+        <div id="invoiceStep2" style="display:none;">
+          <h2 class="modal-title">Send Invoice</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the invoice:</p>
+          <div class="send-options">
+            <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Email</button>
+            <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">SMS</button>
+            <button class="btn-modal btn-primary-modal btn-send" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Copy to Clipboard</button>
+          </div>
+          <div class="modal-buttons" style="margin-top:24px;">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          </div>
+        </div>
+      `);
+    }
+
+    else if (stage === 'invoiced') {
+      showModal(`
+        <h2 class="modal-title">Mark as Paid</h2>
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Payment Method</label>
+        <select class="modal-select">
+          <option>Cash</option>
+          <option selected>Digital (Bank Transfer)</option>
+          <option>Credit Card</option>
+        </select>
+
+        <label style="display:block; margin:16px 0 8px; font-weight:600; color:#374151;">Amount Paid</label>
+        <input type="number" class="modal-input" value="285.50" step="0.01">
+
+        <div class="modal-buttons">
+          <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Payment</button>
+        </div>
+      `);
+    }
+
+    else {
+      // paid → next visit
+      advanceStage(card);
+    }
+  });
+
+  // Close modal on outside click
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) {
+      closeModal();
+    }
+  });
+
+  // Overflow menu (placeholder)
+  const overflow = card.querySelector('.overflow');
+  const menu = card.querySelector('.menu');
+  overflow.addEventListener('click', e => {
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click', () => menu.classList.remove('show'));
+});
+</script>
+</body>
+</html>
