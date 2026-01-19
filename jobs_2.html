@@ -153,6 +153,7 @@
       color: var(--muted); 
       cursor: pointer; 
       user-select: none; 
+      z-index: 5;
     }
 
     .menu {
@@ -166,6 +167,7 @@
       box-shadow: 0 12px 36px rgba(0,0,0,0.15);
       z-index: 10;
       display: none;
+      overflow: hidden;
     }
 
     .menu.show { display: block; }
@@ -177,6 +179,7 @@
       cursor: pointer;
       transition: background 0.15s;
       color: var(--text);
+      font-size: 0.95rem;
     }
 
     .menu-item:hover { background: #f3f4f6; }
@@ -310,6 +313,7 @@
       .primary-action { font-size: 1.04rem; padding: 14px 18px; }
       .job-address { font-size: 1.32rem; }
       .modal-content { padding: 24px; }
+      .menu { min-width: 200px; right: 10px; }
     }
   </style>
 </head>
@@ -323,7 +327,9 @@
 
   <div class="job-card" data-stage="created">
     <div class="overflow">⋯</div>
-    <div class="menu"></div>
+    <div class="menu">
+      <!-- Dynamically filled based on stage -->
+    </div>
 
     <div class="job-address">40 Griffen Park Road, Mount Roskill</div>
     <div class="job-client">Smith Family • 021 555 1234 • Gate: 2232</div>
@@ -353,19 +359,81 @@
 <script>
 // Full lifecycle
 const STAGES = [
-  { id: 'created',   label: 'Quote Created',   color: 'status-created',   progress: 14.29, primary: 'Send Quote',          lastActivity: 'Quote created' },
-  { id: 'quoted',    label: 'Quote Sent',      color: 'status-quoted',    progress: 28.57, primary: 'Schedule Service',     lastActivity: 'Quote sent to client' },
-  { id: 'won',       label: 'Job Won',         color: 'status-won',       progress: 42.86, primary: 'Start Job',            lastActivity: 'Job accepted by client' },
-  { id: 'progress',  label: 'In Progress',     color: 'status-progress',  progress: 57.14, primary: 'Complete Job',          lastActivity: 'Service started on site' },
-  { id: 'completed', label: 'Completed',       color: 'status-completed', progress: 71.43, primary: 'Create Invoice',        lastActivity: 'Job completed' },
-  { id: 'invoiced',  label: 'Invoiced',        color: 'status-invoiced',  progress: 85.71, primary: 'Mark Paid',             lastActivity: 'Invoice sent' },
-  { id: 'paid',      label: 'Paid ✓',          color: 'status-paid',      progress: 100,   primary: 'Schedule Next Visit',   lastActivity: 'Payment received' }
-];
-
-const mockQuotes = [
-  { id: 'Q-0251', date: '5 Jan 2026', total: 285.50 },
-  { id: 'Q-0263', date: '12 Jan 2026', total: 272.00 },
-  { id: 'Q-0278', date: '18 Jan 2026', total: 295.00 }
+  {
+    id: 'created',
+    label: 'Quote Created',
+    color: 'status-created',
+    progress: 14.29,
+    primary: 'Send Quote',
+    lastActivity: 'Quote created',
+    menuQuick: ['Edit Quote', 'Add Note', 'View Details'],
+    menuDanger: ['Delete Quote']
+  },
+  {
+    id: 'quoted',
+    label: 'Quote Sent',
+    color: 'status-quoted',
+    progress: 28.57,
+    primary: 'Schedule Service',
+    lastActivity: 'Quote sent to client',
+    menuQuick: ['Resend Quote', 'Send Reminder', 'Add Note'],
+    menuManage: ['Edit Quote', 'Change Price'],
+    menuDanger: ['Cancel Job']
+  },
+  {
+    id: 'won',
+    label: 'Job Won',
+    color: 'status-won',
+    progress: 42.86,
+    primary: 'Start Job',
+    lastActivity: 'Job accepted by client',
+    menuQuick: ['Schedule Visit', 'Add Note', 'View Details'],
+    menuManage: ['Change Frequency', 'Adjust Price'],
+    menuDanger: ['Cancel Service']
+  },
+  {
+    id: 'progress',
+    label: 'In Progress',
+    color: 'status-progress',
+    progress: 57.14,
+    primary: 'Complete Job',
+    lastActivity: 'Service started on site',
+    menuQuick: ['Add Photo', 'Add Note', 'Skip Visit'],
+    menuManage: ['Adjust Price', 'Change Frequency'],
+    menuDanger: ['Cancel Service']
+  },
+  {
+    id: 'completed',
+    label: 'Completed',
+    color: 'status-completed',
+    progress: 71.43,
+    primary: 'Create Invoice',
+    lastActivity: 'Job completed',
+    menuQuick: ['View Details', 'Add Final Note'],
+    menuManage: ['Adjust Final Price'],
+    menuDanger: ['Reopen Job']
+  },
+  {
+    id: 'invoiced',
+    label: 'Invoiced',
+    color: 'status-invoiced',
+    progress: 85.71,
+    primary: 'Mark Paid',
+    lastActivity: 'Invoice sent',
+    menuQuick: ['Send Reminder', 'View Invoice'],
+    menuManage: ['Edit Invoice'],
+    menuDanger: ['Void Invoice']
+  },
+  {
+    id: 'paid',
+    label: 'Paid ✓',
+    color: 'status-paid',
+    progress: 100,
+    primary: 'Schedule Next Visit',
+    lastActivity: 'Payment received',
+    menuQuick: ['Send Receipt', 'View History'],
+    menuDanger: ['Archive Client']
+  }
 ];
 
 function getStageConfig(stageId) {
@@ -381,6 +449,49 @@ function updateCard(card) {
   card.querySelector('.last-activity').textContent = `Last activity: ${config.lastActivity}`;
   card.querySelector('.progress-fill').style.width = `${config.progress}%`;
   card.querySelector('.primary-action').textContent = config.primary;
+
+  // Populate overflow menu
+  const menu = card.querySelector('.menu');
+  menu.innerHTML = '';
+
+  // Quick section
+  if (config.menuQuick?.length) {
+    const section = document.createElement('div');
+    section.className = 'menu-section';
+    config.menuQuick.forEach(text => {
+      const item = document.createElement('div');
+      item.className = 'menu-item';
+      item.textContent = text;
+      section.appendChild(item);
+    });
+    menu.appendChild(section);
+  }
+
+  // Manage section (if present)
+  if (config.menuManage?.length) {
+    const section = document.createElement('div');
+    section.className = 'menu-section';
+    config.menuManage.forEach(text => {
+      const item = document.createElement('div');
+      item.className = 'menu-item';
+      item.textContent = text;
+      section.appendChild(item);
+    });
+    menu.appendChild(section);
+  }
+
+  // Danger section
+  if (config.menuDanger?.length) {
+    const danger = document.createElement('div');
+    danger.className = 'menu-section menu-danger';
+    config.menuDanger.forEach(text => {
+      const item = document.createElement('div');
+      item.className = 'menu-item';
+      item.textContent = text;
+      danger.appendChild(item);
+    });
+    menu.appendChild(danger);
+  }
 }
 
 function showModal(contentHTML) {
@@ -409,12 +520,14 @@ function advanceStage(card) {
   }, 220);
 }
 
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const card = document.querySelector('.job-card');
   if (!card) return;
 
   updateCard(card);
 
+  // Primary action click
   card.querySelector('.primary-action').addEventListener('click', () => {
     const stage = card.dataset.stage;
 
@@ -431,9 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
         </div>
       `);
-    }
-
-    else if (stage === 'quoted') {
+    } else if (stage === 'quoted') {
       showModal(`
         <h2 class="modal-title">Schedule Service</h2>
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Frequency</label>
@@ -456,9 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Schedule</button>
         </div>
       `);
-    }
-
-    else if (stage === 'won') {
+    } else if (stage === 'won') {
       showModal(`
         <h2 class="modal-title">Confirm On Site</h2>
         <p style="margin-bottom:24px; color:#4b5563;">Are you currently at the job location?</p>
@@ -467,9 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Yes – Start Job</button>
         </div>
       `);
-    }
-
-    else if (stage === 'completed') {
+    } else if (stage === 'completed') {
       showModal(`
         <div id="invoiceStep1">
           <h2 class="modal-title">Create Invoice</h2>
@@ -496,9 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `);
-    }
-
-    else if (stage === 'invoiced') {
+    } else if (stage === 'invoiced') {
       showModal(`
         <h2 class="modal-title">Mark as Paid</h2>
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">Payment Method</label>
@@ -516,10 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-modal btn-primary-modal" onclick="closeModal(); advanceStage(document.querySelector('.job-card'));">Confirm Payment</button>
         </div>
       `);
-    }
-
-    else {
-      // paid → next visit
+    } else {
       advanceStage(card);
     }
   });
@@ -531,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Overflow menu (placeholder)
+  // Overflow menu toggle (mobile-friendly)
   const overflow = card.querySelector('.overflow');
   const menu = card.querySelector('.menu');
   overflow.addEventListener('click', e => {
