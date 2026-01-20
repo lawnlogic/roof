@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="header-content">
         <div class="logo-container">
           <img src="Images/logo.png" alt="Deep Edge Logo" class="logo-img">
-          <div class="logo">Deep Edge</div>
+          <div class="logo"><b>Deep Edge</b></div>
         </div>
         
         <!-- Hamburger SVG button -->
@@ -21,10 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <nav class="header-nav" id="header-nav">
         <ul>
           <li><a href="index.html">Home</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="jobs2v2.html">Jobs/a></li>
           <li><a href="profile.html">Profile</a></li>
-          <li><a href="jobs.html">Jobs</a></li>
-          <li><a href="your_quotes.html">Your Quotes</a></li>
-          <li><a href="your_invoices.html">Your Invoices</a></li>
           <li><a href="#" id="sign-out-link">Sign Out</a></li>
         </ul>
       </nav>

@@ -46,12 +46,13 @@
     h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
 
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-      gap: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+    gap: 16px;
     }
 
     .welcome {
@@ -206,6 +207,8 @@
         font-size: 3.2rem;
       }
     }
+
+
   </style>
 </head>
 <body>
@@ -217,7 +220,7 @@
       <h1>Welcome back, High</h1>
       <p style="font-size:1.1rem; color:var(--muted);">Here's your overview for today</p>
     </div>
-    <button class="btn-cta">3 Jobs Today →</button>
+    <button class="btn-cta" onclick="window.location.href = `job2v2.html`";>3 Jobs Today →</button>
   </div>
 
   <div class="stats-grid">
@@ -226,19 +229,41 @@
     <div class="stat-card">
       <div class="donut-container">
         <svg class="donut" viewBox="0 0 36 36">
-          <path class="circle-bg"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none" stroke="#e5e7eb" stroke-width="3.5" />
-          <path class="circle"
-                stroke-dasharray="84, 100"   <!-- 21/25 = 84% -->
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" />
+
+          <!-- Background circle -->
+          <path
+            d="M18 2.0845
+               a 15.9155 15.9155 0 0 1 0 31.831
+               a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="#e5e7eb"
+            stroke-width="3.5"
+          />
+
+          <!-- Progress circle -->
+          <path
+            class="circle"
+            d="M18 2.0845
+               a 15.9155 15.9155 0 0 1 0 31.831
+               a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-dasharray="84 100"
+          />
+
         </svg>
+
         <div class="donut-text">21</div>
       </div>
+
       <div class="stat-label">Jobs completed this month</div>
-      <div style="margin-top:8px; font-size:0.95rem; color:var(--muted);">25 total scheduled • <span class="highlight">4 remaining</span></div>
+      <div class="stat-sub">
+        25 total scheduled • <span class="highlight">4 remaining</span>
+      </div>
     </div>
+
 
     <!-- All-time Revenue -->
     <div class="stat-card">
@@ -301,6 +326,19 @@
   </div>
 
 </div>
+
+<script>
+  const completed = 21;
+  const total = 25;
+
+  const percent = (completed / total) * 100;
+
+  const circle = document.querySelector(".circle");
+  const text = document.querySelector(".donut-text");
+
+  circle.style.strokeDasharray = `${percent} 100`;
+  text.textContent = completed;
+</script>
 
 </body>
 </html>
