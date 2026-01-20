@@ -24,7 +24,7 @@
 <body>
   <div class="create-quote-container">
     <h2>Quote Creator</h2>
-    <p style="margin: 8px 0 24px 0; color: #aaa; font-size: 1.05rem; text-align: center;">
+    <p style="margin: 8px 0 24px 0; color: var(--text); font-size: 1.05rem; text-align: left;">
       Enter the NZ address you would like to create a quote for
     </p>
     <div class="input-group">
@@ -51,14 +51,14 @@
       <div id="aerial-map" style="width:100%; height:500px; border:2px solid #ccc; border-radius:8px;"></div>
       
       <!-- Control buttons -->
-      <div class="map-controls" style="margin-top: 15px; text-align: center; padding: 20px 0; background: rgba(0,0,0,0.6);">
+      <div class="map-controls" style="margin-top: 15px; text-align: center; padding: 20px 0; background: var(--bg);">
         <button id="btn-new-shape" class="action-button" style="min-width: 100px;">
           New Area
         </button>
         <button id="btn-edit-shapes" class="action-button secondary" style="min-width: 100px;">
           Edit Areas
         </button>
-        <button id="btn-finish-editing" class="action-button" style="min-width: 100px; background: #28a745; color: white;">
+        <button id="btn-finish-editing" class="action-button" style="min-width: 100px; background: rgb(40, 167, 69); color: white; display: none;">
           Finish
         </button>
       </div>
