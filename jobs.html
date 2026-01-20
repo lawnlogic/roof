@@ -183,11 +183,6 @@
     //let useDummy = true; // Start with dummy by default
     let currentFilter = "all";
 
-    //const toggleBtn = document.getElementById('data-toggle');
-
-    // Remove the direct loadJobs() call at the top
-
-    // Replace the DOMContentLoaded block with this:
     document.addEventListener('DOMContentLoaded', () => {
       const loadingEl = document.getElementById('loading');
       const errorEl = document.getElementById('error-message');
@@ -686,18 +681,49 @@
       });
     }
 
-    // Handle Email Quote clicks (placeholder)
-    document.addEventListener('click', function(e) {
+    // Handle Email Quote clicks – real backend call
+    document.addEventListener('click', async function(e) {
       if (e.target.classList.contains('email-quote-btn')) {
         e.preventDefault();
+        
         const quoteId = e.target.dataset.quoteId;
-        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+        const btn = e.target;
         
-        // Placeholder – replace with real email logic later
-        alert(`Emailing quote ${quoteId}\n\nShareable link:\n${publicLink}`);
-        
-        // Future real example:
-        // window.open(`mailto:client@example.com?subject=Your Lawn Care Quote&body=Hi! Here's your quote:\n\n${publicLink}`);
+        // Loading state
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+
+        try {
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not signed in");
+
+          const token = await user.getIdToken();
+
+          const response = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-email`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert("Quote email sent successfully!");
+            btn.textContent = "Email Sent ✓";
+            btn.style.background = '#28a745';
+          } else {
+            throw new Error(result.error || "Failed to send email");
+          }
+        } catch (err) {
+          console.error("Email send failed:", err);
+          alert("Could not send email: " + (err.message || "Unknown error"));
+          btn.textContent = originalText;
+        } finally {
+          btn.disabled = false;
+        }
       }
     });
 
@@ -705,7 +731,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loading').style.display = 'block';
       setupFilters();
-      loadJobs();
+      //loadJobs();
     });
   </script>
 </body>
