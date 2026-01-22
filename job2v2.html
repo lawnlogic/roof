@@ -418,7 +418,10 @@
 <div class="container">
   <div class="header">
     <h1>Your Jobs</h1>
-    <button class="btn-new">+ New Job</button>
+    <a href="#" class="btn-new" onclick="window.location.href='create_job.html'; return false;">
+      + New Job
+    </a>
+
   </div>
 
   <h2>Today</h2>
@@ -647,6 +650,23 @@ function updateCard(card) {
   menu.appendChild(section);
 }
 
+// Escape HTML to prevent XSS in logs
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatTimestamp(ts) {
+  return new Date(ts).toLocaleString('en-NZ', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+}
+
 function showModal(contentHTML) {
   const overlay = document.getElementById('modalOverlay');
   const content = document.getElementById('modalContent');
@@ -657,6 +677,162 @@ function showModal(contentHTML) {
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('active');
 }
+
+function showJobDetailsModal(job, jobId) {
+  showModal(`
+    <div style="max-width:700px; width:90%; max-height:90vh; overflow-y:auto; padding:24px;">
+      <h2 class="modal-title" style="margin-bottom:24px;">Job Details • ${escapeHtml(job.address || 'No address')}</h2>
+
+      <!-- Client Information -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Client Information</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content" style="display:none;">
+          <p><strong>Name:</strong> ${escapeHtml(job.client?.firstName || '')} ${escapeHtml(job.client?.lastName || '')}</p>
+          <p><strong>Email:</strong> ${escapeHtml(job.client?.email || '—')}</p>
+          <p><strong>Phone:</strong> ${escapeHtml(job.client?.phone || '—')}</p>
+        </div>
+      </div>
+
+      <!-- Financials -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Financials</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content" style="display:none;">
+          <h4>Quotes (${job.quotes?.length || 0})</h4>
+          ${job.quotes?.length > 0 ? job.quotes.map(q => `
+            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>${escapeHtml(q.number || 'Quote')}</strong> – $${q.total?.toFixed(2) || '—'} (${q.date || '—'})
+              </div>
+              <a href="quote.html?quote=${q.id}" target="_blank" style="background:#7c3aed; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
+                View
+              </a>
+            </div>
+          `).join('') : '<p style="color:#6b7280;">No quotes yet</p>'}
+
+          <h4 style="margin-top:24px;">Invoices (${job.invoices?.length || 0})</h4>
+          ${job.invoices?.length > 0 ? job.invoices.map(i => `
+            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>Invoice #${escapeHtml(i.number || '—')}</strong> – $${i.total?.toFixed(2) || '—'} (${i.date || '—'})
+              </div>
+              <a href="invoice.html?invoice=${i.id}" target="_blank" style="background:#10b981; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
+                View
+              </a>
+            </div>
+          `).join('') : '<p style="color:#6b7280;">No invoices yet</p>'}
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Activity Log (${job.activityLog?.length || 0})</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content activity-log" style="display:none;">
+          ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => `
+            <div style="margin:12px 0; padding-bottom:12px; border-bottom:1px solid #eee;">
+              <strong>${formatTimestamp(log.timestamp)}</strong>
+              <p style="margin:4px 0 0;">${escapeHtml(log.action)}</p>
+            </div>
+          `).join('') : '<p>No activity logged yet.</p>'}
+        </div>
+      </div>
+
+      <!-- Manual Status Update -->
+      <div style="margin:32px 0;">
+        <label style="display:block; margin-bottom:8px; font-weight:600;">Update job status (Manual)</label>
+        <select id="manualStatus" class="modal-select">
+          <option value="created">Created / Lead</option>
+          <option value="quoted">Quote Created</option>
+          <option value="quoteSent">Quote Sent</option>
+          <option value="won">Job Won</option>
+          <option value="progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="invoiced">Invoiced</option>
+          <option value="paid">Paid</option>
+        </select>
+        <button id="applyManualStatus" class="btn-modal btn-primary-modal" style="margin-top:12px; width:100%;">Apply Status</button>
+      </div>
+
+      <!-- Delete Job -->
+      <div style="margin-top:32px; text-align:center;">
+        <button id="deleteJobBtn" class="btn-modal" style="background:#dc2626; color:white; padding:12px 24px; border:none; border-radius:8px; cursor:pointer;">
+          Delete Job
+        </button>
+      </div>
+
+      <div class="modal-buttons" style="margin-top:40px; justify-content:center;">
+        <button class="btn-modal btn-cancel" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  `);
+
+  const modal = document.getElementById('modalContent');
+
+  // Manual status update — now uses passed jobId
+  modal.querySelector('#applyManualStatus').onclick = async () => {
+    const newStatus = modal.querySelector('#manualStatus').value;
+    if (!newStatus) return alert("Select a status");
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+
+      const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          nextAction: `(Manual) Job set to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+          updatedAt: new Date().toISOString()
+        })
+      });
+
+      if (!patchRes.ok) {
+        const err = await patchRes.json().catch(() => ({}));
+        throw new Error(err.error || "Status update failed");
+      }
+
+      closeModal();
+      loadAndRenderJobs(); // refresh full list
+      alert(`Status updated to ${newStatus}!`);
+    } catch (err) {
+      alert("Failed to update status:\n" + err.message);
+    }
+  };
+
+  // Delete job — uses passed jobId
+  modal.querySelector('#deleteJobBtn').onclick = async () => {
+    if (!confirm("Delete this job permanently?")) return;
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+
+      const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      closeModal();
+      loadAndRenderJobs();
+      alert("Job deleted");
+    } catch (err) {
+      alert("Failed to delete job: " + err.message);
+    }
+  };
+}
+
 
 function advanceStage(card) {
   const current = card.dataset.stage;
@@ -1085,12 +1261,38 @@ function attachCardEventListeners() {
         const quoteId = card.getAttribute('data-quote-id') || '';
         const currentMenu = card.querySelector('.menu');
 
-        if (action === 'edit-quote') {
+        if (action === 'view-details') {
+          if (currentMenu) currentMenu.classList.remove('show');
+
+          const jobId = card.getAttribute('data-job-id');
+          if (!jobId) {
+            alert("Cannot load details — job ID missing");
+            return;
+          }
+
+          // Fetch fresh job data (recommended for full details)
+          const token = await auth.currentUser.getIdToken();
+          fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          .then(res => {
+            if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const fullJob = data.jobs?.find(j => j.id === jobId) || data;
+            showJobDetailsModal(fullJob, jobId);  // ← pass jobId (string)
+          })
+          .catch(err => {
+            console.error("Failed to load job details:", err);
+            alert("Could not load job details: " + err.message);
+          });
+        }
+
+        else if (action === 'edit-quote') {
           window.location.href = 'quote.html';
         }
-        else if (action === 'view-details') {
-          window.location.href = `job.html?id=${jobId}`;
-        }
+
         else if (action === 'delete-quote') {
           if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
 
