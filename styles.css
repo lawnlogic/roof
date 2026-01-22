@@ -67,7 +67,7 @@ input {
   border: none;
   border-radius: 8px;
   font-size: 0.95rem;
-  color: #f3f4f6;
+  color: var(--text);
   width: 100%;
   box-sizing: border-box;
 }
@@ -1366,3 +1366,11 @@ input[type="file"] {
   color: #218838 !important;
   text-decoration: underline;
 }
+
+.job-client .next-service {
+  margin-top: 6px;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
