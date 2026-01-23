@@ -71,26 +71,10 @@
         <input type="text" id="quote-number" placeholder="e.g. Q-042 or 2026-015" />
       </div>
 
-      <!-- Mower Type Selection -->
-      <div class="input-group" style="margin: 20px 0;">
-        <label>Mower Type:</label>
-        <div style="display: flex; gap: 24px; margin-top: 8px;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="radio" name="mowerType" value="push" id="mower-push" checked />
-            Push Mower
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="radio" name="mowerType" value="rideon" id="mower-rideon" />
-            Ride-on Mower
-          </label>
-        </div>
-      </div>
-
       <div class="input-group">
-        <label for="estimated-job-time">Estimated Job Time (hours):</label>
-        <input type="number" id="estimated-job-time" value="0.0" step="0.25" min="0" readonly style="background: #f5f5f5; color: #555;" />
+        <label for="rate-input">Base Rate per m² (ex GST):</label>
+        <input type="number" id="rate-input" value="0.20" step="0.05" min="0" />
       </div>
-
       <div class="input-group">
         <label for="callout-input">Call-out / Travel Fee (ex GST):</label>
         <input type="number" id="callout-input" value="80" step="10" min="0" />
@@ -109,6 +93,38 @@
       <div class="checkbox-group">
         <label for="catch-mulch">Catch & Mulch Service (+$40 ex GST)</label>
         <input type="checkbox" id="catch-mulch" />
+      </div>
+
+      <div class="input-group">
+        <label for="estimated-hours">Estimated Time (hours):</label>
+        <input type="number" id="estimated-hours" value="1.0" step="0.25" min="0.25" />
+      </div>
+      <div class="input-group">
+        <label for="hourly-rate">Your Hourly Cost (fuel, labour, etc.):</label>
+        <input type="number" id="hourly-rate" value="50" step="5" min="0" />
+      </div>
+
+      <!-- Collapsible Client Details -->
+      <div class="collapsible-header" id="client-toggle">
+        Client Details (optional) <span>▼</span>
+      </div>
+      <div class="collapsible-content" id="client-form">
+        <div class="input-group">
+          <label for="client-first">First Name</label>
+          <input type="text" id="client-first" placeholder="John" />
+        </div>
+        <div class="input-group">
+          <label for="client-last">Last Name</label>
+          <input type="text" id="client-last" placeholder="Doe" />
+        </div>
+        <div class="input-group">
+          <label for="client-email">Email</label>
+          <input type="email" id="client-email" placeholder="john@example.com" />
+        </div>
+        <div class="input-group">
+          <label for="client-phone">Phone</label>
+          <input type="tel" id="client-phone" placeholder="021 123 4567" />
+        </div>
       </div>
 
       <div class="pricing-row">
@@ -158,6 +174,7 @@
     if (L.Draw && L.Draw.Polyline) {
         L.Draw.Polyline.include({
             _onTouch: function (e) {
+                // Only add vertex on real tap/click, not on beginning of drag
                 if (e.type === 'touchstart') {
                     this._touchStartTime = Date.now();
                     return;
@@ -173,11 +190,13 @@
             }
         });
 
+        // Backup original if you ever want to restore
         if (!L.Draw.Polyline.prototype._onTouchOriginal) {
             L.Draw.Polyline.prototype._onTouchOriginal = L.Draw.Polyline.prototype._onTouch;
-            L.Draw.Polyline.prototype._onTouch = L.Draw.Polyline.prototype._onTouch;
+            L.Draw.Polyline.prototype._onTouch = L.Draw.Polyline.prototype._onTouch; // overridden above
         }
     }
+    // ────────────────────────────────────────────────
 
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -194,9 +213,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Detect jobId from URL
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
 
+    // If jobId exists → fetch job and pre-fill address (no autosuggest trigger)
     if (jobId) {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -211,6 +232,8 @@
               if (job.address) {
                 document.getElementById('address').value = job.address;
                 document.getElementById('lookup-btn').click();
+                // IMPORTANT: No fetchSuggestions() call here → autosuggest stays inactive
+                // User can still type/edit to trigger suggestions normally
               }
             }
           } catch (err) {
@@ -238,12 +261,17 @@
     const timeDisplay = document.getElementById('time');
     const aerialContainer = document.getElementById('aerial-container');
     const pricingBox = document.getElementById('pricing-box');
+    const rateInput = document.getElementById('rate-input');
     const calloutInput = document.getElementById('callout-input');
+    const estimatedHoursInput = document.getElementById('estimated-hours');
+    const hourlyRateInput = document.getElementById('hourly-rate');
+    const finalAreaDisplay = document.getElementById('final-area');
+
     const difficultySlider = document.getElementById('difficulty-slider');
     const difficultyValue = document.getElementById('difficulty-value');
     const catchMulchCheckbox = document.getElementById('catch-mulch');
-    const estimatedJobTimeInput = document.getElementById('estimated-job-time');
-    const finalAreaDisplay = document.getElementById('final-area');
+    const clientToggle = document.getElementById('client-toggle');
+    const clientForm = document.getElementById('client-form');
 
     let map = null;
     let parcelLayer = null;
@@ -255,19 +283,24 @@
     let currentLawnArea = 0;
     let currentData = null;
     let buildingsTransferredToExclusions = false;
-    let profileMowingPricing = null;
 
     const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
 
-    // Mower type change listeners
-    document.querySelectorAll('input[name="mowerType"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        updateEstimatedJobTime();
-        updateLawnArea();
-      });
+    // Client form toggle
+    clientToggle.addEventListener('click', () => {
+      clientForm.classList.toggle('open');
+      clientToggle.querySelector('span').textContent = clientForm.classList.contains('open') ? '▲' : '▼';
     });
 
-    async function loadQuoteSettingsAndPricing(token) {
+    // Difficulty slider display
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+    });
+
+    catchMulchCheckbox.addEventListener('change', updateLawnArea);
+
+    async function loadQuoteSettings(token) {
       try {
         const res = await fetch(`${WORKER_URL}/api/user/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -276,22 +309,18 @@
           const { profile } = await res.json();
           if (profile.quoteSettings) {
             const s = profile.quoteSettings;
+            rateInput.value = s.ratePerM2 || 0.20;
             calloutInput.value = s.calloutFee || 80;
+            estimatedHoursInput.value = s.estimatedHours || 1.0;
+            hourlyRateInput.value = s.hourlyCost || 50;
             difficultySlider.value = s.difficultyMultiplier || 1.0;
             difficultyValue.textContent = difficultySlider.value + 'x';
             catchMulchCheckbox.checked = s.catchAndMulch || false;
+            updateLawnArea();
           }
-          if (profile.mowingPricing) {
-            profileMowingPricing = profile.mowingPricing;
-            if (!document.querySelector('input[name="mowerType"]:checked')) {
-              document.getElementById('mower-push').checked = true;
-            }
-          }
-          updateEstimatedJobTime();
-          updateLawnArea();
         }
       } catch (e) {
-        console.warn('Could not load profile settings', e);
+        console.warn('Could not load quote settings', e);
       }
     }
 
@@ -304,7 +333,10 @@
         const { profile } = await res.json();
 
         profile.quoteSettings = {
+          ratePerM2: parseFloat(rateInput.value) || 0.20,
           calloutFee: parseFloat(calloutInput.value) || 80,
+          estimatedHours: parseFloat(estimatedHoursInput.value) || 1.0,
+          hourlyCost: parseFloat(hourlyRateInput.value) || 50,
           difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0,
           catchAndMulch: catchMulchCheckbox.checked
         };
@@ -329,7 +361,7 @@
       saveTimeout = setTimeout(() => saveQuoteSettings(token), 1000);
     }
 
-    [calloutInput].forEach(input => {
+    [rateInput, calloutInput, estimatedHoursInput, hourlyRateInput].forEach(input => {
       input.addEventListener('input', () => {
         updateLawnArea();
         if (auth.currentUser) {
@@ -337,7 +369,6 @@
         }
       });
     });
-
     difficultySlider.addEventListener('input', () => {
       difficultyValue.textContent = difficultySlider.value + 'x';
       updateLawnArea();
@@ -345,7 +376,6 @@
         auth.currentUser.getIdToken().then(scheduleSave);
       }
     });
-
     catchMulchCheckbox.addEventListener('change', () => {
       updateLawnArea();
       if (auth.currentUser) {
@@ -356,40 +386,11 @@
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
-        await loadQuoteSettingsAndPricing(token);
+        await loadQuoteSettings(token);
       }
     });
 
-    function getSelectedMowerType() {
-      const selected = document.querySelector('input[name="mowerType"]:checked');
-      return selected ? selected.value : 'push';
-    }
-
-    function roundUpToQuarterHour(hours) {
-      if (hours <= 0) return 0;
-      return Math.ceil(hours * 4) / 4;
-    }
-
-    function updateEstimatedJobTime() {
-      if (!currentLawnArea || !profileMowingPricing) {
-        estimatedJobTimeInput.value = "0.0";
-        return;
-      }
-
-      const type = getSelectedMowerType();
-      const settings = profileMowingPricing[type];
-
-      if (!settings || !settings.m2PerHour || settings.m2PerHour <= 0) {
-        estimatedJobTimeInput.value = "0.0";
-        return;
-      }
-
-      const rawHours = currentLawnArea / settings.m2PerHour;
-      const roundedHours = roundUpToQuarterHour(rawHours);
-      estimatedJobTimeInput.value = roundedHours.toFixed(2);
-    }
-
-        function updateLawnArea() {
+    function updateLawnArea() {
       console.log("=== Negative Layer Debug ===");
       const negativePolys = [];
       let individualAreas = [];
@@ -439,39 +440,28 @@
       areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
       finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
 
-      updateEstimatedJobTime();
+      const rate = parseFloat(rateInput.value) || 0;
+      const callout = parseFloat(calloutInput.value) || 0;
+      const difficulty = parseFloat(difficultySlider.value) || 1.0;
+      const catchMulchFee = catchMulchCheckbox.checked ? 40 : 0;
+      const hours = parseFloat(estimatedHoursInput.value) || 1;
+      const hourlyCost = parseFloat(hourlyRateInput.value) || 0;
 
-      // ── NEW PRICING LOGIC ───────────────────────────────────────────────
-      const type = getSelectedMowerType();
-      const settings = profileMowingPricing?.[type] || {};
-      const chargeOutRate  = settings.chargeOutRate  || 0;
-      const hourlyExpenses = settings.hourlyExpenses || 0;
+      const baseMowing = currentLawnArea * rate;
+      const adjustedRevenue = (baseMowing * difficulty) + callout + catchMulchFee;
+      const gst = adjustedRevenue * 0.15;
+      const totalIncl = adjustedRevenue + gst;
+      const estCost = hours * hourlyCost;
+      const estProfit = adjustedRevenue - estCost;
+      const profitPerHour = hours > 0 ? estProfit / hours : 0;
 
-      const rawHours = currentLawnArea / (settings.m2PerHour || 1);   // avoid div by zero
-      const billedHours = roundUpToQuarterHour(rawHours);
-
-      const mowingRevenue   = billedHours * chargeOutRate;
-      const callout         = parseFloat(calloutInput.value) || 0;
-      const catchMulchFee   = catchMulchCheckbox.checked ? 40 : 0;
-      const difficulty      = parseFloat(difficultySlider.value) || 1.0;
-
-      const adjustedMowing  = mowingRevenue * difficulty;
-      const totalRevenueEx  = adjustedMowing + callout + catchMulchFee;
-
-      const gst             = totalRevenueEx * 0.15;
-      const totalIncl       = totalRevenueEx + gst;
-
-      const estCost         = billedHours * hourlyExpenses;
-      const estProfit       = totalRevenueEx - estCost;
-      const profitPerHour   = billedHours > 0 ? estProfit / billedHours : 0;
-
-      document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
-      document.getElementById('total-revenue').textContent  = '$' + totalRevenueEx.toFixed(2);
-      document.getElementById('gst').textContent            = '$' + gst.toFixed(2);
-      document.getElementById('total-incl').textContent     = '$' + totalIncl.toFixed(2);
-      document.getElementById('est-cost').textContent       = '$' + estCost.toFixed(2);
-      document.getElementById('est-profit').textContent     = '$' + estProfit.toFixed(2);
-      document.getElementById('profit-hour').textContent    = '$' + profitPerHour.toFixed(2);
+      document.getElementById('mowing-revenue').textContent = '$' + baseMowing.toFixed(2);
+      document.getElementById('total-revenue').textContent = '$' + adjustedRevenue.toFixed(2);
+      document.getElementById('gst').textContent = '$' + gst.toFixed(2);
+      document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+      document.getElementById('est-cost').textContent = '$' + estCost.toFixed(2);
+      document.getElementById('est-profit').textContent = '$' + estProfit.toFixed(2);
+      document.getElementById('profit-hour').textContent = '$' + profitPerHour.toFixed(2);
     }
 
     function ensureNegativeLayer() {
@@ -537,6 +527,7 @@
 
       updateLawnArea();
 
+      // Grey out the opposite button
       if (autoStartNewPolygon) {
         document.getElementById('btn-edit-shapes').disabled = true;
         document.getElementById('btn-edit-shapes').style.opacity = '0.5';
@@ -547,6 +538,7 @@
         document.getElementById('btn-new-shape').style.cursor = 'not-allowed';
       }
 
+      // Show Finish button when entering edit/draw mode
       document.getElementById('btn-finish-editing').style.display = 'inline-block';
 
       if (autoStartNewPolygon) {
@@ -592,6 +584,7 @@
         areaOverlay = null;
       }
 
+      // Hide Finish button and restore other buttons
       document.getElementById('btn-finish-editing').style.display = 'none';
 
       const btnNew = document.getElementById('btn-new-shape');
@@ -685,6 +678,7 @@
       ensureNegativeLayer();
       updateLawnArea();
 
+      // Make sure Finish is hidden when map first loads
       document.getElementById('btn-finish-editing').style.display = 'none';
 
       pricingBox.classList.remove('hidden');
@@ -818,26 +812,37 @@
 
       const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
 
+      // get total price
       const totalInclText = document.getElementById('total-incl')?.textContent || '$0.00';
       const totalInclGst = parseFloat(totalInclText.replace('$', '').replace(',', '')) || 0;
 
+      // Get user-entered quote number (or empty string)
       let quoteNumber = document.getElementById('quote-number')?.value?.trim() || '';
+
+      // If blank → generate a simple unique-ish number
       if (!quoteNumber) {
-          const year = new Date().getFullYear();
-          const timestampPart = Date.now().toString().slice(-6);
-          quoteNumber = `Q-${year}-${timestampPart}`;
+          const year = new Date().getFullYear();                    // 2026
+          const timestampPart = Date.now().toString().slice(-6);   // last 6 digits of timestamp
+          quoteNumber = `Q-${year}-${timestampPart}`;               // e.g. Q-2026-123456
       }
 
       const quoteData = {
         quoteNumber: quoteNumber,
         address: addressDisplay.textContent,
         lawnAreaM2: currentLawnArea,
-        calloutFee: parseFloat(calloutInput.value) || 0,
+        ratePerM2: parseFloat(rateInput.value) || 0,
+        calloutFee: parseFloat(document.getElementById('callout-input').value) || 0,
         difficultyMultiplier: parseFloat(difficultySlider.value),
         catchAndMulch: catchMulchCheckbox.checked,
-        estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
+        estimatedHours: parseFloat(document.getElementById('estimated-hours').value) || 1,
+        hourlyCost: parseFloat(document.getElementById('hourly-rate').value) || 0,
         totalInclGst: totalInclGst,
-        client: {},
+        client: {
+          firstName: document.getElementById('client-first').value.trim(),
+          lastName: document.getElementById('client-last').value.trim(),
+          email: document.getElementById('client-email').value.trim(),
+          phone: document.getElementById('client-phone').value.trim()
+        },
         company: companyProfile,
         mapState: {
           center: map.getCenter(),
@@ -847,44 +852,48 @@
           negativeGeoJSON: negativeGeoJSON
         },
         generatedAt: new Date().toISOString(),
-        jobId: jobId || null,
-        mowerType: getSelectedMowerType()
+
+        // ── ADD THIS LINE HERE (inside the object, before the closing })
+        jobId: jobId || null
       };
 
       try {
-        const res = await fetch(`${WORKER_URL}/api/quotes`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(quoteData)
-        });
+			  const res = await fetch(`${WORKER_URL}/api/quotes`, {
+			    method: 'POST',
+			    headers: {
+			      'Authorization': `Bearer ${token}`,
+			      'Content-Type': 'application/json'
+			    },
+			    body: JSON.stringify(quoteData)
+			  });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || 'Failed to save quote');
-        }
+			  if (!res.ok) {
+			    const errText = await res.text();
+			    throw new Error(errText || 'Failed to save quote');
+			  }
 
-        const { quoteId } = await res.json();
-        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+			  const { quoteId } = await res.json();
+			  const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
 
-        document.getElementById('quote-link').href = publicLink;
-        document.getElementById('quote-link').textContent = publicLink;
-        document.getElementById('quote-link-box').classList.remove('hidden');
+			  document.getElementById('quote-link').href = publicLink;
+			  document.getElementById('quote-link').textContent = publicLink;
+			  document.getElementById('quote-link-box').classList.remove('hidden');
 
-        alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
+			  // ── NEW: Success handling with conditional redirect ─────────────────────
+			  alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
 
-        if (jobId) {
-          setTimeout(() => {
-            window.location.href = 'job2v2.html';
-          }, 1800);
-        }
+			  // If this quote was created from a job → redirect back to jobs list
+			  if (jobId) {
+			    // Small delay so user can see the success message
+			    setTimeout(() => {
+			      window.location.href = 'job2v2.html';
+			    }, 1800); // 1.8 seconds — enough to read the alert
+			  }
 
-      } catch (err) {
-        console.error('Quote save failed:', err);
-        alert('Failed to save quote: ' + err.message);
-      }
+			} catch (err) {
+			  console.error('Quote save failed:', err);
+			  alert('Failed to save quote: ' + err.message);
+			}
     });
 
     const suggestionsBox = document.getElementById("address-suggestions");

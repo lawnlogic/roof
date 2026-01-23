@@ -107,15 +107,15 @@
           document.getElementById('address-display').textContent = quoteData.address || 'Unknown Address';
           document.getElementById('final-area').textContent = (quoteData.lawnAreaM2 || 0).toLocaleString() + ' m²';
 
-          const mowingRevenue = (quoteData.lawnAreaM2 || 0) * (quoteData.ratePerM2 || 0);
-          const totalEx = mowingRevenue + (quoteData.calloutFee || 0);
-          const gst = totalEx * 0.15;
-          const totalIncl = totalEx + gst;
+          const mowingRevenue = quoteData.totalInclGst;
+          const calloutFee = quoteData.calloutFee
+          const gst = mowingRevenue * 0.15;
+          const totalEx = mowingRevenue - gst
 
           document.getElementById('mowing-revenue').textContent = '$' + mowingRevenue.toFixed(2);
           document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
           document.getElementById('gst').textContent = '$' + gst.toFixed(2);
-          document.getElementById('total-incl').textContent = '$' + totalIncl.toFixed(2);
+          document.getElementById('total-incl').textContent = '$' + mowingRevenue.toFixed(2);
 
           // === Map ===
           const initialZoom = quoteData.mapState?.zoom || 19;
