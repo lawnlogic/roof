@@ -62,14 +62,14 @@ label {
 }
 
 input {
-  padding: 10px 12px;
-  background: #2f2f2f;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  color: var(--text);
-  width: 100%;
-  box-sizing: border-box;
+    padding: 10px 12px;
+    /* background: #2f2f2f; */
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 input:focus {
@@ -1049,22 +1049,34 @@ input[type="range"]::-webkit-slider-thumb {
 
 
 .profile-container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 30px;
-  background: linear-gradient(to top, #000000 0%, #0f0f0f 100%);
-  /* background: #000; */
-  border-top: 1px solid #333;
-  border-bottom: 1px solid #333;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    max-width: 800px;
+    width: 90%;
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--bg);
+    border-radius: 16px;
+    /* box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); */
+  
+  /* Mobile fallback (still no jumping) */
+  @media (max-width: 768px) {
+    min-height: 1400px;      /* A bit more room on phones */
+    padding: 20px;
+  }
+
+  @media (max-width: 480px) {
+    min-height: 1550px;
+  }
+
+  /* Optional extra polish */
+  overflow: hidden;          /* Keeps rounded corners clean if anything overflows during animation */
+  position: relative;
 }
 
 .profile-pricing-box {
     padding: 30px;
     border-radius: 8px;
     /* border: 1px solid #444; */
-    color: white;
+    color: var(--text);
 }
 
 .profile-input-group {
@@ -1089,8 +1101,8 @@ input[type="text"], input[type="tel"] {
 }
 
 input:disabled {
-  background: #333;
-  color: #aaa;
+    background: #e5e5e5;
+    color: #aaa;
 }
 input[type="file"] {
   padding: 8px 0;
@@ -1128,6 +1140,171 @@ input[type="file"] {
 }
 .profile-success { background: #d4edda; color: #155724; }
 .profile-error { background: #f8d7da; color: #721c24; }
+
+.expand-content {
+  opacity: 0;
+  transition: opacity 0.35s ease 0.1s;   /* slight delay looks nicer */
+}
+
+details[open] .expand-content {
+  opacity: 1;
+}
+
+.mower-pricing-container {
+  display: flex;
+  flex-wrap: wrap;              /* allows wrapping on smaller screens */
+  gap: 32px;                    /* space between the two columns */
+}
+
+.mower-section {
+  flex: 1;                      /* each takes equal space */
+  min-width: 320px;             /* prevents them from getting too narrow */
+}
+
+@media (max-width: 900px) {     /* breakpoint — adjust to taste (768px–1024px common) */
+  .mower-pricing-container {
+    flex-direction: column;
+    gap: 40px;
+  }
+  
+  .mower-section {
+    min-width: 100%;
+  }
+}
+
+/* Optional: make sure inputs don't stretch weirdly */
+.mower-section .profile-pricing-box {
+  padding: 24px;                /* slightly less padding in columns */
+}
+
+/* Visual separation on wide screens (optional) */
+@media (min-width: 901px) {
+  .mower-section:not(:last-child) {
+    padding: 32px;
+  }
+  .mower-section:not(:first-child) {
+    padding: 32px;
+  }
+}
+
+details summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+}
+
+details summary::-webkit-details-marker,
+details summary::marker {
+  display: none;
+}
+
+details summary::after {
+  content: "▼";
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+/* ───────────────────────────────────────────────
+   Move profile container to top + remove vertical centering
+──────────────────────────────────────────────── */
+
+body {
+  /* If you still have these centering rules — remove or override them */
+  display: block;                /* ← important: disable flex centering */
+  justify-content: unset;
+  align-items: unset;
+  min-height: 100vh;
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+}
+
+.profile-container {
+  max-width: 1200px;
+  width: 90%;                    /* or 100% on very small screens — your choice */
+  margin: 40px auto 80px auto;   /* 40px from top, auto left/right, extra bottom space */
+  padding: 30px;
+  background: var(--bg);
+  border-radius: 16px;
+  box-sizing: border-box;
+
+  /* If you previously had min-height for no-jump → keep it or adjust */
+  /* min-height: 800px; */       /* ← optional, only if you still want fixed height */
+}
+
+/* ───────────────────────────────────────────────
+   Shadow + card-like style for each collapsible section
+──────────────────────────────────────────────── */
+
+details {
+    margin-bottom: 24px;
+    margin-top: 40px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+details:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);   /* lift on hover */
+  transform: translateY(-2px);                  /* very slight lift */
+}
+
+details[open] {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);   /* stronger when expanded */
+}
+
+/* Optional: make summary look more card-header-like */
+details summary {
+  padding: 18px 24px;
+  background: rgba(var(--accent), 0.04);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+details summary h2 {
+  margin: 0;
+  color: var(--accent);
+}
+
+/* If you want even more separation between sections */
+.profile-container > details + details {
+  margin-top: 32px;
+}
+
+/* Add-Ons specific tweaks */
+textarea {
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #4b5563;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.profile-input-group textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #513690;
+  border-color: #513690;
+}
+
+/* Better spacing for radio buttons */
+.profile-input-group label[for="addonPriceLabel"] {
+  margin-bottom: 8px;
+  display: block;
+}
 
 /* ──────────────────────────────────────────────────────────────
    quote

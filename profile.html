@@ -3,54 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
+  <title>Company Profile • Deep Edge</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <title>Company Profile • Deep Edge</title>
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
-
 </head>
 <body>
   <div class="profile-container">
-    <h2>Company Profile</h2>
 
-    <div class="profile-pricing-box">
-      <div class="profile-input-group">
-        <label for="companyName">Company Name</label>
-        <input type="text" id="companyName" />
-      </div>
-      <div class="profile-input-group">
-        <label for="nzbn">NZBN</label>
-        <input type="text" id="nzbn" placeholder="e.g. 90233829" />
-      </div>
-      <div class="profile-input-group">
-        <label for="address">Company Address</label>
-        <input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" />
-      </div>
-      <div class="profile-input-group">
-        <label for="phone">Phone</label>
-        <input type="tel" id="phone" placeholder="021 123 4567" />
-      </div>
-      <div class="profile-input-group">
-        <label for="gstNumber">GST Number</label>
-        <input type="text" id="gstNumber" placeholder="123-456-789" />
-      </div>
-      <div class="profile-input-group">
-        <label>Email (cannot be changed)</label>
-        <input type="text" id="email" disabled />
-      </div>
-      <div class="profile-input-group">
-        <label for="logo">Company Logo</label>
-        <input type="file" id="logo" accept="image/*" />
-        <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
-      </div>
+    <!-- Company Profile Section -->
+    <details>
+      <summary><h2>Company Profile</h2></summary>
+      <div class="profile-pricing-box">
+        <div class="profile-input-group">
+          <label for="companyName">Company Name</label>
+          <input type="text" id="companyName" />
+        </div>
+        <div class="profile-input-group">
+          <label for="nzbn">NZBN</label>
+          <input type="text" id="nzbn" placeholder="e.g. 90233829" />
+        </div>
+        <div class="profile-input-group">
+          <label for="address">Company Address</label>
+          <input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" />
+        </div>
+        <div class="profile-input-group">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" placeholder="021 123 4567" />
+        </div>
+        <div class="profile-input-group">
+          <label for="gstNumber">GST Number</label>
+          <input type="text" id="gstNumber" placeholder="123-456-789" />
+        </div>
+        <div class="profile-input-group">
+          <label>Email (cannot be changed)</label>
+          <input type="text" id="email" disabled />
+        </div>
+        <div class="profile-input-group">
+          <label for="logo">Company Logo</label>
+          <input type="file" id="logo" accept="image/*" />
+          <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
+        </div>
 
-      <button id="profile-update-btn">Update Profile</button>
-      <div id="profile-message"></div>
-    </div>
+        <button id="profile-update-btn">Update Profile</button>
+        <div id="profile-message"></div>
+      </div>
+    </details>
+
+    <!-- Company Pricing (Push + Ride-on) Section -->
+    <details>
+      <summary><h2>Company Pricing</h2></summary>
+      <div class="mower-pricing-container">
+        <!-- Push Mower Pricing -->
+        <div class="mower-section">
+          <h3>Push Mower Pricing</h3>
+          <div class="profile-pricing-box">
+            <div class="profile-input-group">
+              <label for="pushM2PerHour">m² per hour</label>
+              <small style="color: var(--text);">E.g. I can mow 1,000m² per hour.</small>
+              <input type="number" id="pushM2PerHour" min="0" step="any" placeholder="e.g. 1000" />
+            </div>
+            <div class="profile-input-group">
+              <label for="pushChargeOutRate">Charge Out Rate Per Hour</label>
+              <input type="number" id="pushChargeOutRate" min="0" step="0.01" placeholder="e.g. 85.00" />
+            </div>
+            <div class="profile-input-group">
+              <label for="pushHourlyExpenses">Hourly Expenses</label>
+              <input type="number" id="pushHourlyExpenses" min="0" step="0.01" placeholder="e.g. 15.00" />
+            </div>
+          </div>
+        </div>
+        <!-- Ride-on Mower Pricing -->
+        <div class="mower-section">
+          <h3>Ride-on Mower Pricing</h3>
+          <div class="profile-pricing-box">
+            <div class="profile-input-group">
+              <label for="rideonM2PerHour">m² per hour</label>
+              <small style="color: var(--text);">E.g. I can mow 4,000m² per hour.</small>
+              <input type="number" id="rideonM2PerHour" min="0" step="any" placeholder="e.g. 4000" />
+            </div>
+            <div class="profile-input-group">
+              <label for="rideonChargeOutRate">Charge Out Rate Per Hour</label>
+              <input type="number" id="rideonChargeOutRate" min="0" step="0.01" placeholder="e.g. 120.00" />
+            </div>
+            <div class="profile-input-group">
+              <label for="rideonHourlyExpenses">Hourly Expenses</label>
+              <input type="number" id="rideonHourlyExpenses" min="0" step="0.01" placeholder="e.g. 35.00" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button id="pricing-update-btn" style="margin-top: 32px; background: #28a745; color: white; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+        Update Company Pricing
+      </button>
+      <div id="pricing-message" style="margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 16px; text-align: center;"></div>
+    </details>
+
+    <!-- Company Add-Ons Section -->
+    <details>
+      <summary><h2>Company Add-Ons</h2></summary>
+      <div class="profile-pricing-box">
+        <p style="margin-bottom: 20px; color: var(--muted);">
+          Define optional services (e.g. edge trimming, hedge clipping, fertiliser application, etc.) 
+          that can be added to quotes.
+        </p>
+
+        <button id="create-addon-btn" class="action-button">+ Create Add-On</button>
+
+        <!-- Form (hidden by default) -->
+        <div id="addon-form" style="display: none; margin-top: 24px;">
+          <div class="profile-input-group">
+            <label for="addonName">Add-On Name</label>
+            <input type="text" id="addonName" placeholder="e.g. Edge Trimming" />
+          </div>
+
+          <div class="profile-input-group">
+            <label for="addonDescription">Description</label>
+            <textarea id="addonDescription" rows="3" placeholder="Brief description visible to customers..."></textarea>
+          </div>
+
+          <div class="profile-input-group" style="margin-bottom: 12px;">
+            <label>Pricing Type</label>
+            <div style="display: flex; gap: 24px; margin-top: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="addonPricingType" value="m2" checked />
+                Per m²
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="addonPricingType" value="hour" />
+                Per Hour
+              </label>
+            </div>
+          </div>
+
+          <div class="profile-input-group">
+            <label for="addonPrice" id="addonPriceLabel">Price (per m²)</label>
+            <input type="number" id="addonPrice" min="0" step="0.01" placeholder="e.g. 4.50" />
+          </div>
+
+          <!-- New checkbox -->
+          <div class="profile-input-group" style="margin-top: 16px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500;">
+              <input type="checkbox" id="addonRequiresSiteQuote" />
+              Must quote on site (cannot be priced automatically)
+            </label>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; gap: 12px;">
+            <button id="save-addon-btn" class="action-button" style="background: #10b981;">Save Add-On</button>
+            <button id="cancel-addon-btn" class="action-button" style="background: #6b7280;">Cancel</button>
+          </div>
+
+          <div id="addon-message" style="margin-top: 16px;"></div>
+        </div>
+
+        <!-- List of add-ons -->
+        <div id="addons-list" style="margin-top: 32px;"></div>
+      </div>
+    </details>
+
   </div>
 
   <script type="module">
@@ -81,12 +194,118 @@
       email: document.getElementById('email'),
       logoInput: document.getElementById('logo'),
       logoPreview: document.getElementById('logo-preview'),
-      message: document.getElementById('profile-message')
+      message: document.getElementById('profile-message'),
+      pushM2PerHour: document.getElementById('pushM2PerHour'),
+      pushChargeOutRate: document.getElementById('pushChargeOutRate'),
+      pushHourlyExpenses: document.getElementById('pushHourlyExpenses'),
+      rideonM2PerHour: document.getElementById('rideonM2PerHour'),
+      rideonChargeOutRate: document.getElementById('rideonChargeOutRate'),
+      rideonHourlyExpenses: document.getElementById('rideonHourlyExpenses'),
     };
 
     function showMessage(text, type = 'success') {
       els.message.textContent = text;
       els.message.className = type;
+    }
+
+    function showPricingMessage(text, type = 'success') {
+      const el = document.getElementById('pricing-message');
+      el.textContent = text;
+      el.className = type;
+    }
+
+    function renderAddOns(addOns) {
+      const listEl = document.getElementById('addons-list');
+      if (!listEl) {
+        console.error("addons-list element not found");
+        return;
+      }
+
+      listEl.innerHTML = '';
+
+      if (!Array.isArray(addOns) || addOns.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--muted); text-align: center; font-style: italic;">No add-ons created yet.</p>';
+        return;
+      }
+
+      console.log("Rendering", addOns.length, "add-ons");
+
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'none';
+      ul.style.padding = '0';
+      ul.style.margin = '0';
+
+      addOns.forEach((addon, index) => {
+        if (!addon || !addon.id || !addon.name) {
+          console.warn("Invalid add-on at index", index, addon);
+          return;
+        }
+
+        const li = document.createElement('li');
+        li.style.padding = '16px';
+        li.style.borderBottom = '1px solid #444';
+        li.style.background = 'rgba(255,255,255,0.03)';
+        li.style.borderRadius = '8px';
+        li.style.marginBottom = '12px';
+        li.style.position = 'relative';
+
+        li.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <strong style="font-size: 1.1rem; color: #8B5CF6;">${addon.name}</strong><br>
+              <small style="color: #aaa;">${addon.description || 'No description'}</small><br>
+              <div style="margin-top: 8px;">
+                <span style="background: #333; padding: 4px 10px; border-radius: 12px; font-size: 0.9rem;">
+                  ${addon.pricingType === 'm2' ? 'Per m²' : 'Per Hour'}: $${Number(addon.price || 0).toFixed(2)}
+                </span>
+                ${addon.requiresSiteQuote ? 
+                  '<span style="margin-left: 10px; background: #c2410c; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; color: white;">Must quote on site</span>' 
+                  : ''}
+              </div>
+            </div>
+            <button 
+              class="delete-addon-btn" 
+              data-id="${addon.id}"
+              style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"
+            >
+              Delete
+            </button>
+          </div>
+        `;
+
+        ul.appendChild(li);
+      });
+
+      listEl.appendChild(ul);
+
+      // Attach delete handlers
+      document.querySelectorAll('.delete-addon-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          if (!id || !confirm('Delete this add-on permanently?')) return;
+
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const payload = {
+              deleteAddOnId: id,
+              updatedAt: new Date().toISOString()
+            };
+
+            const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error(await res.text());
+
+            await loadProfile(await auth.currentUser.getIdToken());
+          } catch (err) {
+            console.error("Delete failed:", err);
+            alert('Failed to delete: ' + err.message);
+          }
+        });
+      });
     }
 
     async function loadProfile(token) {
@@ -108,6 +327,22 @@
           els.logoPreview.src = profile.logoUrl;
           els.logoPreview.style.display = 'block';
         }
+
+        // Load pricing
+        const pricing = profile.mowingPricing || {};
+        const push = pricing.push || {};
+        const rideon = pricing.rideon || {};
+
+        els.pushM2PerHour.value      = push.m2PerHour ?? '';
+        els.pushChargeOutRate.value  = push.chargeOutRate ?? '';
+        els.pushHourlyExpenses.value = push.hourlyExpenses ?? '';
+        els.rideonM2PerHour.value     = rideon.m2PerHour ?? '';
+        els.rideonChargeOutRate.value = rideon.chargeOutRate ?? '';
+        els.rideonHourlyExpenses.value = rideon.hourlyExpenses ?? '';
+
+        // Load and display add-ons
+        renderAddOns(profile.addOns || []);
+
       } catch (e) {
         showMessage('Failed to load profile: ' + e.message, 'error');
       }
@@ -116,41 +351,27 @@
     document.getElementById('profile-update-btn').addEventListener('click', async () => {
       if (!auth.currentUser) return showMessage('Not logged in', 'error');
 
-      const token = await auth.currentUser.getIdToken();  // ← only one declaration
+      const token = await auth.currentUser.getIdToken();
+      let logoUrl = els.logoPreview.src;
 
-      let logoUrl = els.logoPreview.src;  // ← change to let so we can reassign
-
-      // Handle new logo upload
       const file = els.logoInput.files[0];
       if (file) {
         showMessage('Uploading logo...', 'info');
-
-        // ← REMOVE this line: const token = await auth.currentUser.getIdToken();
-        // We already have token from above
-
         const res = await fetch(`${WORKER_URL}/api/r2/logo`, {
           method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': file.type || 'image/jpeg'
-          },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': file.type || 'image/jpeg' },
           body: file
         });
-
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || 'Upload failed');
         }
-
-        const { logoUrl: newLogoUrl } = await res.json();  // ← rename to avoid confusion
-
+        const { logoUrl: newLogoUrl } = await res.json();
         els.logoPreview.src = newLogoUrl + '?t=' + Date.now();
         els.logoPreview.style.display = 'block';
-
-        logoUrl = newLogoUrl;  // ← now allowed because it's let
+        logoUrl = newLogoUrl;
       }
 
-      // Save profile
       const profile = {
         companyName: els.companyName.value.trim(),
         nzbn: els.nzbn.value.trim(),
@@ -158,20 +379,16 @@
         phone: els.phone.value.trim(),
         gstNumber: els.gstNumber.value.trim(),
         email: els.email.value,
-        logoUrl,  // ← updated if new logo uploaded
+        logoUrl,
         updatedAt: new Date().toISOString()
       };
 
       try {
         const res = await fetch(`${WORKER_URL}/api/user/profile`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(profile)
         });
-
         if (res.ok) {
           showMessage('Profile updated successfully!', 'success');
         } else {
@@ -182,6 +399,159 @@
       }
     });
 
+    // Pricing save (unchanged from previous working version)
+    document.getElementById('pricing-update-btn').addEventListener('click', async () => {
+      if (!auth.currentUser) {
+        showPricingMessage('Not logged in', 'error');
+        return;
+      }
+      showPricingMessage('Saving pricing...', 'info');
+      const token = await auth.currentUser.getIdToken();
+
+      const mowingPricing = {
+        push: {
+          m2PerHour: Number(els.pushM2PerHour.value) || 0,
+          chargeOutRate: Number(els.pushChargeOutRate.value) || 0,
+          hourlyExpenses: Number(els.pushHourlyExpenses.value) || 0,
+        },
+        rideon: {
+          m2PerHour: Number(els.rideonM2PerHour.value) || 0,
+          chargeOutRate: Number(els.rideonChargeOutRate.value) || 0,
+          hourlyExpenses: Number(els.rideonHourlyExpenses.value) || 0,
+        }
+      };
+
+      const payload = { mowingPricing, updatedAt: new Date().toISOString() };
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showPricingMessage('Company pricing updated successfully!', 'success');
+        } else {
+          throw new Error(await res.text());
+        }
+      } catch (e) {
+        showPricingMessage('Failed to save pricing: ' + e.message, 'error');
+      }
+    });
+
+    // ── Add-Ons ────────────────────────────────────────────────────────────
+    const createAddonBtn   = document.getElementById('create-addon-btn');
+    const addonForm        = document.getElementById('addon-form');
+    const cancelAddonBtn   = document.getElementById('cancel-addon-btn');
+    const saveAddonBtn     = document.getElementById('save-addon-btn');
+    const addonMessage     = document.getElementById('addon-message');
+    const addonPriceLabel  = document.getElementById('addonPriceLabel');
+    const addonPriceInput  = document.getElementById('addonPrice');
+    const requiresSiteQuote = document.getElementById('addonRequiresSiteQuote');
+
+    function showAddonMessage(text, type = 'success') {
+      if (!addonMessage) return;
+      addonMessage.textContent = text;
+      addonMessage.className = type === 'success' ? 'profile-success' : 'profile-error';
+    }
+
+    if (createAddonBtn) {
+      createAddonBtn.addEventListener('click', () => {
+        addonForm.style.display = 'block';
+        createAddonBtn.style.display = 'none';
+        addonMessage.textContent = '';
+      });
+
+      cancelAddonBtn.addEventListener('click', () => {
+        addonForm.style.display = 'none';
+        createAddonBtn.style.display = 'block';
+        clearAddonForm();
+      });
+
+      document.querySelectorAll('input[name="addonPricingType"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+          if (e.target.value === 'm2') {
+            addonPriceLabel.textContent = 'Price (per m²)';
+            addonPriceInput.placeholder = 'e.g. 4.50';
+          } else {
+            addonPriceLabel.textContent = 'Price (per hour)';
+            addonPriceInput.placeholder = 'e.g. 65.00';
+          }
+        });
+      });
+
+      saveAddonBtn.addEventListener('click', async () => {
+        const name  = document.getElementById('addonName').value.trim();
+        const desc  = document.getElementById('addonDescription').value.trim();
+        const type  = document.querySelector('input[name="addonPricingType"]:checked')?.value;
+        const price = parseFloat(document.getElementById('addonPrice').value);
+        const reqSite = requiresSiteQuote.checked;
+
+        if (!name) return showAddonMessage('Add-on name is required', 'error');
+        if (!type) return showAddonMessage('Select pricing type', 'error');
+        if (isNaN(price) || price <= 0) return showAddonMessage('Enter a valid price > 0', 'error');
+
+        showAddonMessage('Saving add-on...', 'info');
+
+        const newAddon = {
+          id: crypto.randomUUID(),
+          name,
+          description: desc,
+          pricingType: type,
+          price,
+          requiresSiteQuote: reqSite,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          const token = await auth.currentUser.getIdToken();
+
+          const payload = {
+            addOns: [newAddon],
+            updatedAt: new Date().toISOString()
+          };
+
+          const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || 'Server error');
+          }
+
+          showAddonMessage('Add-on saved successfully!', 'success');
+
+          // Reload profile → refreshes list
+          const reloadToken = await auth.currentUser.getIdToken();
+          await loadProfile(reloadToken);
+
+          clearAddonForm();
+          addonForm.style.display = 'none';
+          createAddonBtn.style.display = 'block';
+
+        } catch (err) {
+          console.error('Save add-on failed:', err);
+          showAddonMessage('Failed to save add-on: ' + err.message, 'error');
+        }
+      });
+    }
+
+    function clearAddonForm() {
+      document.getElementById('addonName').value = '';
+      document.getElementById('addonDescription').value = '';
+      document.getElementById('addonPrice').value = '';
+      document.querySelector('input[name="addonPricingType"][value="m2"]').checked = true;
+      addonPriceLabel.textContent = 'Price (per m²)';
+      addonPriceInput.placeholder = 'e.g. 4.50';
+      requiresSiteQuote.checked = false;
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
@@ -190,6 +560,7 @@
         window.location.href = 'login.html';
       }
     });
+
   </script>
 </body>
 </html>

@@ -1211,9 +1211,9 @@ function attachCardEventListeners() {
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                  status: 'progress',  // ← next stage after "won"
-                  nextAction: 'Job started on site',
-                  startedAt: new Date().toISOString()  // optional: track start time
+                  status: 'progress',
+                  nextAction: 'Service started on site',           // ← changed wording
+                  startedAt: new Date().toISOString()
                 })
               });
 
@@ -1225,7 +1225,7 @@ function attachCardEventListeners() {
               closeModal();
               card.dataset.stage = 'progress';  // match backend
               updateCard(card);
-              alert("Job started successfully!");
+              alert("Service started on site!");
 
               // Optional: refresh full list
               loadAndRenderJobs();
