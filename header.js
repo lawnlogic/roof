@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="dashboard.html">Dashboard</a></li>
-          <li><a href="jobs2v2.html">Jobs</a></li>
+          <li><a href="jobs.html">Jobs</a></li>
           <li><a href="profile.html">Profile</a></li>
           <li><a href="#" id="sign-out-link">Sign Out</a></li>
         </ul>
