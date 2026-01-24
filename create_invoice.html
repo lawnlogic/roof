@@ -101,11 +101,15 @@
     const auth = getAuth(app);
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
+    // ── Declare urlParams ONLY ONCE here ────────────────────────────────
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
+    // We can access quoteId later inside the callback
+    const preselectedQuoteId = urlParams.get('quoteId');  // safe to declare here
+
     const quoteSelect = document.getElementById('quote-select');
     const invoiceForm = document.getElementById('invoice-form');
     const generateBtn = document.getElementById('generate-invoice-btn');
-    const urlParams = new URLSearchParams(window.location.search);
-    const jobId = urlParams.get('jobId');
 
     // Pre-fill dates
     const today = new Date().toISOString().split('T')[0];
@@ -148,24 +152,38 @@
           return;
         }
 
+        // Clear any old options
+        quoteSelect.innerHTML = '<option value="">-- Choose a quote without invoice --</option>';
+
         quotes.forEach(q => {
           const option = document.createElement('option');
           option.value = q.id;
           const dateStr = new Date(q.date || q.createdAt || Date.now()).toLocaleDateString('en-NZ', {
             day: 'numeric', month: 'short', year: 'numeric'
           });
-          option.textContent = `${q.number || 'Quote'} – $${(q.total || 0).toFixed(2)} (${dateStr})`;
+          const amount = (q.totalInclGst || q.total || 0).toFixed(2);
+          option.textContent = `${q.number || 'Quote'} – $${amount} (${dateStr})`;
           option.dataset.address = job.address || '';
           option.dataset.client = job.client 
             ? `${job.client.firstName || ''} ${job.client.lastName || ''}`.trim()
             : '';
-          option.dataset.total = (q.total || 0).toFixed(2);
-
-          // Store whatever data we have in job.quotes (this is the safe part)
+          option.dataset.total = amount;
           option.dataset.fullQuote = JSON.stringify(q);
-
           quoteSelect.appendChild(option);
         });
+
+        // ── Now pre-select the quote if ?quoteId=... was in the URL ────────
+        if (preselectedQuoteId) {
+          const matchingOption = Array.from(quoteSelect.options).find(
+            opt => opt.value === preselectedQuoteId
+          );
+          if (matchingOption) {
+            quoteSelect.value = preselectedQuoteId;
+            quoteSelect.dispatchEvent(new Event('change'));  // trigger the form to show
+          } else {
+            console.warn(`Quote ID ${preselectedQuoteId} not found among available quotes`);
+          }
+        }
 
       } catch (err) {
         document.getElementById('error-message').textContent = 'Error loading job quotes: ' + err.message;
@@ -217,7 +235,6 @@
         paymentTerms: document.getElementById('payment-terms').value,
         notes: document.getElementById('inv-notes').value.trim(),
         totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace(/[$,]/g, '')) || 0,
-        
         quoteSnapshot: selectedQuoteFull
       };
 
@@ -238,8 +255,10 @@
           throw new Error(err.error || 'Failed to create invoice');
         }
 
-        window.location.href = `jobs.html?jobId=${jobId}`;
+        const responseData = await res.json();
+        const invoiceId = responseData.invoiceId; // assuming backend returns this
 
+        // Show success UI instead of immediate redirect (better UX)
         document.getElementById('invoice-link-text').textContent = 
           `Invoice created! View it here: ${window.location.origin}/invoice.html?inv=${invoiceId}`;
 
@@ -250,6 +269,11 @@
         document.getElementById('invoice-form').classList.add('hidden');
 
         alert(`Invoice created successfully!`);
+
+        // Redirect back to jobs list with jobId param
+        setTimeout(() => {
+          window.location.href = `jobs.html?jobId=${jobId}`;
+        }, 1800);   // give user ~1.8 seconds to see the success message
 
       } catch (err) {
         alert('Error creating invoice: ' + err.message);

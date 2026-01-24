@@ -3,736 +3,1483 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jobs • Deep Edge (Dynamic Job Flow - Light Mode)</title>
+ 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <title>Jobs • Deep Edge</title>
   <link rel="stylesheet" href="styles.css">
   <script src="header.js" defer></script>
-
+ 
   <style>
-    /* ── All your existing styles remain unchanged ── */
-    .job-card { background: linear-gradient(to top, #000000 0%, #0f0f0f 100%); border-top: 1px solid #333; border-bottom: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 28px; position: relative; transition: all 0.25s ease; }
-    .job-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(139, 92, 246, 0.18); }
-    .job-summary { margin-bottom: 18px; }
-    .job-address { font-size: 1.38rem; font-weight: 700; color: #a78bfa; margin-bottom: 6px; }
-    .job-client { font-size: 1.05rem; color: #d1d5db; margin-bottom: 12px; }
-    .job-meta { display: flex; flex-wrap: wrap; gap: 16px 24px; font-size: 0.95rem; color: #9ca3af; margin-bottom: 16px; }
-    .meta-item { display: flex; align-items: center; gap: 8px; }
-    .status-badge { padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
-    .status-lead     { background: #4b5563; color: white; }
-    .status-quoted   { background: #7c3aed44; color: #c4b5fd; }
-    .status-won      { background: #166534; color: #86efac; }
-    .status-progress { background: #b45309; color: #fcd34d; }
-    .status-completed{ background: #14532d; color: #6ee7b7; }
-    .status-invoiced { background: #1e40af; color: #93c5fd; }
-    .status-paid     { background: #166534; color: #86efac; }
-    .status-problem  { background: #991b1b; color: #fca5a5; }
-    .job-value { font-weight: 600; color: #86efac; }
-    .actions-bar { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0 20px; }
-    .action-btn { flex: 1; min-width: 140px; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-align: center; cursor: pointer; transition: all 0.2s; border: none; }
-    .btn-primary { background: #28a745; color: white; }
-    .btn-primary:hover { background: #218838; }
-    .btn-secondary { background: #412e75; color: white; }
-    .btn-secondary:hover { background: #513690; }
-    .btn-outline { background: transparent; border: 1px solid #8B5CF6; color: #8B5CF6; }
-    .btn-outline:hover { background: rgba(139, 92, 246, 0.15); }
-    .collapsible-header { background: #2a2a2a; padding: 14px 18px; border-radius: 8px; cursor: pointer; margin: 12px 0 8px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-    .collapsible-header:hover { background: #333; }
-    .collapsible-header::after { content: '▼'; transition: transform 0.3s; }
-    .collapsible-header.open::after { transform: rotate(180deg); }
-    .collapsible-content { display: none; padding: 8px 0; }
-    .collapsible-content.open { display: block; }
-    .filter-btn { padding: 8px 16px; border-radius: 20px; background: #2a2a2a; color: #d1d5db; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
-    .filter-btn:hover { background: #333; }
-    .filter-btn.active { background: #8B5CF6; color: white; }
-    .recurring-badge { display: inline-block; padding: 4px 10px; background: #166534; color: #86efac; border-radius: 16px; font-size: 0.82rem; font-weight: 600; margin-left: 8px; }
-    .recurring-info { margin-top: 8px; color: #86efac; font-weight: 500; font-size: 0.95rem; }
-    .notes-preview { color: #9ca3af; font-style: italic; margin-top: 6px; line-height: 1.4; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .modal-content { background: #1f1f1f; border-radius: 12px; padding: 28px; max-width: 420px; width: 90%; color: white; box-shadow: 0 12px 40px rgba(0,0,0,0.7); }
-    .modal-header { margin: 0 0 20px; color: #8B5CF6; }
-    .modal-label { display: block; margin: 0 0 8px; font-weight: 600; color: #d1d5db; }
-    .modal-select, .modal-date { width: 100%; padding: 12px; background: #2a2a2a; color: white; border: 1px solid #444; border-radius: 8px; font-size: 1rem; margin-bottom: 20px; }
-    .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
-    .modal-cancel { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    .modal-save { padding: 10px 20px; background: #8B5CF6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
-    /* New: Data source toggle button */
-    #data-toggle {
-      padding: 8px 16px;
-      border-radius: 20px;
-      background: #412e75;
+    :root {
+      --bg: #f8f9fc;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #7c3aed;
+      --green: #10b981;
+      --green-dark: #059669;
+      --yellow: #d97706;
+      --blue: #2563eb;
+      --red: #dc2626;
+      --border: #e5e7eb;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --modal-bg: rgba(0,0,0,0.65);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 16px;
+      line-height: 1.45;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        margin-top: 60px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    h1 { font-size: 2.25rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+    .btn-new {
+      background: var(--accent);
       color: white;
       border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+    }
+    .btn-new:hover { background: #6d28d9; transform: translateY(-1px); }
+    .job-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 32px;
+      position: relative;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .job-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(124,58,237,0.15);
+    }
+    .job-address {
+      font-size: 1.48rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .job-client {
+      font-size: 1.08rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+      margin-bottom: 16px;
+      font-size: 0.94rem;
+      color: var(--muted);
+    }
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+    .status-created { background: #f3f4f6; color: #4b5563; }
+    .status-quoted { background: #ede9fe; color: #6d28d9; }
+    .status-won { background: #ecfdf5; color: #059669; }
+    .status-progress { background: #fffbeb; color: #d97706; }
+    .status-completed { background: #f0fdf4; color: #059669; }
+    .status-invoiced { background: #eff6ff; color: #2563eb; }
+    .status-paid { background: #f0fdf4; color: #059669; }
+    .last-activity {
+      font-style: normal;
+      color: #4b5563;
+      font-weight: 500;
+    }
+    .primary-action {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 24px auto;
+      padding: 16px 20px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.14rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 5px 16px rgba(16,185,129,0.25);
+    }
+    .primary-action:hover {
+      background: var(--green-dark);
+      transform: translateY(-2px);
+    }
+    .overflow {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.9rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      z-index: 5;
+    }
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-width: 240px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+    }
+    .menu.show { display: block; }
+    .menu-section { padding: 6px 0; }
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .menu-item:hover { background: #f3f4f6; }
+    .menu-danger {
+      color: var(--red);
+      border-top: 1px solid var(--border);
+    }
+    .menu-danger:hover { background: #fee2e2; }
+    .progress-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      margin: 18px 0 22px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.6s ease;
+    }
+    .notes-preview {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: #4b5563;
+      line-height: 1.4;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+    }
+    .notes-preview:hover { background: #f3f4f6; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      transform: translateY(30px);
+      transition: transform 0.3s;
+    }
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .modal-select, .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #f9fafb;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .btn-modal {
+      padding: 12px 24px;
+      border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
-      margin-bottom: 16px;
+      border: none;
     }
-    #data-toggle.use-dummy {
-      background: #28a745;
+    .btn-cancel {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .btn-primary-modal {
+      background: var(--green);
+      color: white;
+    }
+    .btn-send {
+      background: var(--accent);
+      color: white;
+      flex: 1;
+    }
+    .send-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    @media (max-width: 500px) {
+      .primary-action { font-size: 1.04rem; padding: 14px 18px; }
+      .job-address { font-size: 1.32rem; }
+      .modal-content { padding: 24px; }
+      .menu { min-width: 200px; right: 10px; }
+    }
+    /* New styles for added elements */
+    h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+    .today-previews {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .mini-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .mini-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(124,58,237,0.1);
+    }
+    .mini-address {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .mini-client {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .mini-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .mini-status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .calendar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 48px;
+      box-shadow: var(--shadow);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .calendar-day {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    .calendar-day.header {
+      font-weight: 600;
+      background: #f3f4f6;
+    }
+    .calendar-amount {
+      display: block;
+      margin-top: 4px;
+      color: var(--green);
+      font-weight: 600;
+    }
+    .all-jobs {
+      margin-bottom: 48px;
     }
   </style>
 </head>
 <body>
-
-  <div class="your-quotes-container">
-    <div class="page-header">
-    <div class="title-and-button">
-      <h1>Your Jobs</h1>
-      <a href="create_job.html" class="btn-new-job" title="Create a new job">
-        + New Job
-      </a>
+<div class="container">
+  <div class="header">
+    <h1>Your Jobs</h1>
+    <a href="#" class="btn-new" onclick="window.location.href='create_job.html'; return false;">
+      + New Job
+    </a>
+  </div>
+  <h2>Today</h2>
+  <div class="today-previews">
+    <div class="mini-card">
+      <div class="mini-address">40 Griffen Park Road, Mount Roskill</div>
+      <div class="mini-meta">
+        <span class="mini-status status-progress">In Progress</span>
+        <span>$85 due • 9:00 AM</span>
+      </div>
     </div>
-
-    <!-- Status Filter Bar -->
-    <div id="status-filter" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 28px; justify-content: center;">
-      <button class="filter-btn active" data-status="all">All</button>
-      <button class="filter-btn" data-status="lead">Lead</button>
-      <button class="filter-btn" data-status="quoted">Quoted</button>
-      <button class="filter-btn" data-status="won">Job Won</button>
-      <button class="filter-btn" data-status="progress">In Progress</button>
-      <button class="filter-btn" data-status="completed">Completed</button>
-      <button class="filter-btn" data-status="invoiced">Invoiced</button>
-      <button class="filter-btn" data-status="paid">Paid</button>
-      <button class="filter-btn" data-status="problem">Problem</button>
+    <div class="mini-card">
+      <div class="mini-address">15 Oak Street, Epsom</div>
+      <div class="mini-meta">
+        <span class="mini-status status-won">Job Won</span>
+        <span>$120 due • 11:30 AM</span>
+      </div>
     </div>
-
-    <div id="loading" style="text-align:center; padding:40px; color:#8B5CF6;">
-      Loading your jobs...
-    </div>
-
-    <div id="error-message" style="display:none; text-align:center; padding:20px; color:#fca5a5;"></div>
-
-    <div id="job-list"></div>
-
-    <div id="no-jobs" class="no-quotes hidden">
-      No jobs yet.<br><br>
-      Start by creating a quote in the 
-      <a href="create_quote.html" style="color:#8B5CF6; text-decoration:underline;">Lawn Calculator</a>!
-      or use the <a href="create_job.html" style="color:#8B5CF6;">Create Job</a> page.
+    <div class="mini-card">
+      <div class="mini-address">22 Pine Avenue, Remuera</div>
+      <div class="mini-meta">
+        <span class="mini-status status-completed">Completed</span>
+        <span>$95 due • 2:00 PM</span>
+      </div>
     </div>
   </div>
+  <h2>Calendar</h2>
+  <div class="calendar">
+    <div class="calendar-grid">
+      <div class="calendar-day header">Sun</div>
+      <div class="calendar-day header">Mon</div>
+      <div class="calendar-day header">Tue</div>
+      <div class="calendar-day header">Wed</div>
+      <div class="calendar-day header">Thu</div>
+      <div class="calendar-day header">Fri</div>
+      <div class="calendar-day header">Sat</div>
+      <!-- ... calendar content truncated in original ... -->
+    </div>
+  </div>
+  <h2>All Jobs</h2>
+  <div class="all-jobs" id="jobs-container">
+    <!-- Dynamic jobs will be inserted here -->
+  </div>
+</div>
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+  authDomain: "deep-edge-cc5bd.firebaseapp.com",
+  projectId: "deep-edge-cc5bd",
+  storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+  messagingSenderId: "23198790796",
+  appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+// ── STAGES config (kept as-is) ──────────────────────────────────────────
+const STAGES = [
+  {
+    id: 'quoted',
+    label: 'Quote Created',
+    color: 'status-created',
+    progress: 14.29,
+    primary: 'Send Quote',
+    lastActivity: 'Quote created',
+    menuItems: [
+      { text: 'Edit Quote', action: 'edit-quote', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Delete Quote', action: 'delete-quote', danger: true }
+    ]
+  },
+  {
+    id: 'quoteSent',
+    label: 'Quote Sent',
+    color: 'status-quoted',
+    progress: 28.57,
+    primary: 'Schedule Service',
+    lastActivity: 'Quote sent to client',
+    menuItems: [
+      { text: 'Resend Quote', action: 'resend-quote', danger: false },
+      { text: 'Send Reminder', action: 'send-reminder', danger: false },
+      { text: 'Edit Quote', action: 'edit-quote', danger: false },
+      { text: 'Change Price', action: 'change-price', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Cancel Job', action: 'cancel-job', danger: true }
+    ]
+  },
+  {
+    id: 'won',
+    label: 'Job Won',
+    color: 'status-won',
+    progress: 42.86,
+    primary: 'Start Job',
+    lastActivity: 'Job accepted by client',
+    menuItems: [
+      { text: 'Change Schedule', action: 'schedule-visit', danger: false },
+      { text: 'Adjust Price', action: 'adjust-price', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Cancel Service', action: 'cancel-service', danger: true }
+    ]
+  },
+  {
+    id: 'progress',
+    label: 'In Progress',
+    color: 'status-progress',
+    progress: 57.14,
+    primary: 'Complete Job',
+    lastActivity: 'Service started on site',
+    menuItems: [
+      { text: 'Add Photo', action: 'add-photo', danger: false },
+      { text: 'Skip Visit', action: 'skip-visit', danger: false },
+      { text: 'Adjust Price', action: 'adjust-price', danger: false },
+      { text: 'Change Frequency', action: 'change-freq', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Cancel Service', action: 'cancel-service', danger: true }
+    ]
+  },
+  {
+    id: 'completed',
+    label: 'Completed',
+    color: 'status-completed',
+    progress: 71.43,
+    primary: 'Create Invoice',
+    lastActivity: 'Job completed',
+    menuItems: [
+      { text: 'Adjust Final Price', action: 'adjust-final-price', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Reopen Job', action: 'reopen-job', danger: true }
+    ]
+  },
+  {
+    id: 'invoiced',
+    label: 'Invoiced',
+    color: 'status-invoiced',
+    progress: 85.71,
+    primary: 'Mark Paid',
+    lastActivity: 'Invoice sent',
+    menuItems: [
+      { text: 'Send Reminder', action: 'send-reminder', danger: false },
+      { text: 'View Invoice', action: 'view-invoice', danger: false },
+      { text: 'Edit Invoice', action: 'edit-invoice', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Void Invoice', action: 'void-invoice', danger: true }
+    ]
+  },
+  {
+    id: 'paid',
+    label: 'Paid ✓',
+    color: 'status-paid',
+    progress: 100,
+    primary: 'Schedule Next Visit', // default - will be overridden in updateCard for one-off
+    lastActivity: 'Payment received',
+    menuItems: [
+      { text: 'Send Receipt', action: 'send-receipt', danger: false },
+      { text: 'View History', action: 'view-history', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Archive Client', action: 'archive-client', danger: true }
+    ]
+  }
+];
+// ── mockQuotes (kept as-is for invoice modal) ──────────────────────────────
+const mockQuotes = [
+  { id: 'Q-1021', date: '2026-01-10', total: 285.50 },
+  { id: 'Q-1018', date: '2025-12-22', total: 260.00 },
+  { id: 'Q-1012', date: '2025-11-30', total: 240.75 }
+];
+// ── Updated updateCard with recurring logic ───────────────────────────────
+function updateCard(card) {
+  const stage = card.dataset.stage || 'created';
+  const isRecurring = card.dataset.isRecurring === 'true';
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  // Find base config
+  let config = STAGES.find(s => s.id === stage) || STAGES[0];
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
-      authDomain: "deep-edge-cc5bd.firebaseapp.com",
-      projectId: "deep-edge-cc5bd",
-      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
-      messagingSenderId: "23198790796",
-      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
-    };
+  // Special override for paid stage
+  let primaryText = config.primary;
+  let btnColor = "var(--green)";  // default active
+  let isDisabled = false;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
-
-    // ── Dummy data (for toggle) ──────────────────────────────────────────────
-    const dummyJobs = [
-      {
-        id: "job_abc123",
-        address: "42 Sunrise Blvd, Albany, Auckland",
-        client: { firstName: "Sarah", lastName: "Thompson", phone: "021 123 4567" },
-        createdAt: "2026-01-01T09:30:00Z",
-        status: "progress",
-        nextAction: "Service scheduled: 22–23 Jan 2026",
-        quotedTotal: 2450,
-        invoicedTotal: 1200,
-        paidTotal: 0,
-        isRecurring: true,
-        recurrence: "weekly",
-        nextServiceDate: "2026-01-21",
-        jobNotes: "Weekly mow for front & back lawn. Client prefers Tuesday mornings. Gate code: 2468. Avoid flower beds.",
-        quotes: [
-          { number: "Q-0251", date: "5 Jan", total: 2450, link: "#" },
-          { number: "Q-0263", date: "12 Jan", total: 2380, link: "#" }
-        ],
-        invoices: [
-          { number: "INV-0017", date: "15 Jan", total: 1200, status: "Pending", link: "#" }
-        ]
-      },
-      // ... (keep your other dummy jobs here if you want more)
-    ];
-
-    const statusOptions = [
-      { value: "lead",      label: "Lead",        colorClass: "status-lead",      nextAction: "First, create a quote" },
-      { value: "quoted",    label: "Quote Created",      colorClass: "status-quoted",    nextAction: "Send quote to client" },
-      { value: "quoteSent",    label: "Quote Sent",      colorClass: "status-quoted",    nextAction: "Follow up with client" },
-      { value: "won",       label: "Job Won",     colorClass: "status-won",       nextAction: "Schedule service" },
-      { value: "progress",  label: "In Progress", colorClass: "status-progress", nextAction: "Service in progress" },
-      { value: "completed", label: "Completed",   colorClass: "status-completed", nextAction: "Prepare invoice" },
-      { value: "invoiced",  label: "Invoiced",    colorClass: "status-invoiced",  nextAction: "Await payment" },
-      { value: "paid",      label: "Paid",        colorClass: "status-paid",      nextAction: "Job complete ✓" },
-      { value: "problem",   label: "Problem",     colorClass: "status-problem",   nextAction: "Contact client urgently" }
-    ];
-
-    const frequencyOptions = [
-      { value: "one-off",   label: "One-off" },
-      { value: "weekly",    label: "Weekly" },
-      { value: "fortnightly", label: "Fortnightly" },
-      { value: "monthly",   label: "Monthly" }
-    ];
-
-    let currentJobs = [];
-    //let useDummy = true; // Start with dummy by default
-    let currentFilter = "all";
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const loadingEl = document.getElementById('loading');
-      const errorEl = document.getElementById('error-message');
-
-      loadingEl.style.display = 'block';
-
-      // Listen for auth state (this is the correct way)
-      const unsubscribe = auth.onAuthStateChanged(async (user) => {
-        try {
-          if (!user) {
-            throw new Error("Not signed in");
-          }
-
-          const token = await user.getIdToken();
-          const response = await fetch(`${WORKER_URL}/api/jobs`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `Server error ${response.status}`);
-          }
-
-          const data = await response.json();
-          currentJobs = data.jobs || [];
-          renderJobs();
-
-        } catch (err) {
-          console.error("Jobs load error:", err);
-          errorEl.textContent = `Error loading jobs: ${err.message}`;
-          errorEl.style.display = 'block';
-        } finally {
-          loadingEl.style.display = 'none';
-          // Optional: only unsubscribe after first successful load or error
-          // unsubscribe(); 
-        }
-      });
-
-      setupFilters();
-    });
-
-    function getFilteredJobs() {
-      if (currentFilter === "all") return currentJobs;
-      return currentJobs.filter(job => job.status === currentFilter);
+  if (stage === 'paid') {
+    if (isRecurring) {
+      primaryText = "Schedule Next Visit";
+      btnColor = "var(--green)";      // active / encouraging
+      isDisabled = false;
+    } else {
+      primaryText = "Job Complete";
+      btnColor = "var(--green-dark)"; // final / subdued
+      isDisabled = true;
     }
+  }
 
-    function renderJobs() {
-      const jobsToShow = getFilteredJobs();
-      const container = document.getElementById('job-list');
-      container.innerHTML = '';
+  // Apply to button
+  const primaryBtn = card.querySelector('.primary-action');
+  if (primaryBtn) {
+    primaryBtn.textContent = primaryText;
+    primaryBtn.style.background = btnColor;
+    primaryBtn.disabled = isDisabled;
+  }
 
-      const noJobs = document.getElementById('no-jobs');
-      if (jobsToShow.length === 0) {
-        noJobs.classList.remove('hidden');
-      } else {
-        noJobs.classList.add('hidden');
+  // Badge
+  const badge = card.querySelector('.status-badge');
+  if (badge) {
+    badge.textContent = config.label;
+    badge.className = `status-badge ${config.color}`;
+  }
+
+  // Last activity
+  const lastActivity = card.querySelector('.last-activity');
+  if (lastActivity) {
+    lastActivity.textContent = `Last activity: ${config.lastActivity}`;
+  }
+
+  // Progress bar
+  const progressFill = card.querySelector('.progress-fill');
+  if (progressFill) {
+    progressFill.style.width = `${config.progress}%`;
+  }
+
+  // Rebuild menu
+  const menu = card.querySelector('.menu');
+  if (menu) {
+    menu.innerHTML = '';
+    const section = document.createElement('div');
+    section.className = 'menu-section';
+    config.menuItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'menu-item';
+      if (item.danger) div.classList.add('menu-danger');
+      div.textContent = item.text;
+      div.dataset.action = item.action;
+      section.appendChild(div);
+    });
+    menu.appendChild(section);
+  }
+}
+// Escape HTML to prevent XSS in logs
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function formatTimestamp(ts) {
+  return new Date(ts).toLocaleString('en-NZ', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+}
+function showModal(contentHTML) {
+  const overlay = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = contentHTML;
+  overlay.classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+function showJobDetailsModal(job, jobId) {
+  showModal(`
+    <div style="max-width:700px; width:90%; max-height:90vh; overflow-y:auto; padding:24px;">
+      <h2 class="modal-title" style="margin-bottom:24px;">Job Details • ${escapeHtml(job.address || 'No address')}</h2>
+      <!-- Client Information -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Client Information</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content" style="display:none;">
+          <p><strong>Name:</strong> ${escapeHtml(job.client?.firstName || '')} ${escapeHtml(job.client?.lastName || '')}</p>
+          <p><strong>Email:</strong> ${escapeHtml(job.client?.email || '—')}</p>
+          <p><strong>Phone:</strong> ${escapeHtml(job.client?.phone || '—')}</p>
+        </div>
+      </div>
+      <!-- Financials -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Financials</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content" style="display:none;">
+          <h4>Quotes (${job.quotes?.length || 0})</h4>
+          ${job.quotes?.length > 0 ? job.quotes.map(q => `
+            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>${escapeHtml(q.number || 'Quote')}</strong> – $${q.total?.toFixed(2) || '—'} (${q.date || '—'})
+              </div>
+              <a href="quote.html?quote=${q.id}" target="_blank" style="background:#7c3aed; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
+                View
+              </a>
+            </div>
+          `).join('') : '<p style="color:#6b7280;">No quotes yet</p>'}
+          <h4 style="margin-top:24px;">Invoices (${job.invoices?.length || 0})</h4>
+          ${job.invoices?.length > 0 ? job.invoices.map(i => `
+            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>Invoice #${escapeHtml(i.number || '—')}</strong> – $${i.total?.toFixed(2) || '—'} (${i.date || '—'})
+              </div>
+              <a href="invoice.html?invoice=${i.id}" target="_blank" style="background:#10b981; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
+                View
+              </a>
+            </div>
+          `).join('') : '<p style="color:#6b7280;">No invoices yet</p>'}
+        </div>
+      </div>
+      <!-- Activity Log -->
+      <div class="detail-section">
+        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+          <h3>Activity Log (${job.activityLog?.length || 0})</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="section-content activity-log" style="display:none;">
+          ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => `
+            <div style="margin:12px 0; padding-bottom:12px; border-bottom:1px solid #eee;">
+              <strong>${formatTimestamp(log.timestamp)}</strong>
+              <p style="margin:4px 0 0;">${escapeHtml(log.action)}</p>
+            </div>
+          `).join('') : '<p>No activity logged yet.</p>'}
+        </div>
+      </div>
+      <!-- Manual Status Update -->
+      <div style="margin:32px 0;">
+        <label style="display:block; margin-bottom:8px; font-weight:600;">Update job status (Manual)</label>
+        <select id="manualStatus" class="modal-select">
+          <option value="created">Created / Lead</option>
+          <option value="quoted">Quote Created</option>
+          <option value="quoteSent">Quote Sent</option>
+          <option value="won">Job Won</option>
+          <option value="progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="invoiced">Invoiced</option>
+          <option value="paid">Paid</option>
+        </select>
+        <button id="applyManualStatus" class="btn-modal btn-primary-modal" style="margin-top:12px; width:100%;">Apply Status</button>
+      </div>
+      <!-- Delete Job -->
+      <div style="margin-top:32px; text-align:center;">
+        <button id="deleteJobBtn" class="btn-modal" style="background:#dc2626; color:white; padding:12px 24px; border:none; border-radius:8px; cursor:pointer;">
+          Delete Job
+        </button>
+      </div>
+      <div class="modal-buttons" style="margin-top:40px; justify-content:center;">
+        <button class="btn-modal btn-cancel" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  `);
+  const modal = document.getElementById('modalContent');
+  // Manual status update — now uses passed jobId
+  modal.querySelector('#applyManualStatus').onclick = async () => {
+    const newStatus = modal.querySelector('#manualStatus').value;
+    if (!newStatus) return alert("Select a status");
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          nextAction: `(Manual) Job set to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+          updatedAt: new Date().toISOString()
+        })
+      });
+      if (!patchRes.ok) {
+        const err = await patchRes.json().catch(() => ({}));
+        throw new Error(err.error || "Status update failed");
       }
-
-      const today = new Date();
-      jobsToShow.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-      container.innerHTML = jobsToShow.map(job => {
-        const created = new Date(job.createdAt);
-        const ageDays = Math.floor((today - created) / (1000*60*60*24));
-        const ageText = ageDays <= 0 ? "Today" : ageDays === 1 ? "1 day ago" : `${ageDays} days ago`;
-
-        const currentStatus = statusOptions.find(s => s.value === job.status) || statusOptions[1];
-        let valueText = "Not quoted yet";
-        if (job.quotes?.length > 0) {
-          // Calculate total from all quotes (safest)
-          const totalQuoted = job.quotes.reduce((sum, q) => sum + (q.total || 0), 0);
-          valueText = `Quoted $${totalQuoted.toFixed(2)}`; 
+      closeModal();
+      loadAndRenderJobs(); // refresh full list
+      alert(`Status updated to ${newStatus}!`);
+    } catch (err) {
+      alert("Failed to update status:\n" + err.message);
+    }
+  };
+  // Delete job — uses passed jobId
+  modal.querySelector('#deleteJobBtn').onclick = async () => {
+    if (!confirm("Delete this job permanently?")) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      closeModal();
+      loadAndRenderJobs();
+      alert("Job deleted");
+    } catch (err) {
+      alert("Failed to delete job: " + err.message);
+    }
+  };
+}
+function advanceStage(card) {
+  const current = card.dataset.stage;
+  const idx = STAGES.findIndex(s => s.id === current);
+  const nextIdx = (idx + 1) % STAGES.length;
+  card.dataset.stage = STAGES[nextIdx].id;
+  card.style.opacity = '0.65';
+  card.style.transform = 'scale(0.98)';
+  setTimeout(() => {
+    updateCard(card);
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+  }, 220);
+}
+function getPrimaryActionText(stage) {
+  const map = {
+    quoted: "Send Quote",
+    quoteSent: "Schedule Service",
+    won: "Start Job",
+    progress: "Complete Job",
+    completed: "Create Invoice",
+    invoiced: "Mark Paid",
+    paid: "Schedule Next Visit"
+  };
+  return map[stage] || "Next Step";
+}
+// ── Main render function ───────────────────────────────────────
+async function loadAndRenderJobs() {
+  const container = document.getElementById("jobs-container");
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">Loading jobs...</p>';
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Not signed in. Please log in first.");
+    const token = await user.getIdToken(true);
+    const res = await fetch(`${WORKER_URL}/api/jobs`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "No details");
+      throw new Error(`Server error ${res.status} – ${errText}`);
+    }
+    const data = await res.json();
+    const jobs = data.jobs || [];
+    if (jobs.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">No jobs yet.<br>Create your first job!</p>';
+      return;
+    }
+    container.innerHTML = '';
+    jobs.forEach(job => {
+      // Debug what we have from backend
+      console.log('[Job render input]', {
+        id: job.id,
+        status: job.status,
+        hasQuotes: !!job.quotes?.length,
+        quoteIds: job.quotes?.map(q => q.id) || []
+      });
+      let normalizedStatus = job.status?.toLowerCase() || 'created';
+      if (normalizedStatus === 'quotesent') normalizedStatus = 'quoted';
+      // In loadAndRenderJobs, inside jobs.forEach
+      console.log('[Status debug]', { backendStatus: job.status, normalized: job.status });
+      const statusInfo = STAGES.find(s => s.id === job.status)
+                      || STAGES.find(s => s.id === job.status.toLowerCase())
+                      || STAGES[0];
+      console.log('[Found stage]', { id: statusInfo.id, label: statusInfo.label, primary: statusInfo.primary });
+      let clientName = job.client?.firstName || "Unknown";
+      if (job.client?.lastName) {
+        clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
+      }
+      // Declare recurringBadge BEFORE the template
+      let recurringBadge = "";
+      if (job.isRecurring && job.recurrence) {
+        recurringBadge = `<span style="font-size:0.82rem; background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; margin-left:8px;">
+          ${job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)}
+        </span>`;
+      }
+      // Always calculate latest quote if exists
+      let latestQuote = null;
+      if (Array.isArray(job.quotes) && job.quotes.length > 0) {
+        latestQuote = job.quotes.reduce((a, b) =>
+          new Date(a.date) > new Date(b.date) ? a : b
+        );
+      }
+      const cardHTML = `
+        <div class="job-card"
+             data-stage="${statusInfo.id || 'created'}"
+             data-job-id="${job.id || 'MISSING-ID'}"
+             data-quote-id="${latestQuote?.id || ''}"
+             data-is-recurring="${job.isRecurring === true ? 'true' : 'false'}">  <!-- ← Added here -->
+          <div class="overflow">⋯</div>
+          <div class="menu"></div>
+          <div class="job-address">
+            ${job.address || 'No address'}${recurringBadge}
+          </div>
+          <div class="job-client">
+            ${clientName} • ${job.client?.phone || "No phone"}
+            ${job.nextServiceDate ? `
+              <div class="next-service">
+                Next ${job.recurrence ?
+                  (job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)) + ' Service' :
+                  'Service'
+                } on ${new Date(job.nextServiceDate).toLocaleDateString('en-NZ', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </div>
+            ` : ''}
+          </div>
+          <div class="meta">
+            <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
+            <span class="last-activity" title="${job.activityLog?.map(log => log.timestamp + ': ' + log.action).join('\n') || ''}">
+              Last activity: ${job.nextAction || "—"}
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+          <button class="primary-action">${statusInfo.primary}</button>
+          <div class="notes-preview">
+            <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML("beforeend", cardHTML);
+    });
+    attachCardEventListeners();
+  } catch (err) {
+    console.error("Failed to load jobs:", err);
+    container.innerHTML = `<p style="text-align:center; color:#dc2626; padding:40px; white-space:pre-wrap;">
+      Could not load jobs\n\n${err.message}
+    </p>`;
+  }
+}
+function showScheduleModal(card) {
+  // Optional: dynamic default date (next week)
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  const defaultDate = nextWeek.toISOString().split('T')[0];
+  showModal(`
+    <h2 class="modal-title">Schedule Service</h2>
+    <label style="display:block; margin-bottom:8px; font-weight:600;">Frequency</label>
+    <select class="modal-select" id="frequencySelect">
+      <option>One-off</option>
+      <option>Weekly</option>
+      <option selected>Fortnightly</option>
+      <option>Monthly</option>
+    </select>
+    <label style="display:block; margin:16px 0 8px; font-weight:600;">Start Date</label>
+    <input type="date" class="modal-input" id="nextDateInput" value="${defaultDate}">
+    <div class="modal-buttons">
+      <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-modal btn-primary-modal confirm-schedule">Confirm Schedule</button>
+    </div>
+  `);
+  const modal = document.getElementById('modalContent');
+  modal.querySelector('.confirm-schedule').addEventListener('click', async () => {
+    const frequency = modal.querySelector('#frequencySelect').value;
+    const nextDate = modal.querySelector('#nextDateInput').value;
+    if (!nextDate) {
+      alert("Please select a start date");
+      return;
+    }
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("Not signed in");
+      const token = await user.getIdToken();
+      const jobId = card.getAttribute('data-job-id');
+      if (!jobId) throw new Error("No job ID on card");
+      const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          isRecurring: frequency !== 'One-off',
+          recurrence: frequency !== 'One-off' ? frequency.toLowerCase() : null,
+          nextServiceDate: nextDate,
+          status: 'won', // or 'progress' — your choice
+          nextAction: `Scheduled: ${frequency} starting ${new Date(nextDate).toLocaleDateString('en-NZ')}`
+        })
+      });
+      if (!patchRes.ok) {
+        const errData = await patchRes.json().catch(() => ({}));
+        throw new Error(errData.error || `Save failed (${patchRes.status})`);
+      }
+      closeModal();
+      card.dataset.stage = 'won'; // match backend status
+      updateCard(card);
+      alert("Service scheduled successfully!");
+    } catch (err) {
+      console.error("Schedule save failed:", err);
+      alert("Failed to save schedule:\n" + err.message);
+    }
+  });
+}
+function attachCardEventListeners() {
+  const cards = document.querySelectorAll('.job-card');
+  cards.forEach(card => {
+    // 1. Update card visuals (progress, badge, button text, menu items)
+    updateCard(card);
+    // 2. Primary action button ("Send Quote", "Schedule Service", "Start Job", etc.)
+    const primaryBtn = card.querySelector('.primary-action');
+    if (primaryBtn) {
+      primaryBtn.addEventListener('click', async () => {
+        const stage = card.getAttribute('data-stage') || 'unknown';
+        const jobId = card.getAttribute('data-job-id') || '';
+        const quoteIdFromCard = card.getAttribute('data-quote-id') || '';
+        const isRecurring = card.dataset.isRecurring === 'true';
+        console.log('[Primary button clicked]', {
+          stage,
+          jobId,
+          quoteIdFromCard,
+          hasJobId: !!jobId,
+          hasQuoteId: !!quoteIdFromCard && quoteIdFromCard.trim() !== '',
+          isRecurring
+        });
+        // ── NEW: Handle paid stage ────────────────────────────────────────
+        if (stage === 'paid') {
+          if (isRecurring) {
+            showScheduleModal(card);
+            return;
+          } else {
+            // One-off paid job — optional: open details or do nothing
+            // For now, do nothing since it's disabled in updateCard
+            return;
+          }
         }
-
-        const clientName = job.client?.firstName 
-          ? `${job.client.firstName} ${job.client.lastName?.[0]?.toUpperCase() || ''}`
-          : "Unknown Client";
-
-        const recurrenceText = job.isRecurring && job.recurrence
-          ? `${job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)}`
-          : null;
-
-        const nextServiceDisplay = job.nextServiceDate
-          ? new Date(job.nextServiceDate).toLocaleDateString('en-NZ', {
-              weekday: 'long', day: 'numeric', month: 'short'
-            })
-          : null;
-
-        const statusNextActions = {
-          lead: "Send first quote",
-          quoted: "Send quote to client",
-          progress: "Service in progress",
-          completed: "Prepare invoice",
-          invoiced: "Await payment"
-        };
-
-        let nextActionDisplay = job.nextAction || statusNextActions[job.status] || '';
-
-        return `
-          <div class="job-card" data-job-id="${job.id}">
-            <button class="delete-job-btn" title="Delete this job">×</button>
-            <div class="job-summary">
-              <div class="job-address">
-                ${job.address}
-                ${recurrenceText ? `<span class="recurring-badge">${recurrenceText}</span>` : ''}
-              </div>
-              <div class="job-client">${clientName}${job.client?.phone ? ` • ${job.client.phone}` : ''}</div>
-              
-              <div class="job-meta">
-                <div class="meta-item">
-                  <span class="status-badge ${currentStatus.colorClass}">${currentStatus.label}</span>
-                </div>
-                <div class="meta-item job-value">${valueText}</div>
-                <div class="meta-item">${ageText}</div>
-              </div>
-
-              ${nextActionDisplay ? `<div style="color:#c4b5fd; font-weight:500;">${nextActionDisplay}</div>` : ''}
-              
-              ${nextServiceDisplay ? `
-                <div class="recurring-info">
-                  Next service: ${nextServiceDisplay}
-                </div>
-              ` : ''}
+        // ── Existing stage handlers ───────────────────────────────────────
+        if (stage === 'quoted') {
+          // Send Quote modal (your existing flow)
+          showModal(`
+            <h2 class="modal-title">Send Quote</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the quote to the client:</p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
             </div>
-
-            <div class="actions-bar">
-              <button class="action-btn btn-primary schedule-service-btn">Schedule Service</button>
-              <a href="create_quote.html?jobId=${job.id}" class="action-btn btn-secondary">New Quote</a>
-              <button class="action-btn btn-outline create-invoice-btn"> 
-                Create Invoice
-              </button>
-              <button class="action-btn btn-outline update-status-btn">Update Status</button>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
             </div>
-
-            <!-- Quotes -->
-            <div class="collapsible-header" data-target="quotes-${job.id}">
-              Quotes (${job.quotes?.length || 0})
-            </div>
-            <div class="collapsible-content" id="quotes-${job.id}">
-              ${job.quotes?.map(q => `
-                <div class="quote-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
-                  <strong>${q.number}</strong> • ${q.date} • $${q.total?.toFixed(2) || 'N/A'}
-                  <div style="margin-top:6px; display:flex; gap:16px; flex-wrap:wrap;">
-                    <a href="${window.location.origin}/roof/quote.html?quote=${q.id}"
-                       style="color:#8B5CF6;" target="_blank">
-                      View Quote
-                    </a>
-                    
-                    <!-- NEW: Email Quote button -->
-                    <a href="#" 
-                       class="email-quote-btn"
-                       data-quote-id="${q.id}"
-                       style="color:#28a745; text-decoration:none; font-weight:600;">
-                      Email Quote
-                    </a>
-                  </div>
-                </div>
-              `).join('') || '<p style="color:#9ca3af; padding:12px;">No quotes yet</p>'}
-            </div>
-
-            <!-- Invoices -->
-            <div class="collapsible-header" data-target="invoices-${job.id}">
-              Invoices (${job.invoices?.length || 0})
-            </div>
-            <div class="collapsible-content" id="invoices-${job.id}">
-              ${job.invoices?.map(inv => `
-                <div class="invoice-item" style="background:rgba(40,40,60,0.4); padding:12px; border-radius:8px; margin:8px 0;">
-                  <strong>${inv.number}</strong> • ${inv.date} • $${inv.total?.toFixed(2) || 'N/A'} • ${inv.status || 'Unknown'}
-                  <div style="margin-top:6px;">
-                    <a href="${window.location.origin}/invoice.html?inv=${inv.id}" style="color:#8B5CF6;">View</a>
-                  </div>
-                </div>
-              `).join('') || '<p style="color:#9ca3af; padding:12px;">No invoices yet</p>'}
-            </div>
-
-            <!-- Job Notes -->
-            <div class="collapsible-header" data-target="notes-${job.id}">
-              Notes ${job.jobNotes ? `(${job.jobNotes.split(/\s+/).length} words)` : ''}
-            </div>
-            <div class="collapsible-content" id="notes-${job.id}">
-              ${job.jobNotes 
-                ? `<div style="padding:12px; background:rgba(40,40,60,0.4); border-radius:8px; white-space: pre-wrap;">${job.jobNotes}</div>`
-                : '<p style="color:#9ca3af; padding:12px;">No notes added yet</p>'
+          `);
+          const modalContent = document.getElementById('modalContent');
+          modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const isEmail = btn.classList.contains('send-email');
+              if (!isEmail) {
+                closeModal();
+                advanceStage(card);
+                return;
               }
+              btn.disabled = true;
+              btn.textContent = "Sending...";
+              let finalQuoteId = quoteIdFromCard;
+              try {
+                if (!finalQuoteId || finalQuoteId.trim() === '') {
+                  console.warn('[Fallback] No quoteId → fetching job');
+                  const user = auth.currentUser;
+                  if (!user) throw new Error("Not signed in");
+                  const token = await user.getIdToken();
+                  if (!jobId) throw new Error("No job ID");
+                  const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (!jobRes.ok) throw new Error(`Job fetch failed: ${jobRes.status}`);
+                  const jobData = await jobRes.json();
+                  const latestQ = jobData.quotes?.length > 0
+                    ? jobData.quotes.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b)
+                    : null;
+                  finalQuoteId = latestQ?.id;
+                  if (!finalQuoteId) throw new Error("No quote found");
+                }
+                const user = auth.currentUser;
+                const token = await user.getIdToken();
+                const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                if (!sendRes.ok) {
+                  let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                  throw new Error(errMsg);
+                }
+                closeModal();
+                advanceStage(card);
+                alert("Quote email sent successfully!");
+                loadAndRenderJobs(); // refresh to sync backend
+              } catch (err) {
+                console.error('[Email send failed]', err);
+                alert("Failed to send email:\n" + err.message);
+              } finally {
+                btn.disabled = false;
+                btn.textContent = "Email";
+              }
+            });
+          });
+        }
+        else if (stage === 'quoteSent') {
+          showScheduleModal(card);
+        }
+        else if (stage === 'won') {
+          // New: Start Job confirmation modal
+          showModal(`
+            <h2 class="modal-title">Start Job</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+              Are you sure you want to start this job on site?
+            </p>
+            <div class="modal-buttons">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button class="btn-modal btn-primary-modal confirm-start-job">Yes – Start Job</button>
             </div>
-          </div>
-        `;
-      }).join('');
-
-      // Re-attach event listeners
-      document.querySelectorAll('.collapsible-header').forEach(h => {
-        h.addEventListener('click', () => {
-          const target = document.getElementById(h.dataset.target);
-          h.classList.toggle('open');
-          target.classList.toggle('open');
-        });
-      });
-
-      document.querySelectorAll('.create-invoice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const card = btn.closest('.job-card');
-          const jobId = card.dataset.jobId;
-          if (btn.disabled) return;
-          
-          window.location.href = `create_invoice.html?jobId=${jobId}`;
-        });
-      });
-
-      document.querySelectorAll('.delete-job-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const card = btn.closest('.job-card');
-          const jobId = card.dataset.jobId;
-          const job = currentJobs.find(j => j.id === jobId);
-          if (job) {
-            deleteJob(jobId, job.address);
-          }
-        });
-      });
-
-      document.querySelectorAll('.update-status-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const card = btn.closest('.job-card');
-          const jobId = card.dataset.jobId;
-          const job = currentJobs.find(j => j.id === jobId);
-          if (!job) return;
-          showStatusModal(job);
-        });
-      });
-
-      document.querySelectorAll('.schedule-service-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const card = btn.closest('.job-card');
-          const jobId = card.dataset.jobId;
-          const job = currentJobs.find(j => j.id === jobId);
-          if (!job) return;
-          showScheduleModal(job);
-        });
-      });
-    }
-
-    
-    // ── Focus/highlight job from URL param ──────────────────────────────────────
-    function focusOnJobFromUrl() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetJobId = urlParams.get('jobId');
-
-      if (!targetJobId) return;
-
-      // Give renderJobs() time to finish (especially on first load)
-      setTimeout(() => {
-        const targetCard = document.querySelector(`.job-card[data-job-id="${targetJobId}"]`);
-
-        if (targetCard) {
-          // 1. Scroll smoothly into view (a bit higher than the card itself)
-          targetCard.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center'          // or 'start' if you prefer top-aligned
-          });
-
-          // 2. Visual highlight (temporary pulse/glow effect)
-          targetCard.style.transition = 'all 0.8s ease';
-          targetCard.style.boxShadow = '0 0 0 4px #8B5CF6, 0 0 25px rgba(139, 92, 246, 0.6)';
-          targetCard.style.background = 'linear-gradient(to top, #1a0033, #0f001a)';
-
-          // 3. Fade out highlight after ~4 seconds
-          setTimeout(() => {
-            targetCard.style.boxShadow = '';
-            targetCard.style.background = ''; // reset to original gradient
-          }, 4200);
-
-          // Optional: remove jobId from URL so refresh doesn't keep highlighting
-          // (uncomment if desired)
-          // window.history.replaceState({}, '', 'jobs.html');
-        } else {
-          console.warn(`Could not find job card with id: ${targetJobId}`);
-        }
-      }, 800); // small delay — adjust if needed (depends on how fast jobs render)
-    }
-
-    // Call it after jobs are loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      // ... your existing code ...
-
-      // Add this line at the end of DOMContentLoaded
-      focusOnJobFromUrl();
-    });
-
-    // Also call it after renderJobs() finishes (important when filters change)
-    const originalRenderJobs = renderJobs;
-    renderJobs = function() {
-      originalRenderJobs.apply(this, arguments);
-      focusOnJobFromUrl();
-    };
-
-    // Status modal (unchanged)
-    async function showStatusModal(job) {
-      const modal = document.createElement('div');
-      modal.className = 'modal-overlay';
-
-      const currentStatus = statusOptions.find(s => s.value === job.status) || statusOptions[0];
-
-      modal.innerHTML = `
-        <div class="modal-content">
-          <h3 class="modal-header">Update Job Status</h3>
-          <p style="margin:0 0 16px; color:#d1d5db;">
-            Current: <strong>${currentStatus.label}</strong>
-          </p>
-          <select id="newStatusSelect" class="modal-select">
-            ${statusOptions.map(opt => `
-              <option value="${opt.value}" ${opt.value === job.status ? 'selected' : ''}>
-                ${opt.label}
-              </option>
-            `).join('')}
-          </select>
-          <div class="modal-buttons">
-            <button id="cancelStatusBtn" class="modal-cancel">Cancel</button>
-            <button id="saveStatusBtn" class="modal-save">Save Status</button>
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      // Close on cancel / outside click
-      modal.querySelector('#cancelStatusBtn').onclick = () => modal.remove();
-      modal.onclick = e => { if (e.target === modal) modal.remove(); };
-
-      // Save to backend
-      modal.querySelector('#saveStatusBtn').onclick = async () => {
-        const newValue = modal.querySelector('#newStatusSelect').value;
-        const newStatusObj = statusOptions.find(s => s.value === newValue);
-
-        if (!newStatusObj) return;
-
-        try {
-          const user = auth.currentUser;
-          if (!user) throw new Error("Not signed in");
-
-          const token = await user.getIdToken();
-
-          const response = await fetch(`${WORKER_URL}/api/jobs/${job.id}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              status: newValue,
-              // Optional: update nextAction if you want to auto-set it
-              nextAction: newStatusObj.nextAction || job.nextAction || ""
-            })
-          });
-
-          if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || `Failed to update (${response.status})`);
-          }
-
-          // Success: update local data & re-render
-          job.status = newValue;
-          if (newStatusObj.nextAction) job.nextAction = newStatusObj.nextAction;
-
-          renderJobs();
-
-          // Quick success feedback
-          const toast = document.createElement('div');
-          toast.textContent = `Status updated to "${newStatusObj.label}"`;
-          toast.style.cssText = `
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: #166534; color: #86efac; padding: 12px 24px;
-            border-radius: 12px; z-index: 10001; font-weight: 500;
-          `;
-          document.body.appendChild(toast);
-          setTimeout(() => toast.remove(), 3000);
-
-        } catch (err) {
-          console.error("Status update error:", err);
-          alert(`Failed to update status: ${err.message}`);
-        }
-
-        modal.remove();
-      };
-    }
-
-    // Schedule modal (unchanged)
-    function showScheduleModal(job) {
-      const modal = document.createElement('div');
-      modal.className = 'modal-overlay';
-
-      const currentFreq = job.recurrence || 'one-off';
-      const nextDateValue = job.nextServiceDate 
-        ? new Date(job.nextServiceDate).toISOString().split('T')[0] 
-        : '';
-
-      modal.innerHTML = `
-        <div class="modal-content">
-          <h3 class="modal-header">Schedule Service</h3>
-          
-          <label class="modal-label">How often?</label>
-          <select id="frequencySelect" class="modal-select">
-            ${frequencyOptions.map(opt => `
-              <option value="${opt.value}" ${opt.value === currentFreq ? 'selected' : ''}>
-                ${opt.label}
-              </option>
-            `).join('')}
-          </select>
-
-          <label class="modal-label">Next service date</label>
-          <input type="date" id="nextDateInput" class="modal-date" value="${nextDateValue}" required>
-
-          <div class="modal-buttons">
-            <button id="cancelScheduleBtn" class="modal-cancel">Cancel</button>
-            <button id="saveScheduleBtn" class="modal-save">Save Schedule</button>
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      modal.querySelector('#cancelScheduleBtn').onclick = () => modal.remove();
-
-      modal.querySelector('#saveScheduleBtn').onclick = () => {
-        const frequency = modal.querySelector('#frequencySelect').value;
-        const nextDateStr = modal.querySelector('#nextDateInput').value;
-
-        if (!nextDateStr) {
-          alert("Please select a next service date");
-          return;
-        }
-
-        job.isRecurring = frequency !== 'one-off';
-        job.recurrence = frequency !== 'one-off' ? frequency : null;
-        job.nextServiceDate = nextDateStr;
-
-        if (job.isRecurring) {
-          job.nextAction = `Next ${frequency} service on ${new Date(nextDateStr).toLocaleDateString('en-NZ', {weekday: 'long', day: 'numeric', month: 'short'})}`;
-        }
-
-        renderJobs();
-        modal.remove();
-      };
-
-      modal.onclick = e => { if (e.target === modal) modal.remove(); };
-    }
-
-    async function deleteJob(jobId, jobAddress) {
-      const confirmed = confirm(
-        `Are you sure you want to delete this job?\n\n` +
-        `"${jobAddress}"\n\n` +
-        `This action cannot be undone.`
-      );
-
-      if (!confirmed) return;
-
-      try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Not signed in");
-
-        const token = await user.getIdToken();
-
-        const response = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Delete failed (${response.status})`);
-        }
-
-        // Remove from local array
-        currentJobs = currentJobs.filter(j => j.id !== jobId);
-
-        // Refresh UI
-        renderJobs();
-
-        // Optional: nice feedback
-        alert("Job deleted successfully.");
-      } catch (err) {
-        console.error("Delete job error:", err);
-        alert(`Failed to delete job: ${err.message}`);
-      }
-    }
-
-    // Filter setup
-    function setupFilters() {
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentFilter = btn.dataset.status;
-          renderJobs();
-        });
-      });
-    }
-
-    // Handle Email Quote clicks – real backend call
-    document.addEventListener('click', async function(e) {
-      if (e.target.classList.contains('email-quote-btn')) {
-        e.preventDefault();
-        
-        const quoteId = e.target.dataset.quoteId;
-        const btn = e.target;
-        
-        // Loading state
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = "Sending...";
-
-        try {
-          const user = auth.currentUser;
-          if (!user) throw new Error("Not signed in");
-
-          const token = await user.getIdToken();
-
-          const response = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-email`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+          `);
+          const modal = document.getElementById('modalContent');
+          modal.querySelector('.confirm-start-job').addEventListener('click', async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              const jobId = card.getAttribute('data-job-id');
+              if (!jobId) throw new Error("No job ID on card");
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  status: 'progress',
+                  nextAction: 'Service started on site', // ← changed wording
+                  startedAt: new Date().toISOString()
+                })
+              });
+              if (!patchRes.ok) {
+                const errData = await patchRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${patchRes.status})`);
+              }
+              closeModal();
+              card.dataset.stage = 'progress'; // match backend
+              updateCard(card);
+              alert("Service started on site!");
+              // Optional: refresh full list
+              loadAndRenderJobs();
+            } catch (err) {
+              console.error("Start job failed:", err);
+              alert("Failed to start job:\n" + err.message);
             }
           });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            alert("Quote email sent successfully!");
-            btn.textContent = "Email Sent ✓";
-            btn.style.background = '#28a745';
-          } else {
-            throw new Error(result.error || "Failed to send email");
-          }
-        } catch (err) {
-          console.error("Email send failed:", err);
-          alert("Could not send email: " + (err.message || "Unknown error"));
-          btn.textContent = originalText;
-        } finally {
-          btn.disabled = false;
         }
+        else if (stage === 'progress') {
+          // ── Complete Job ────────────────────────────────────────────────────────
+          showModal(`
+            <h2 class="modal-title">Complete Job</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+              Mark this job as completed?<br>
+              You can create an invoice afterwards.
+            </p>
+            <div class="modal-buttons">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button class="btn-modal btn-primary-modal confirm-complete-job">Yes – Complete</button>
+            </div>
+          `);
+          const modal = document.getElementById('modalContent');
+          modal.querySelector('.confirm-complete-job').addEventListener('click', async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              const jobId = card.getAttribute('data-job-id');
+              if (!jobId) throw new Error("No job ID on card");
+              // Prepare patch payload
+              const patchBody = {
+                status: 'completed',
+                nextAction: 'Job completed',
+                completedAt: new Date().toISOString(), // optional – nice to have
+                updatedAt: new Date().toISOString()
+              };
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(patchBody)
+              });
+              if (!patchRes.ok) {
+                const errData = await patchRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${patchRes.status})`);
+              }
+              closeModal();
+              // Update local card immediately
+              card.dataset.stage = 'completed';
+              updateCard(card);
+              alert("Job marked as completed!");
+              // Refresh full list to be safe (especially important if activity log is shown)
+              loadAndRenderJobs();
+            } catch (err) {
+              console.error("Complete job failed:", err);
+              alert("Failed to complete job:\n" + err.message);
+            }
+          });
+        }
+        else if (stage === 'completed') {
+          // ── Create Invoice from Completed Job ───────────────────────────────────
+          showModal(`
+            <div id="invoiceStep1">
+              <h2 class="modal-title">Create Invoice</h2>
+              <p style="margin-bottom:16px; color:#4b5563;">
+                Select which quote to base the invoice on:
+              </p>
+              <label style="display:block; margin-bottom:8px; font-weight:600;">Quote</label>
+              <select id="modal-quote-select" class="modal-select">
+                <option value="">-- Select a quote --</option>
+              </select>
+              <div class="modal-buttons" style="margin-top:24px;">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+                <button id="next-to-send" class="btn-modal btn-primary-modal" disabled>Next →</button>
+              </div>
+            </div>
+            <div id="invoiceStep2" style="display:none;">
+              <h2 class="modal-title">Send Invoice</h2>
+              <p style="margin-bottom:20px; color:#4b5563;">
+                How would you like to send the invoice to the client?
+              </p>
+              <div class="send-options">
+                <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+                <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+                <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+              </div>
+              <div class="modal-buttons" style="margin-top:24px;">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              </div>
+            </div>
+          `);
+          const modalContent = document.getElementById('modalContent');
+          const quoteSelect = modalContent.querySelector('#modal-quote-select');
+          const nextBtn = modalContent.querySelector('#next-to-send');
+          const jobId = card.getAttribute('data-job-id');
+          // ── Populate quotes dropdown ────────────────────────────────────────────
+          (async () => {
+            try {
+              const token = await auth.currentUser.getIdToken();
+              const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (!res.ok) throw new Error("Couldn't load job quotes");
+              const job = await res.json();
+              const quotes = job.quotes || [];
+              if (quotes.length === 0) {
+                quoteSelect.innerHTML = '<option value="">No quotes found for this job</option>';
+                return;
+              }
+              quotes.forEach(q => {
+                const opt = document.createElement('option');
+                opt.value = q.id;
+                const dateStr = new Date(q.date || q.createdAt || Date.now())
+                  .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+                const amount = (q.totalInclGst || q.total || 0).toFixed(2);
+                opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
+                opt.dataset.quoteId = q.id;
+                quoteSelect.appendChild(opt);
+              });
+              // Enable next button once a quote is selected
+              quoteSelect.addEventListener('change', () => {
+                nextBtn.disabled = !quoteSelect.value;
+              });
+            } catch (err) {
+              console.error(err);
+              quoteSelect.innerHTML = '<option value="">Error loading quotes</option>';
+            }
+          })();
+          // Next → button (switch to step 2)
+          nextBtn.addEventListener('click', () => {
+            document.getElementById('invoiceStep1').style.display = 'none';
+            document.getElementById('invoiceStep2').style.display = 'block';
+          });
+          // Send buttons → do backend update + redirect
+          modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const selectedQuoteId = quoteSelect.value;
+              if (!selectedQuoteId) return alert("Please select a quote first");
+              try {
+                const token = await auth.currentUser.getIdToken();
+                // Update job status to 'invoiced'
+                const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    status: 'invoiced',
+                    nextAction: 'Invoice created',
+                    invoicedAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                  })
+                });
+                if (!patchRes.ok) {
+                  const errData = await patchRes.json().catch(() => ({}));
+                  throw new Error(errData.error || `Update failed (${patchRes.status})`);
+                }
+                closeModal();
+                // Redirect to invoice creation page with jobId & selected quoteId
+                window.location.href = `create_invoice.html?jobId=${jobId}&quoteId=${selectedQuoteId}`;
+              } catch (err) {
+                console.error("Invoice creation flow failed:", err);
+                alert("Failed to update job status:\n" + err.message);
+              }
+            });
+          });
+        }
+        else if (stage === 'invoiced') {
+          // ── Mark as Paid ────────────────────────────────────────────────────────
+          showModal(`
+            <h2 class="modal-title">Mark as Paid</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+              Confirm that the full invoice has been paid?<br>
+              This will move the job to "Paid" status.
+            </p>
+            <div class="modal-buttons">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button class="btn-modal btn-primary-modal confirm-mark-paid">Yes – Mark as Paid</button>
+            </div>
+          `);
+          const modal = document.getElementById('modalContent');
+          modal.querySelector('.confirm-mark-paid').addEventListener('click', async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              const jobId = card.getAttribute('data-job-id');
+              if (!jobId) throw new Error("No job ID on card");
+              const patchBody = {
+                status: 'paid',
+                nextAction: 'Payment received',
+                paidAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(patchBody)
+              });
+              if (!patchRes.ok) {
+                const errData = await patchRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${patchRes.status})`);
+              }
+              closeModal();
+              // Update local card immediately
+              card.dataset.stage = 'paid';
+              updateCard(card);
+              alert("Job marked as paid!");
+              // Refresh full list to show updated status/activity log
+              loadAndRenderJobs();
+            } catch (err) {
+              console.error("Mark as paid failed:", err);
+              alert("Failed to mark job as paid:\n" + err.message);
+            }
+          });
+        }
+        else {
+          advanceStage(card);
+        }
+      });
+    }
+    // 3. Overflow ⋯ menu toggle
+    const overflow = card.querySelector('.overflow');
+    const menu = card.querySelector('.menu');
+    if (overflow && menu) {
+      overflow.addEventListener('click', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.menu.show').forEach(m => m.classList.remove('show'));
+        menu.classList.toggle('show');
+      });
+    }
+    // 4. Menu item clicks (including delete-quote + schedule-visit)
+    card.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', async () => {
+        const action = item.dataset.action;
+        const jobId = card.getAttribute('data-job-id') || '';
+        const quoteId = card.getAttribute('data-quote-id') || '';
+        const currentMenu = card.querySelector('.menu');
+        if (action === 'view-details') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          const jobId = card.getAttribute('data-job-id');
+          if (!jobId) {
+            alert("Cannot load details — job ID missing");
+            return;
+          }
+          // Fetch fresh job data (recommended for full details)
+          const token = await auth.currentUser.getIdToken();
+          fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          .then(res => {
+            if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const fullJob = data.jobs?.find(j => j.id === jobId) || data;
+            showJobDetailsModal(fullJob, jobId); // ← pass jobId (string)
+          })
+          .catch(err => {
+            console.error("Failed to load job details:", err);
+            alert("Could not load job details: " + err.message);
+          });
+        }
+        else if (action === 'edit-quote') {
+          window.location.href = 'quote.html';
+        }
+        else if (action === 'delete-quote') {
+          if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
+          if (!quoteId || quoteId.trim() === '') {
+            alert("Cannot delete — no quote is associated with this job card");
+            return;
+          }
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+              const errBody = await res.json().catch(() => ({}));
+              throw new Error(errBody.error || `Delete failed (${res.status})`);
+            }
+            card.dataset.stage = 'created';
+            updateCard(card);
+            if (currentMenu) currentMenu.classList.remove('show');
+            alert("Quote deleted successfully");
+          } catch (err) {
+            console.error("Delete quote failed:", err);
+            alert("Failed to delete quote:\n" + err.message);
+          }
+        }
+        else if (action === 'schedule-visit') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          showScheduleModal(card);
+        }
+        if (currentMenu) currentMenu.classList.remove('show');
+      });
+    });
+  });
+  // Close menus when clicking anywhere outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.overflow') && !e.target.closest('.menu')) {
+      document.querySelectorAll('.menu.show').forEach(m => m.classList.remove('show'));
+    }
+  });
+}
+// ── Start ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)
+      await loadAndRenderJobs(); // ← add await if your function returns a Promise
+      // ───────────────────────────────────────────────────────────────
+      // After jobs are loaded and rendered → check URL for ?jobId=...
+      // and scroll + highlight the matching job card
+      // ───────────────────────────────────────────────────────────────
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetJobId = urlParams.get('jobId');
+      if (targetJobId) {
+        const targetCard = document.querySelector(
+          `.job-card[data-job-id="${targetJobId}"]`
+        );
+        if (targetCard) {
+          // Smooth scroll to center the card in the viewport
+          targetCard.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+          // Optional: brief visual highlight so user immediately sees "this is the one"
+          targetCard.style.transition = 'all 0.8s ease';
+          targetCard.style.boxShadow = '0 0 0 4px #7c3aed88'; // purple glow
+          targetCard.style.backgroundColor = '#f0f9ff'; // light blue tint
+          // Remove the highlight after ~3 seconds
+          setTimeout(() => {
+            targetCard.style.boxShadow = '';
+            targetCard.style.backgroundColor = '';
+          }, 3000);
+        } else {
+          console.warn(`Could not find job card with ID: ${targetJobId}`);
+        }
+        // Optional: clean up the URL so it doesn't keep the ?jobId param forever
+        // (doesn't reload the page)
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-    });
-
-    // Load jobs on init
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('loading').style.display = 'block';
-      setupFilters();
-      //loadJobs();
-    });
-  </script>
+    } else {
+      document.getElementById('jobs-container').innerHTML = `
+        <p style="text-align:center; padding:60px; color:#6b7280;">
+          Please sign in to view your jobs
+        </p>
+      `;
+    }
+  });
+  // Keep your existing modal close listener
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  // Keep your mini-status class addition (if still needed)
+  const miniStatuses = document.querySelectorAll('.mini-status');
+  miniStatuses.forEach(status => {
+    const text = status.textContent.toLowerCase().replace(' ', '-');
+    status.classList.add(`status-${text}`);
+  });
+});
+</script>
 </body>
 </html>
