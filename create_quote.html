@@ -227,6 +227,16 @@
       }
     });
 
+    //Detect edits
+    const quoteId = urlParams.get('quote');
+    const isEditMode = urlParams.get('edit') === 'true' && quoteId;
+    let editingQuoteId = null;
+    let editingQuoteData = null;
+
+    if (isEditMode) {
+      document.getElementById('generate-pdf-btn').textContent = "Update Quote";
+    }
+
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
     const btn = document.getElementById('lookup-btn');
@@ -354,11 +364,61 @@
     });
 
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const token = await user.getIdToken();
-        await loadQuoteSettingsAndPricing(token);
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const token = await user.getIdToken();
+
+      await loadQuoteSettingsAndPricing(token);
+
+      // ── Load quote if editing ─────────────────────────────────────
+      if (isEditMode && quoteId) {
+        try {
+          const token = await user.getIdToken();  // keep it anyway, in case backend logs it or something
+
+          // Use the PUBLIC endpoint that we know works
+          const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }  // optional but harmless
+          });
+
+          if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || `Quote not found (status ${res.status})`);
+          }
+
+          const quote = await res.json();
+          editingQuoteData = quote;
+          editingQuoteId   = quoteId;
+
+          // ── The rest stays exactly the same ──────────────────────────
+          // Populate fields
+          document.getElementById('quote-number').value = quote.quoteNumber || '';
+          document.getElementById('callout-input').value = quote.calloutFee ?? 80;
+          document.getElementById('difficulty-slider').value = quote.difficultyMultiplier ?? 1.0;
+          document.getElementById('difficulty-value').textContent = `${quote.difficultyMultiplier ?? 1.0}x`;
+          document.getElementById('catch-mulch').checked = !!quote.catchAndMulch;
+
+          const mowerRadio = document.getElementById(`mower-${quote.mowerType || 'push'}`);
+          if (mowerRadio) mowerRadio.checked = true;
+
+          // UX hint
+          document.querySelector('h2').textContent = `Editing Quote ${quote.quoteNumber || quoteId}`;
+
+          // Auto-load map + exclusions
+          if (quote.address) {
+            document.getElementById('address').value = quote.address;
+            setTimeout(() => document.getElementById('lookup-btn').click(), 300);
+          }
+
+        } catch (err) {
+          console.error("Failed to load quote for editing", err);
+          showError("Could not load quote for editing: " + err.message);
+        }
       }
     });
+
 
     function getSelectedMowerType() {
       const selected = document.querySelector('input[name="mowerType"]:checked');
@@ -688,6 +748,49 @@
       document.getElementById('btn-finish-editing').style.display = 'none';
 
       pricingBox.classList.remove('hidden');
+
+      // ────────────────────────────────────────────────
+      //          RESTORE EDIT MODE STATE
+      // ────────────────────────────────────────────────
+      if (isEditMode && editingQuoteData?.mapState) {
+
+        const ms = editingQuoteData.mapState;
+
+        // 1. Center & zoom to saved position
+        if (ms.center && ms.zoom) {
+          map.setView([ms.center.lat, ms.center.lng], ms.zoom);
+        }
+
+        // 2. Add saved exclusions (negative areas) — this is the most important part
+        if (ms.negativeGeoJSON?.type === 'FeatureCollection' && ms.negativeGeoJSON.features.length > 0) {
+
+          // We already have negativeLayer from ensureNegativeLayer()
+          const exclusionLayer = L.geoJSON(ms.negativeGeoJSON, {
+            style: {
+              color:      "#ff4444",
+              weight:     2,
+              fillColor:  "#ff4444",
+              fillOpacity: 0.6
+            }
+          });
+
+          exclusionLayer.eachLayer(layer => {
+            negativeLayer.addLayer(layer);
+          });
+
+          // Optional: make them editable right away if user came to edit
+          // (or wait until they click "Edit Areas")
+          // exclusionLayer.eachLayer(l => l.editing?.enable?.());
+        }
+
+        // 3. Optional: force recalculation now that exclusions are back
+        updateLawnArea();
+
+        // 4. Optional UX: show that we're using saved measurement
+        if (areaOverlay?._div) {
+          areaOverlay._div.innerHTML += ' <small>(from saved quote)</small>';
+        }
+      }
     }
 
     const btnNewShape = document.getElementById('btn-new-shape');
@@ -852,8 +955,14 @@
       };
 
       try {
-        const res = await fetch(`${WORKER_URL}/api/quotes`, {
-          method: 'POST',
+        const isUpdate = isEditMode && editingQuoteId;
+        const method   = isUpdate ? 'PATCH' : 'POST';
+        const url      = isUpdate 
+          ? `${WORKER_URL}/api/quotes/${editingQuoteId}`
+          : `${WORKER_URL}/api/quotes`;
+
+        const res = await fetch(url, {
+          method: method,
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -863,17 +972,32 @@
 
         if (!res.ok) {
           const errText = await res.text();
-          throw new Error(errText || 'Failed to save quote');
+          throw new Error(errText || (isUpdate ? 'Failed to update quote' : 'Failed to save quote'));
         }
 
-        const { quoteId } = await res.json();
-        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+        let quoteIdReturned;
+        if (isUpdate) {
+          // For PUT/update your backend might return 200/204 with no body,
+          // or return the updated quote object — handle both cases
+          quoteIdReturned = editingQuoteId;
+          // Optional: if your PUT returns the full updated quote, you could do:
+          // const updated = await res.json();
+          // quoteIdReturned = updated.id || editingQuoteId;
+        } else {
+          const data = await res.json();
+          quoteIdReturned = data.quoteId;   // assuming your POST returns { quoteId: "..." }
+        }
+
+        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteIdReturned}`;
 
         document.getElementById('quote-link').href = publicLink;
         document.getElementById('quote-link').textContent = publicLink;
         document.getElementById('quote-link-box').classList.remove('hidden');
 
-        alert('Quote saved successfully!\n\nShare this link with your client:\n' + publicLink);
+        alert(isUpdate 
+          ? `Quote updated successfully!\n\nShare this link with your client:\n${publicLink}`
+          : `Quote saved successfully!\n\nShare this link with your client:\n${publicLink}`
+        );
 
         if (jobId) {
           setTimeout(() => {
