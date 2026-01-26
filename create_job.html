@@ -16,7 +16,7 @@
     .form-group { margin-bottom: 24px; position: relative; }
     label { display: block; margin-bottom: 8px; font-weight: 600; color: #d1d5db; font-size: 1rem; }
     input, textarea { 
-      width: 100%; padding: 12px 16px; background: #2a2a2a; border: 1px solid #444; 
+      width: 100%; padding: 12px 16px; background: #f9fafb; border: 1px solid #444; 
       border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box; 
     }
     input:focus, textarea:focus { 
@@ -42,7 +42,7 @@
       overflow-y: auto;
       z-index: 10;
       margin-top: 4px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     }
     .suggestions.hidden { display: none; }
     .suggestion-item {
@@ -89,7 +89,7 @@
 
       <div class="form-group">
         <label for="jobNotes">Job Notes / Special Instructions</label>
-        <textarea id="jobNotes" name="jobNotes" rows="4" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:8px; color:white; resize:vertical;"></textarea>
+        <textarea id="jobNotes" name="jobNotes" rows="4"></textarea>
       </div>
 
       <button type="submit" class="btn-submit" id="submitBtn">Create Job</button>
@@ -221,6 +221,7 @@
         if (!user) {
           showMessage('You must be signed in to create a job.', 'error');
           resetButton();
+          window.location.href = 'login.html';
           return;
         }
 
