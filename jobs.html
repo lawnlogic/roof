@@ -428,6 +428,18 @@ const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 // ── STAGES config (kept as-is) ──────────────────────────────────────────
 const STAGES = [
   {
+    id: 'lead',
+    label: 'Lead',
+    color: 'status-create_quote',
+    progress: 7.145,
+    primary: 'Create Quote',
+    lastActivity: 'Quote Deleted',
+    menuItems: [
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Cancel Job', action: 'cancel-job', danger: true }
+    ]
+  },
+  {
     id: 'quoted',
     label: 'Quote Created',
     color: 'status-created',
@@ -828,6 +840,7 @@ async function loadAndRenderJobs() {
       console.log('[Status debug]', { backendStatus: job.status, normalized: job.status });
       const statusInfo = STAGES.find(s => s.id === job.status)
                       || STAGES.find(s => s.id === job.status.toLowerCase())
+                      || STAGES.find(s => s.id === 'quoted') // Default to 'quoted' for new jobs
                       || STAGES[0];
       console.log('[Found stage]', { id: statusInfo.id, label: statusInfo.label, primary: statusInfo.primary });
       let clientName = job.client?.firstName || "Unknown";
@@ -994,6 +1007,16 @@ function attachCardEventListeners() {
             return;
           }
         }
+        // ── NEW: Handle lead stage (Create Quote) ───────────────────────
+        if (stage === 'lead') {
+          const jobId = card.getAttribute('data-job-id');
+          if (!jobId) {
+            alert("No job ID found");
+            return;
+          }
+          window.location.href = `create_quote.html?jobId=${jobId}`;
+          return;
+        }
         // ── Existing stage handlers ───────────────────────────────────────
         if (stage === 'quoted') {
           // Send Quote modal (your existing flow)
@@ -1016,6 +1039,7 @@ function attachCardEventListeners() {
               if (!isEmail) {
                 closeModal();
                 advanceStage(card);
+                loadAndRenderJobs(); // refresh to sync backend
                 return;
               }
               btn.disabled = true;
@@ -1379,7 +1403,7 @@ function attachCardEventListeners() {
           });
         }
         else if (action === 'edit-quote') {
-          window.location.href = 'quote.html';
+          window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
         }
         else if (action === 'delete-quote') {
           if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
@@ -1399,10 +1423,11 @@ function attachCardEventListeners() {
               const errBody = await res.json().catch(() => ({}));
               throw new Error(errBody.error || `Delete failed (${res.status})`);
             }
-            card.dataset.stage = 'created';
+            card.dataset.stage = 'lead';
             updateCard(card);
             if (currentMenu) currentMenu.classList.remove('show');
             alert("Quote deleted successfully");
+            loadAndRenderJobs(); // refresh to sync backend
           } catch (err) {
             console.error("Delete quote failed:", err);
             alert("Failed to delete quote:\n" + err.message);

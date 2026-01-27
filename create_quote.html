@@ -999,9 +999,10 @@
           : `Quote saved successfully!\n\nShare this link with your client:\n${publicLink}`
         );
 
-        if (jobId) {
+        const targetJobId = jobId || (editingQuoteData?.jobId);
+        if (targetJobId) {
           setTimeout(() => {
-            window.location.href = 'jobs.html';
+            window.location.href = `jobs.html?jobId=${targetJobId}`;
           }, 1800);
         }
 
