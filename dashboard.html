@@ -227,9 +227,56 @@
       border-radius: unset !important;
     }
 
+    /* Loading splash screen */
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #loading-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    #loading-splash p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
   </style>
 </head>
 <body>
+
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
 
 <div class="container">
 
@@ -303,6 +350,20 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- New Customers Widget -->
+  <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; margin-bottom: 32px;">
+    <h3 style="color: white;">New Customers</h3>
+    <div class="stat-value" style="color: white; font-size: 3.5rem;" id="newCustomersCount">0</div>
+    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Created this month</div>
+  </div>
+
+  <!-- Total Active Customers Widget -->
+  <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; margin-bottom: 32px;">
+    <h3 style="color: white;">Active Customers</h3>
+    <div class="stat-value" style="color: white; font-size: 3.5rem;" id="activeCustomersCount">0</div>
+    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Currently working with</div>
   </div>
 
   <!-- Company Profile Card -->
@@ -467,6 +528,51 @@ async function loadDashboardData() {
         return sum + jobTotal;
       }, 0);
 
+    // Count new customers created this month
+    const newCustomersThisMonth = new Set();
+    jobs.forEach(job => {
+      // Get the earliest activity log timestamp (when customer was first created)
+      let customerCreationDate = null;
+      
+      if (job.activityLog && job.activityLog.length > 0) {
+        // Sort activity logs by date and get the earliest one
+        const sortedLogs = job.activityLog.sort((a, b) => 
+          new Date(a.timestamp) - new Date(b.timestamp)
+        );
+        const earliestLog = sortedLogs[0];
+        if (earliestLog && earliestLog.timestamp) {
+          customerCreationDate = new Date(earliestLog.timestamp);
+        }
+      }
+      
+      // If no activity log, use createdAt as fallback
+      if (!customerCreationDate && job.createdAt) {
+        customerCreationDate = new Date(job.createdAt);
+      }
+      
+      // Check if customer was created this month
+      if (customerCreationDate) {
+        if (customerCreationDate.getMonth() === currentMonth && 
+            customerCreationDate.getFullYear() === currentYear) {
+          // Add unique client identifier (use job.client.id or job.id as fallback)
+          const clientId = job.client?.id || job.id;
+          newCustomersThisMonth.add(clientId);
+        }
+      }
+    });
+
+    // Count total active customers (customers with ongoing or pending jobs)
+    const activeCustomers = new Set();
+    jobs.forEach(job => {
+      // Active statuses: lead, quoted, quoteSent, won, progress (exclude completed, invoiced, paid)
+      const activeStatuses = ['lead', 'quoted', 'quoteSent', 'won', 'progress'];
+      if (activeStatuses.includes(job.status)) {
+        // Add unique client identifier
+        const clientId = job.client?.id || job.id;
+        activeCustomers.add(clientId);
+      }
+    });
+
     const remainingThisMonth = scheduledThisMonth - completedThisMonth;
 
     // Update UI
@@ -484,13 +590,17 @@ async function loadDashboardData() {
     document.getElementById('totalScheduled').textContent = `${scheduledThisMonth} total scheduled`;
     document.getElementById('remainingJobs').textContent = `${Math.max(0, remainingThisMonth)} remaining`;
     document.getElementById('totalRevenue').textContent = `$${totalRevenue.toLocaleString('en-NZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('newCustomersCount').textContent = newCustomersThisMonth.size;
+    document.getElementById('activeCustomersCount').textContent = activeCustomers.size;
 
     console.log('Dashboard data loaded:', {
       jobsToday,
       completedThisMonth,
       scheduledThisMonth,
       remainingThisMonth,
-      totalRevenue
+      totalRevenue,
+      newCustomers: newCustomersThisMonth.size,
+      activeCustomers: activeCustomers.size
     });
 
   } catch (err) {
@@ -502,9 +612,16 @@ async function loadDashboardData() {
 }
 
 // Load data when user is authenticated
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   if (user) {
-    loadDashboardData();
+    await loadDashboardData();
+    
+    // Hide loading splash screen
+    const loadingSplash = document.getElementById('loading-splash');
+    if (loadingSplash) {
+      loadingSplash.classList.add('fade-out');
+      setTimeout(() => loadingSplash.style.display = 'none', 500);
+    }
   }
 });
 </script>
