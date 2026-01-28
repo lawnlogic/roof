@@ -328,7 +328,7 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 10px;
       margin-bottom: 48px;
       box-shadow: var(--shadow);
       overflow-x: auto;
@@ -370,6 +370,14 @@
     }
     .calendar-day.header:hover {
       background: #f3f4f6;
+    }
+    .calendar-day.past {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .calendar-day.past:hover {
+      background: #f9fafb;
     }
     .calendar-day-number {
       font-weight: 600;
@@ -430,9 +438,55 @@
       border: 2px solid var(--accent);
       box-shadow: 0 16px 40px rgba(124,58,237,0.15);
     }
+    /* Loading splash screen */
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #loading-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    #loading-splash p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading your jobs...</p>
+  </div>
+
 <div class="container">
   <div class="header">
     <h1>Your Jobs</h1>
@@ -442,30 +496,15 @@
   </div>
   <h2>Today</h2>
   <div class="today-previews">
-    <div class="mini-card">
-      <div class="mini-address">40 Griffen Park Road, Mount Roskill</div>
-      <div class="mini-meta">
-        <span class="mini-status status-progress">In Progress</span>
-        <span>$85 due • 9:00 AM</span>
-      </div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-address">15 Oak Street, Epsom</div>
-      <div class="mini-meta">
-        <span class="mini-status status-won">Job Won</span>
-        <span>$120 due • 11:30 AM</span>
-      </div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-address">22 Pine Avenue, Remuera</div>
-      <div class="mini-meta">
-        <span class="mini-status status-completed">Completed</span>
-        <span>$95 due • 2:00 PM</span>
-      </div>
-    </div>
+    <!-- Dynamic today's jobs will be inserted here -->
   </div>
   <h2>Calendar</h2>
   <div class="calendar" id="calendarContainer">
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; justify-content: center;">
+      <button id="prevMonthBtn" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">← Prev</button>
+      <span id="calendarMonth" style="min-width: 150px; text-align: center; font-weight: 600;"></span>
+      <button id="nextMonthBtn" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Next →</button>
+    </div>
     <div class="calendar-grid" id="calendarGrid">
       <!-- Generated dynamically -->
     </div>
@@ -869,15 +908,29 @@ function getPrimaryActionText(stage) {
   return map[stage] || "Next Step";
 }
 
+// ── Calendar navigation state ──────────────────────────────────────────────
+let displayedMonth = new Date().getMonth();
+let displayedYear = new Date().getFullYear();
+
 // ── Function to render calendar with job counts ────────────────────────────
-function renderCalendar(jobs) {
+function renderCalendar(jobs, monthOffset = 0) {
   const calendarGrid = document.getElementById('calendarGrid');
   if (!calendarGrid) return;
 
-  // Get current month
+  // Calculate month/year to display (with optional offset for navigation)
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  let year = displayedYear + Math.floor((displayedMonth + monthOffset) / 12);
+  let month = (displayedMonth + monthOffset) % 12;
+  
+  // Handle negative months
+  if (month < 0) {
+    month += 12;
+    year -= 1;
+  }
+  
+  // Update state
+  displayedMonth = month;
+  displayedYear = year;
   
   // First day of month and number of days
   const firstDay = new Date(year, month, 1).getDay();
@@ -886,14 +939,84 @@ function renderCalendar(jobs) {
   // Count jobs due on each day
   const jobsByDay = {};
   jobs.forEach(job => {
+    const datesToAdd = [];
+    
+    // For jobs with nextServiceDate, use that
     if (job.nextServiceDate) {
-      const jobDate = new Date(job.nextServiceDate);
+      datesToAdd.push(new Date(job.nextServiceDate));
+      
+      // If recurring, generate all occurrences in this month
+      if (job.isRecurring && job.recurrence) {
+        const startDate = new Date(job.nextServiceDate);
+        let currentDate = new Date(startDate);
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+        
+        // Determine interval in days
+        let intervalDays = 0;
+        if (job.recurrence.toLowerCase() === 'weekly') {
+          intervalDays = 7;
+        } else if (job.recurrence.toLowerCase() === 'fortnightly') {
+          intervalDays = 14;
+        } else if (job.recurrence.toLowerCase() === 'monthly') {
+          intervalDays = -1; // Special flag for monthly
+        }
+        
+        // Generate recurring dates
+        if (intervalDays > 0) {
+          // Weekly or Fortnightly
+          while (currentDate <= monthEnd) {
+            if (currentDate >= monthStart && currentDate.getFullYear() === year && currentDate.getMonth() === month) {
+              datesToAdd.push(new Date(currentDate));
+            }
+            currentDate.setDate(currentDate.getDate() + intervalDays);
+          }
+        } else if (intervalDays === -1) {
+          // Monthly: add same day of each month
+          currentDate = new Date(startDate);
+          while (currentDate <= monthEnd) {
+            if (currentDate >= monthStart && currentDate.getFullYear() === year && currentDate.getMonth() === month) {
+              datesToAdd.push(new Date(currentDate));
+            }
+            currentDate.setMonth(currentDate.getMonth() + 1);
+          }
+        }
+      }
+    }
+    // For new jobs (lead or created status), show on creation date (today)
+    else if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
+      datesToAdd.push(new Date(job.createdAt));
+    }
+    // For jobs in quoteSent status, show on the day AFTER the quote was sent
+    else if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+      // Find the most recent "Quote sent" action in the activity log
+      const quoteSentAction = job.activityLog.find(log => 
+        log.action && log.action.toLowerCase().includes('quote sent')
+      );
+      if (quoteSentAction && quoteSentAction.timestamp) {
+        const jobDate = new Date(quoteSentAction.timestamp);
+        // Add 1 day to the quote sent date
+        jobDate.setDate(jobDate.getDate() + 1);
+        datesToAdd.push(jobDate);
+      }
+    }
+    
+    // Add all dates to jobsByDay count
+    datesToAdd.forEach(jobDate => {
       if (jobDate.getFullYear() === year && jobDate.getMonth() === month) {
         const day = jobDate.getDate();
         jobsByDay[day] = (jobsByDay[day] || 0) + 1;
       }
-    }
+    });
   });
+  
+  // Update month display
+  const monthDisplay = document.getElementById('calendarMonth');
+  if (monthDisplay) {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    monthDisplay.textContent = `${monthNames[month]} ${year}`;
+  }
   
   // Build calendar grid
   calendarGrid.innerHTML = '';
@@ -919,6 +1042,16 @@ function renderCalendar(jobs) {
     const dayCell = document.createElement('div');
     dayCell.className = 'calendar-day';
     
+    // Check if date is in the past
+    const cellDate = new Date(year, month, day);
+    cellDate.setHours(0, 0, 0, 0);
+    const todayCompare = new Date();
+    todayCompare.setHours(0, 0, 0, 0);
+    
+    if (cellDate < todayCompare) {
+      dayCell.classList.add('past');
+    }
+    
     // Mark today
     if (day === today.getDate()) {
       dayCell.classList.add('today');
@@ -936,17 +1069,19 @@ function renderCalendar(jobs) {
       dayCell.appendChild(counter);
     }
     
-    // Add click handler to show jobs for that day
+    // Add click handler to show jobs for that day (only for future dates)
     const clickDate = new Date(year, month, day);
-    dayCell.addEventListener('click', () => {
-      renderJobsForDate(clickDate, jobs);
-      // Update calendar highlighting
-      document.querySelectorAll('.calendar-day.today').forEach(d => {
-        if (d.classList.contains('header')) return;
-        d.classList.remove('today');
+    if (cellDate >= todayCompare) {
+      dayCell.addEventListener('click', () => {
+        renderJobsForDate(clickDate, jobs);
+        // Update calendar highlighting
+        document.querySelectorAll('.calendar-day.today').forEach(d => {
+          if (d.classList.contains('header')) return;
+          d.classList.remove('today');
+        });
+        dayCell.classList.add('today');
       });
-      dayCell.classList.add('today');
-    });
+    }
     
     calendarGrid.appendChild(dayCell);
   }
@@ -987,28 +1122,88 @@ function renderTodayJobs(jobs, selectedDate = null) {
     // Exclude paid and invoiced jobs from Today section
     if (job.status === 'paid' || job.status === 'invoiced') return false;
     
-    // If checking a specific date, only show jobs with that service date
+    // If checking a specific date, check all the ways a job could appear on that day
     if (selectedDate) {
-      const hasDateOnDay = job.nextServiceDate ? (() => {
+      // 1. Check if job has nextServiceDate on this day
+      if (job.nextServiceDate) {
         const actionDate = new Date(job.nextServiceDate);
         actionDate.setHours(0, 0, 0, 0);
-        return actionDate.getTime() === targetDate.getTime();
-      })() : false;
-      return hasDateOnDay;
+        if (actionDate.getTime() === targetDate.getTime()) return true;
+        
+        // Check recurring occurrences
+        if (job.isRecurring && job.recurrence) {
+          const startDate = new Date(job.nextServiceDate);
+          startDate.setHours(0, 0, 0, 0);
+          
+          let intervalDays = 0;
+          if (job.recurrence.toLowerCase() === 'weekly') {
+            intervalDays = 7;
+          } else if (job.recurrence.toLowerCase() === 'fortnightly') {
+            intervalDays = 14;
+          } else if (job.recurrence.toLowerCase() === 'monthly') {
+            intervalDays = -1; // Special flag for monthly
+          }
+          
+          if (intervalDays > 0) {
+            // Weekly or Fortnightly
+            const daysDiff = Math.floor((targetDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+            if (daysDiff >= 0 && daysDiff % intervalDays === 0) return true;
+          } else if (intervalDays === -1) {
+            // Monthly: check if same day of month
+            if (targetDate.getDate() === startDate.getDate() && targetDate >= startDate) return true;
+          }
+        }
+      }
+      
+      // 2. Check if job is lead/created and was created on this day
+      if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
+        const createdDate = new Date(job.createdAt);
+        createdDate.setHours(0, 0, 0, 0);
+        if (createdDate.getTime() === targetDate.getTime()) return true;
+      }
+      
+      // 3. Check if job is quoteSent and quote was sent on the day BEFORE
+      if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+        const quoteSentAction = job.activityLog.find(log => 
+          log.action && log.action.toLowerCase().includes('quote sent')
+        );
+        if (quoteSentAction && quoteSentAction.timestamp) {
+          const sentDate = new Date(quoteSentAction.timestamp);
+          sentDate.setDate(sentDate.getDate() + 1); // Add 1 day
+          sentDate.setHours(0, 0, 0, 0);
+          if (sentDate.getTime() === targetDate.getTime()) return true;
+        }
+      }
+      
+      return false;
     }
     
-    // Default behavior (for today): show action stages or jobs with service date today
-    const isActionStage = actionStages.includes(job.status);
+    // Default behavior (for today): show new/quoted jobs, or any job with service date today
+    // Jobs that always show (new jobs, ready to quote/send)
+    const alwaysShowStages = ['lead', 'created', 'quoted'];
+    if (alwaysShowStages.includes(job.status)) return true;
     
-    // Also check if job has a nextServiceDate that is today
-    const hasDateToday = job.nextServiceDate ? (() => {
+    // Jobs that only show if they have a nextServiceDate today (won, progress, quoteSent)
+    if (job.nextServiceDate) {
       const actionDate = new Date(job.nextServiceDate);
       actionDate.setHours(0, 0, 0, 0);
-      return actionDate.getTime() === targetDate.getTime();
-    })() : false;
+      if (actionDate.getTime() === targetDate.getTime()) return true;
+    }
     
-    // Show job if it's in an action stage OR has a service date today
-    return isActionStage || hasDateToday;
+    // For quoteSent, also check if quote was sent yesterday (appears on day after)
+    if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+      const quoteSentAction = job.activityLog.find(log => 
+        log.action && log.action.includes('Quote sent')
+      );
+      if (quoteSentAction && quoteSentAction.timestamp) {
+        const quoteSentDate = new Date(quoteSentAction.timestamp);
+        quoteSentDate.setHours(0, 0, 0, 0);
+        const yesterdayTime = targetDate.getTime() - (24 * 60 * 60 * 1000);
+        if (quoteSentDate.getTime() === yesterdayTime) return true;
+      }
+    }
+    
+    return false;
   });
   
   if (todayJobs.length === 0) {
@@ -1038,13 +1233,19 @@ function renderTodayJobs(jobs, selectedDate = null) {
     // Otherwise, we can show a generic action label based on status
     let actionLabel = job.nextAction || `Next: ${statusInfo.primary}`;
     
+    // Get latest quote total if available
+    const latestQuote = job.quotes && job.quotes.length > 0
+      ? job.quotes.reduce((a, b) => new Date(a.date || a.createdAt) > new Date(b.date || b.createdAt) ? a : b)
+      : null;
+    const quoteTotal = latestQuote ? `$${latestQuote.total.toFixed(2)}` : 'No quote';
+    
     const miniCardHTML = `
       <div class="mini-card" data-job-id="${job.id}" style="position:relative;">
         <div class="mini-address">${job.address || 'No address'}</div>
         <div class="mini-client">${clientName}</div>
         <div class="mini-meta">
           <span class="mini-status ${statusInfo.color}">${statusInfo.label}</span>
-          <span style="font-size: 0.8rem; color: #6b7280;">${job.nextAction || "—"}</span>
+          <span style="font-size: 0.8rem; color: #6b7280;">${quoteTotal}</span>
           <span>${actionLabel} • ${timeString}</span>
         </div>
       </div>
@@ -1110,6 +1311,13 @@ function expandMiniCard(card, job, jobId, jobs) {
     </span>`;
   }
   
+  // Get latest quote total if available
+  const latestQuoteExpanded = job.quotes && job.quotes.length > 0
+    ? job.quotes.reduce((a, b) => new Date(a.date || a.createdAt) > new Date(b.date || b.createdAt) ? a : b)
+    : null;
+  const quoteTotalExpanded = latestQuoteExpanded ? `$${latestQuoteExpanded.total.toFixed(2)}` : '';
+  const quoteTotalDisplay = quoteTotalExpanded ? `<span style="font-weight: 600; color: var(--accent);"> • ${quoteTotalExpanded}</span>` : '';
+  
   const expandedHTML = `
     <div class="job-card job-card-expanded" 
          data-stage="${statusInfo.id || 'created'}"
@@ -1121,7 +1329,7 @@ function expandMiniCard(card, job, jobId, jobs) {
         ${job.address || 'No address'}${recurringBadge}
       </div>
       <div class="job-client">
-        ${clientName} • ${job.client?.phone || "No phone"}
+        ${clientName} • ${job.client?.phone || "No phone"}${quoteTotalDisplay}
         ${job.nextServiceDate ? `
           <div class="next-service">
             Next ${job.recurrence ?
@@ -1251,15 +1459,13 @@ function attachSingleCardEventListeners(card, jobs) {
         modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
           btn.addEventListener('click', async () => {
             const isEmail = btn.classList.contains('send-email');
-            if (!isEmail) {
-              closeModal();
-              advanceStage(card);
-              loadAndRenderJobs();
-              return;
-            }
+            const isSMS = btn.classList.contains('send-sms');
+            const isClipboard = btn.classList.contains('send-clipboard');
+            
             btn.disabled = true;
-            btn.textContent = "Sending...";
+            btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
             let finalQuoteId = quoteIdFromCard;
+            
             try {
               if (!finalQuoteId || finalQuoteId.trim() === '') {
                 const user = auth.currentUser;
@@ -1277,29 +1483,60 @@ function attachSingleCardEventListeners(card, jobs) {
                 finalQuoteId = latestQ?.id;
                 if (!finalQuoteId) throw new Error("No quote found");
               }
+              
               const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
               const token = await user.getIdToken();
-              const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
-                method: 'POST',
+              
+              // Update backend status to quoteSent for all methods
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
                 headers: {
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                  status: 'quoteSent',
+                  nextAction: `Quote sent via ${isEmail ? 'email' : isSMS ? 'SMS' : 'clipboard'}`,
+                  updatedAt: new Date().toISOString()
+                })
               });
-              if (!sendRes.ok) {
-                let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
-                throw new Error(errMsg);
+              
+              if (!patchRes.ok) {
+                const errData = await patchRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${patchRes.status})`);
               }
+              
+              // If email, also call the send-email endpoint
+              if (isEmail) {
+                const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                if (!sendRes.ok) {
+                  let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                  throw new Error(errMsg);
+                }
+                alert("Quote email sent successfully!");
+              } else if (isClipboard) {
+                alert("Quote link copied to clipboard!");
+              } else if (isSMS) {
+                alert("Quote SMS will be sent when SMS feature is available!");
+              }
+              
               closeModal();
-              advanceStage(card);
-              alert("Quote email sent successfully!");
+              card.dataset.stage = 'quoteSent';
+              updateCard(card);
               loadAndRenderJobs();
             } catch (err) {
-              console.error('[Email send failed]', err);
-              alert("Failed to send email:\n" + err.message);
+              console.error('[Send quote failed]', err);
+              alert(`Failed to send quote:\n${err.message}`);
             } finally {
               btn.disabled = false;
-              btn.textContent = "Email";
+              btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
             }
           });
         });
@@ -1579,6 +1816,78 @@ function attachSingleCardEventListeners(card, jobs) {
       menu.classList.toggle('show');
     });
   }
+
+  // 4. Menu item clicks (schedule-visit, view-details, edit-quote, delete-quote)
+  card.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const action = item.dataset.action;
+      const jobId = card.getAttribute('data-job-id') || '';
+      const quoteId = card.getAttribute('data-quote-id') || '';
+      const currentMenu = card.querySelector('.menu');
+      
+      if (action === 'view-details') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        const jobId = card.getAttribute('data-job-id');
+        if (!jobId) {
+          alert("Cannot load details — job ID missing");
+          return;
+        }
+        const token = await auth.currentUser.getIdToken();
+        fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => {
+          if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          const fullJob = data.jobs?.find(j => j.id === jobId) || data;
+          showJobDetailsModal(fullJob, jobId);
+        })
+        .catch(err => {
+          console.error("Failed to load job details:", err);
+          alert("Could not load job details: " + err.message);
+        });
+      }
+      else if (action === 'edit-quote') {
+        window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+      }
+      else if (action === 'delete-quote') {
+        if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
+        if (!quoteId || quoteId.trim() === '') {
+          alert("Cannot delete — no quote is associated with this job card");
+          return;
+        }
+        try {
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not signed in");
+          const token = await user.getIdToken();
+          const res = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            throw new Error(errBody.error || `Delete failed (${res.status})`);
+          }
+          card.dataset.stage = 'lead';
+          updateCard(card);
+          if (currentMenu) currentMenu.classList.remove('show');
+          alert("Quote deleted successfully");
+          loadAndRenderJobs();
+        } catch (err) {
+          console.error("Delete quote failed:", err);
+          alert("Failed to delete quote:\n" + err.message);
+        }
+      }
+      else if (action === 'schedule-visit') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        showScheduleModal(card);
+      }
+      
+      if (currentMenu) currentMenu.classList.remove('show');
+    });
+  });
 }
 
 // ── Main render function ───────────────────────────────────────
@@ -1612,7 +1921,13 @@ async function loadAndRenderJobs() {
     renderTodayJobs(jobs);
     
     // Render calendar with job counts
-    renderCalendar(jobs);
+    renderCalendar(jobs, 0);
+    
+    // Attach month navigation handlers
+    const prevBtn = document.getElementById('prevMonthBtn');
+    const nextBtn = document.getElementById('nextMonthBtn');
+    if (prevBtn) prevBtn.addEventListener('click', () => renderCalendar(jobs, -1));
+    if (nextBtn) nextBtn.addEventListener('click', () => renderCalendar(jobs, 1));
     
     if (jobs.length === 0) {
       container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">No jobs yet.<br>Create your first job!</p>';
@@ -1666,7 +1981,7 @@ async function loadAndRenderJobs() {
             ${job.address || 'No address'}${recurringBadge}
           </div>
           <div class="job-client">
-            ${clientName} • ${job.client?.phone || "No phone"}
+            ${clientName} • ${job.client?.phone || "No phone"} ${latestQuote ? `<span style="font-weight: 600; color: var(--accent);"> • $${latestQuote.total.toFixed(2)}</span>` : ''}
             ${job.nextServiceDate ? `
               <div class="next-service">
                 Next ${job.recurrence ?
@@ -1829,15 +2144,13 @@ function attachCardEventListeners() {
           modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
             btn.addEventListener('click', async () => {
               const isEmail = btn.classList.contains('send-email');
-              if (!isEmail) {
-                closeModal();
-                advanceStage(card);
-                loadAndRenderJobs(); // refresh to sync backend
-                return;
-              }
+              const isSMS = btn.classList.contains('send-sms');
+              const isClipboard = btn.classList.contains('send-clipboard');
+              
               btn.disabled = true;
-              btn.textContent = "Sending...";
+              btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
               let finalQuoteId = quoteIdFromCard;
+              
               try {
                 if (!finalQuoteId || finalQuoteId.trim() === '') {
                   console.warn('[Fallback] No quoteId → fetching job');
@@ -1856,29 +2169,60 @@ function attachCardEventListeners() {
                   finalQuoteId = latestQ?.id;
                   if (!finalQuoteId) throw new Error("No quote found");
                 }
+                
                 const user = auth.currentUser;
+                if (!user) throw new Error("Not signed in");
                 const token = await user.getIdToken();
-                const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
-                  method: 'POST',
+                
+                // Update backend status to quoteSent for all methods
+                const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                  method: 'PATCH',
                   headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                  }
+                  },
+                  body: JSON.stringify({
+                    status: 'quoteSent',
+                    nextAction: `Quote sent via ${isEmail ? 'email' : isSMS ? 'SMS' : 'clipboard'}`,
+                    updatedAt: new Date().toISOString()
+                  })
                 });
-                if (!sendRes.ok) {
-                  let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
-                  throw new Error(errMsg);
+                
+                if (!patchRes.ok) {
+                  const errData = await patchRes.json().catch(() => ({}));
+                  throw new Error(errData.error || `Update failed (${patchRes.status})`);
                 }
+                
+                // If email, also call the send-email endpoint
+                if (isEmail) {
+                  const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  if (!sendRes.ok) {
+                    let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                    throw new Error(errMsg);
+                  }
+                  alert("Quote email sent successfully!");
+                } else if (isClipboard) {
+                  alert("Quote link copied to clipboard!");
+                } else if (isSMS) {
+                  alert("Quote SMS will be sent when SMS feature is available!");
+                }
+                
                 closeModal();
-                advanceStage(card);
-                alert("Quote email sent successfully!");
+                card.dataset.stage = 'quoteSent';
+                updateCard(card);
                 loadAndRenderJobs(); // refresh to sync backend
               } catch (err) {
-                console.error('[Email send failed]', err);
-                alert("Failed to send email:\n" + err.message);
+                console.error('[Send quote failed]', err);
+                alert(`Failed to send quote:\n${err.message}`);
               } finally {
                 btn.disabled = false;
-                btn.textContent = "Email";
+                btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
               }
             });
           });
@@ -2247,6 +2591,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
       // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)
       await loadAndRenderJobs(); // ← add await if your function returns a Promise
+      
+      // Hide loading splash screen
+      const loadingSplash = document.getElementById('loading-splash');
+      if (loadingSplash) {
+        loadingSplash.classList.add('fade-out');
+        setTimeout(() => loadingSplash.style.display = 'none', 500);
+      }
+      
       // ───────────────────────────────────────────────────────────────
       // After jobs are loaded and rendered → check URL for ?jobId=...
       // and scroll + highlight the matching job card
