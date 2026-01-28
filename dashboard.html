@@ -120,16 +120,17 @@
       height: 100%;
     }
 
+    
     .donut-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2.8rem;
-      font-weight: 800;
-      color: var(--text);
-      text-align: center;
-      line-height: 1;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text);
+        text-align: center;
+        line-height: 1;
     }
 
     .donut-subtext {
@@ -187,6 +188,25 @@
     .highlight {
       color: var(--accent);
       font-weight: 600;
+    }
+
+    .btn-topup {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+      transition: all 0.2s;
+    }
+
+    .btn-topup:hover {
+      background: #6d28d9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(124,58,237,0.3);
     }
 
     @media (min-width: 640px) {
@@ -374,7 +394,7 @@
                a 15.9155 15.9155 0 0 1 0 31.831
                a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
-            stroke="#f59e0b"
+            stroke="var(--accent)"
             stroke-width="3.5"
             stroke-linecap="round"
             stroke-dasharray="10 100"
@@ -386,7 +406,7 @@
       </div>
 
       <div class="stat-label">Tier 1: 20c per SMS</div>
-      <button class="btn-topup" style="margin-top: 16px; width: 100%;">Top Up SMS</button>
+      <button class="btn-topup">Top Up SMS</button>
     </div>
 
   </div>
@@ -502,6 +522,38 @@ async function loadDashboardData() {
       if (userData.firstName) {
         const initial = userData.firstName.charAt(0).toUpperCase();
         document.getElementById('userInitial').textContent = initial;
+      }
+    }
+
+    // Fetch detailed profile with logo
+    const profileRes = await fetch(`${WORKER_URL}/api/user/profile`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (profileRes.ok) {
+      const { profile } = await profileRes.json();
+      
+      // Update company name from profile if available
+      if (profile.companyName) {
+        document.getElementById('companyName').textContent = profile.companyName;
+      }
+      
+      // Update company address/location from profile
+      if (profile.address) {
+        document.getElementById('companyLocation').textContent = profile.address;
+      }
+      
+      // Update logo image
+      if (profile.logoUrl) {
+        const userInitialDiv = document.getElementById('userInitial');
+        if (userInitialDiv) {
+          userInitialDiv.style.backgroundImage = `url('${profile.logoUrl}')`;
+          userInitialDiv.style.backgroundSize = 'cover';
+          userInitialDiv.style.backgroundPosition = 'center';
+          userInitialDiv.textContent = '';
+        }
       }
     }
 
