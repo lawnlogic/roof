@@ -350,6 +350,45 @@
       </div>
     </div>
 
+    <!-- SMS Usage -->
+    <div class="stat-card">
+      <h3>SMS Usage</h3>
+      <div class="donut-container">
+        <svg class="donut" viewBox="0 0 36 36">
+
+          <!-- Background circle -->
+          <path
+            d="M18 2.0845
+               a 15.9155 15.9155 0 0 1 0 31.831
+               a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="#e5e7eb"
+            stroke-width="3.5"
+          />
+
+          <!-- SMS usage circle -->
+          <path
+            class="circle"
+            id="smsCircle"
+            d="M18 2.0845
+               a 15.9155 15.9155 0 0 1 0 31.831
+               a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="#f59e0b"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-dasharray="10 100"
+          />
+
+        </svg>
+
+        <div class="donut-text" id="smsUsageText">10/100</div>
+      </div>
+
+      <div class="stat-label">Tier 1: 20c per SMS</div>
+      <button class="btn-topup" style="margin-top: 16px; width: 100%;">Top Up SMS</button>
+    </div>
+
   </div>
 
   <!-- New Customers Widget -->
