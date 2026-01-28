@@ -6,101 +6,325 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+  <script src="header.js" defer></script>
   <title>Sign In / Sign Up • Deep Edge</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8f9fa;
+    :root {
+      --bg: #f8f9fc;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #7c3aed;
+      --green: #10b981;
+      --green-dark: #059669;
+      --yellow: #d97706;
+      --blue: #2563eb;
+      --red: #dc2626;
+      --border: #e5e7eb;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
-      color: #333;
+      color: var(--text);
     }
+
     .login-container {
-      max-width: 380px;
-      margin: 60px auto;
-      background: linear-gradient(to left, #0a0a0a 0%, #0a0a0a 40%, #000 100%);
-      border: 1px solid #333;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.4s ease-out;
+      margin: auto;
     }
-    
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+
     .login-form-group {
-      margin-bottom: 1.4rem;
+      margin-bottom: 24px;
     }
+
     label {
       display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
+      margin-bottom: 8px;
+      font-weight: 600;
       font-size: 0.95rem;
+      color: var(--text);
     }
+
     input {
       width: 100%;
-      padding: 12px;
-      box-sizing: border-box;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: #fafbfc;
+      transition: all 0.25s;
     }
+
     input:focus {
       outline: none;
-      border-color: #6200ea;
-      box-shadow: 0 0 0 3px rgba(98,0,234,0.1);
+      border-color: var(--accent);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
     }
+
+    input:disabled {
+      background: #f3f4f6;
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    /* Password Requirements */
+    .password-requirements {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .requirement.met {
+      color: var(--green);
+    }
+
+    .requirement-icon {
+      font-size: 0.8rem;
+    }
+
     .buttons {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 1.5rem 0;
+      gap: 12px;
+      margin: 32px 0 24px;
     }
+
     button {
       flex: 1;
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: 500;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.25s;
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 44px;
     }
-    #btnSignUp { background: #6200ea; color: white; }
-    #btnSignIn { background: #304ffe; color: white; }
-    #btnSignOut { background: #d81b60; color: white; }
-    button:hover { filter: brightness(1.08); }
+
+    #btnSignUp {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    }
+
+    #btnSignUp:hover:not(:disabled) {
+      background: #6d28d9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+    }
+
+    #btnSignIn {
+      background: white;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    #btnSignIn:hover:not(:disabled) {
+      background: #f3f0ff;
+      transform: translateY(-2px);
+    }
+
+    #btnSignOut {
+      background: var(--red);
+      color: white;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    #btnSignOut:hover:not(:disabled) {
+      background: #b91c1c;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
     #message {
       min-height: 1.4em;
-      margin-top: 1rem;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      line-height: 1.4;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-top: 16px;
+      border: 1px solid transparent;
+      animation: fadeIn 0.3s ease-out;
     }
-    .success { background: #e8f5e9; color: #1b5e20; }
-    .error { background: #ffebee; color: #b71c1c; }
-    .info { background: #e3f2fd; color: #0d47a1; }
-    .hidden { display: none !important; }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .success {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .info {
+      background: #eff6ff;
+      color: #1e40af;
+      border-color: #bfdbfe;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .form-footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+
+    .form-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 32px 20px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+    }
   </style>
   <link rel="stylesheet" href="styles.css">
-  <script src="header.js" defer></script>
+  
 </head>
 <body>
   <div class="login-container">
-    <h1>Sign In / Sign Up</h1>
+    <h1>Deep Edge</h1>
+    <p class="subtitle">Professional lawn care management</p>
+
     <div class="login-form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="<you@example.com>" autocomplete="email" required />
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="email" required />
     </div>
+
     <div class="login-form-group">
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+      <div class="password-requirements" id="passwordReqs" style="display: none;">
+        <div class="requirement" id="reqLength">
+          <span class="requirement-icon">○</span>
+          <span>At least 6 characters</span>
+        </div>
+        <div class="requirement" id="reqLower">
+          <span class="requirement-icon">○</span>
+          <span>One lowercase letter</span>
+        </div>
+        <div class="requirement" id="reqUpper">
+          <span class="requirement-icon">○</span>
+          <span>One uppercase letter</span>
+        </div>
+        <div class="requirement" id="reqNumber">
+          <span class="requirement-icon">○</span>
+          <span>One number</span>
+        </div>
+      </div>
     </div>
+
     <div class="buttons">
       <button id="btnSignUp">Create Account</button>
       <button id="btnSignIn">Sign In</button>
       <button id="btnSignOut" class="hidden">Sign Out</button>
     </div>
+
     <div id="message" class="info">Enter your email and password to continue</div>
+
+    <div class="form-footer">
+      <p style="margin-bottom: 8px;">Need help? Contact support@deepedge.co.nz</p>
+    </div>
   </div>
   <script type="module">
     const firebaseConfig = {
@@ -120,8 +344,8 @@
       signInWithEmailAndPassword,
       onAuthStateChanged,
       signOut,
-      sendEmailVerification,   // ← Added
-      reload                        // ← Added for refresh
+      sendEmailVerification,
+      reload
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
@@ -133,13 +357,76 @@
     const btnSignUp = document.getElementById('btnSignUp');
     const btnSignIn = document.getElementById('btnSignIn');
     const btnSignOut = document.getElementById('btnSignOut');
+    const passwordReqs = document.getElementById('passwordReqs');
 
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    // Password validation helper
+    const validatePassword = (password) => {
+      return {
+        length: password.length >= 6,
+        lower: /[a-z]/.test(password),
+        upper: /[A-Z]/.test(password),
+        number: /[0-9]/.test(password)
+      };
+    };
+
+    const isPasswordValid = (password) => {
+      const rules = validatePassword(password);
+      return rules.length && rules.lower && rules.upper && rules.number;
+    };
+
+    // Update password requirements display
+    passwordEl.addEventListener('input', () => {
+      const password = passwordEl.value;
+      if (password.length > 0) {
+        passwordReqs.style.display = 'block';
+      } else {
+        passwordReqs.style.display = 'none';
+      }
+
+      const rules = validatePassword(password);
+
+      updateRequirement('reqLength', rules.length);
+      updateRequirement('reqLower', rules.lower);
+      updateRequirement('reqUpper', rules.upper);
+      updateRequirement('reqNumber', rules.number);
+    });
+
+    const updateRequirement = (id, met) => {
+      const el = document.getElementById(id);
+      if (met) {
+        el.classList.add('met');
+        el.querySelector('.requirement-icon').textContent = '✓';
+      } else {
+        el.classList.remove('met');
+        el.querySelector('.requirement-icon').textContent = '○';
+      }
+    };
 
     function showMessage(text, type = 'info') {
       msgEl.innerHTML = text;
       msgEl.className = type;
     }
+
+    // Improved error message parsing
+    const parseFirebaseError = (error) => {
+      const code = error.code;
+      const message = error.message;
+
+      const errorMap = {
+        'auth/email-already-in-use': 'This email is already registered. Please sign in instead.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password. Please try again.',
+        'auth/too-many-requests': 'Too many login attempts. Please try again later.',
+        'auth/operation-not-allowed': 'Sign up is currently disabled.',
+        'auth/network-request-failed': 'Network error. Please check your connection.',
+      };
+
+      return errorMap[code] || message || 'An error occurred. Please try again.';
+    };
 
     // Default profile created on sign-up
     const defaultProfile = {
@@ -173,10 +460,9 @@
           console.log("User profile created in USERS_KV:", profile);
         } else {
           const err = await res.json();
-          showMessage(`Profile save failed: ${err.error || 'Unknown'}`, "error");
+          console.warn(`Profile save failed: ${err.error || 'Unknown'}`);
         }
       } catch (e) {
-        showMessage("Network error saving profile", "error");
         console.error("Profile save error:", e);
       }
     }
@@ -185,21 +471,42 @@
     btnSignUp.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-      if (!email || !pass) return showMessage("Enter email and password", "error");
+
+      if (!email) {
+        showMessage("Please enter your email address.", "error");
+        return;
+      }
+
+      if (!pass) {
+        showMessage("Please enter a password.", "error");
+        return;
+      }
+
+      if (!isPasswordValid(pass)) {
+        showMessage("Password must contain at least 6 characters, including uppercase, lowercase, and a number.", "error");
+        return;
+      }
+
+      btnSignUp.disabled = true;
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const user = cred.user;
 
-        // Send verification email
         await sendEmailVerification(user);
-        showMessage("Account created! Please check your email to verify your address. Check Spam", "success");
+        showMessage("✓ Account created! Please check your email to verify your address (check spam folder).", "success");
 
-        // Create profile after verification email sent
         await createUserProfile(user);
 
+        emailEl.value = '';
+        passwordEl.value = '';
+        passwordReqs.style.display = 'none';
+
       } catch (error) {
-        showMessage(error.message || "Sign-up failed", "error");
+        const friendlyError = parseFirebaseError(error);
+        showMessage(friendlyError, "error");
+      } finally {
+        btnSignUp.disabled = false;
       }
     });
 
@@ -207,25 +514,44 @@
     btnSignIn.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-      if (!email || !pass) return showMessage("Enter email and password", "error");
+
+      if (!email) {
+        showMessage("Please enter your email address.", "error");
+        return;
+      }
+
+      if (!pass) {
+        showMessage("Please enter your password.", "error");
+        return;
+      }
+
+      btnSignIn.disabled = true;
 
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-        // Verification check handled in onAuthStateChanged
       } catch (error) {
-        showMessage(error.message || "Sign-in failed", "error");
+        const friendlyError = parseFirebaseError(error);
+        showMessage(friendlyError, "error");
+        btnSignIn.disabled = false;
       }
     });
 
     // Sign Out
     btnSignOut.addEventListener('click', async () => {
-      await signOut(auth);
+      btnSignOut.disabled = true;
+      try {
+        await signOut(auth);
+        showMessage("Signed out successfully.", "info");
+      } catch (error) {
+        showMessage("Sign out failed: " + parseFirebaseError(error), "error");
+      } finally {
+        btnSignOut.disabled = false;
+      }
     });
 
-    // Auth state observer - now checks email verification
+    // Auth state observer
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Refresh user data to get latest emailVerified status
         await reload(user);
         const verified = user.emailVerified;
 
@@ -236,19 +562,23 @@
         passwordEl.disabled = true;
 
         if (verified) {
-          // Redirect authenticated users to app
-          window.location.href = 'dashboard.html';
+          showMessage("✓ Email verified! Redirecting...", "success");
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
         } else {
-          showMessage("Please verify your email first. Check your inbox (and spam).", "info");
+          showMessage("⏳ Please verify your email first. Check your inbox (and spam folder).", "info");
         }
 
       } else {
-        showMessage("Sign in or create an account", "info");
+        showMessage("Enter your email and password to continue", "info");
         btnSignOut.classList.add('hidden');
         btnSignIn.classList.remove('hidden');
         btnSignUp.classList.remove('hidden');
         emailEl.disabled = false;
         passwordEl.disabled = false;
+        btnSignIn.disabled = false;
+        btnSignUp.disabled = false;
       }
     });
   </script>
