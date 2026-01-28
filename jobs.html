@@ -331,28 +331,77 @@
       padding: 20px;
       margin-bottom: 48px;
       box-shadow: var(--shadow);
+      overflow-x: auto;
     }
     .calendar-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
+      min-width: 100%;
     }
     .calendar-day {
-      padding: 12px;
+      padding: 12px 8px;
       text-align: center;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .calendar-day:hover {
+      background: #f9fafb;
+    }
+    .calendar-day.today {
+      border: 2px solid var(--accent);
+      background: #faf5ff;
     }
     .calendar-day.header {
       font-weight: 600;
       background: #f3f4f6;
+      min-height: auto;
+      padding: 8px;
+      cursor: default;
     }
-    .calendar-amount {
-      display: block;
-      margin-top: 4px;
-      color: var(--green);
+    .calendar-day.header:hover {
+      background: #f3f4f6;
+    }
+    .calendar-day-number {
       font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .calendar-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 600px) {
+      .calendar-grid {
+        gap: 4px;
+      }
+      .calendar-day {
+        padding: 8px 4px;
+        min-height: 50px;
+        font-size: 0.75rem;
+      }
+      .calendar-counter {
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+      }
     }
     .all-jobs {
       margin-bottom: 48px;
@@ -416,16 +465,9 @@
     </div>
   </div>
   <h2>Calendar</h2>
-  <div class="calendar">
-    <div class="calendar-grid">
-      <div class="calendar-day header">Sun</div>
-      <div class="calendar-day header">Mon</div>
-      <div class="calendar-day header">Tue</div>
-      <div class="calendar-day header">Wed</div>
-      <div class="calendar-day header">Thu</div>
-      <div class="calendar-day header">Fri</div>
-      <div class="calendar-day header">Sat</div>
-      <!-- ... calendar content truncated in original ... -->
+  <div class="calendar" id="calendarContainer">
+    <div class="calendar-grid" id="calendarGrid">
+      <!-- Generated dynamically -->
     </div>
   </div>
   <h2>All Jobs</h2>
@@ -826,27 +868,143 @@ function getPrimaryActionText(stage) {
   };
   return map[stage] || "Next Step";
 }
+
+// ── Function to render calendar with job counts ────────────────────────────
+function renderCalendar(jobs) {
+  const calendarGrid = document.getElementById('calendarGrid');
+  if (!calendarGrid) return;
+
+  // Get current month
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  // First day of month and number of days
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Count jobs due on each day
+  const jobsByDay = {};
+  jobs.forEach(job => {
+    if (job.nextServiceDate) {
+      const jobDate = new Date(job.nextServiceDate);
+      if (jobDate.getFullYear() === year && jobDate.getMonth() === month) {
+        const day = jobDate.getDate();
+        jobsByDay[day] = (jobsByDay[day] || 0) + 1;
+      }
+    }
+  });
+  
+  // Build calendar grid
+  calendarGrid.innerHTML = '';
+  
+  // Headers
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  days.forEach(day => {
+    const header = document.createElement('div');
+    header.className = 'calendar-day header';
+    header.textContent = day;
+    calendarGrid.appendChild(header);
+  });
+  
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'calendar-day';
+    calendarGrid.appendChild(emptyCell);
+  }
+  
+  // Days of month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day';
+    
+    // Mark today
+    if (day === today.getDate()) {
+      dayCell.classList.add('today');
+    }
+    
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'calendar-day-number';
+    dayNumber.textContent = day;
+    dayCell.appendChild(dayNumber);
+    
+    if (jobsByDay[day] && jobsByDay[day] > 0) {
+      const counter = document.createElement('div');
+      counter.className = 'calendar-counter';
+      counter.textContent = jobsByDay[day];
+      dayCell.appendChild(counter);
+    }
+    
+    // Add click handler to show jobs for that day
+    const clickDate = new Date(year, month, day);
+    dayCell.addEventListener('click', () => {
+      renderJobsForDate(clickDate, jobs);
+      // Update calendar highlighting
+      document.querySelectorAll('.calendar-day.today').forEach(d => {
+        if (d.classList.contains('header')) return;
+        d.classList.remove('today');
+      });
+      dayCell.classList.add('today');
+    });
+    
+    calendarGrid.appendChild(dayCell);
+  }
+}
+
+// ── Function to render jobs for a specific date ────────────────────────────
+function renderJobsForDate(selectedDate, jobs) {
+  const todayHeading = document.querySelector('h2');
+  if (!todayHeading) return;
+  
+  // Update heading with selected date
+  const dateStr = selectedDate.toLocaleDateString('en-NZ', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  todayHeading.textContent = dateStr;
+  
+  // Filter and render jobs for this date
+  renderTodayJobs(jobs, selectedDate);
+}
+
 // ── Function to render today's jobs ───────────────────────────────────────
-function renderTodayJobs(jobs) {
+function renderTodayJobs(jobs, selectedDate = null) {
   const todayContainer = document.querySelector('.today-previews');
   if (!todayContainer) return;
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Use selected date or today
+  const targetDate = selectedDate || new Date();
+  targetDate.setHours(0, 0, 0, 0);
   
   // Stages that should show in "Today" section
-  const actionStages = ['lead', 'quoted', 'won', 'progress'];
+  const actionStages = ['lead', 'created', 'quoted', 'won', 'progress'];
   
-  // Filter jobs that have actions due today
+  // Filter jobs that have actions due on target date
   const todayJobs = jobs.filter(job => {
-    // Check if job is in one of the action stages
+    // Exclude paid and invoiced jobs from Today section
+    if (job.status === 'paid' || job.status === 'invoiced') return false;
+    
+    // If checking a specific date, only show jobs with that service date
+    if (selectedDate) {
+      const hasDateOnDay = job.nextServiceDate ? (() => {
+        const actionDate = new Date(job.nextServiceDate);
+        actionDate.setHours(0, 0, 0, 0);
+        return actionDate.getTime() === targetDate.getTime();
+      })() : false;
+      return hasDateOnDay;
+    }
+    
+    // Default behavior (for today): show action stages or jobs with service date today
     const isActionStage = actionStages.includes(job.status);
     
     // Also check if job has a nextServiceDate that is today
     const hasDateToday = job.nextServiceDate ? (() => {
       const actionDate = new Date(job.nextServiceDate);
       actionDate.setHours(0, 0, 0, 0);
-      return actionDate.getTime() === today.getTime();
+      return actionDate.getTime() === targetDate.getTime();
     })() : false;
     
     // Show job if it's in an action stage OR has a service date today
@@ -854,7 +1012,7 @@ function renderTodayJobs(jobs) {
   });
   
   if (todayJobs.length === 0) {
-    todayContainer.innerHTML = '<p style="text-align:center; color:#6b7280; padding:20px;">No actions due today</p>';
+    todayContainer.innerHTML = '<p style="text-align:center; color:#6b7280; padding:20px;">No actions due on this date</p>';
     return;
   }
   
@@ -939,8 +1097,10 @@ function expandMiniCard(card, job, jobId, jobs) {
     clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
   }
   
+  // Apply same mapping logic as loadAndRenderJobs
   const statusInfo = STAGES.find(s => s.id === job.status)
                   || STAGES.find(s => s.id === job.status?.toLowerCase())
+                  || STAGES.find(s => s.id === 'quoted') // Default to 'quoted' for new jobs
                   || STAGES[0];
   
   let recurringBadge = "";
@@ -1442,8 +1602,18 @@ async function loadAndRenderJobs() {
     const data = await res.json();
     const jobs = data.jobs || [];
     
+    // Reset heading to "Today"
+    const headings = document.querySelectorAll('h2');
+    if (headings[0]) {
+      headings[0].textContent = 'Today';
+    }
+    
     // Render today's jobs at the top
     renderTodayJobs(jobs);
+    
+    // Render calendar with job counts
+    renderCalendar(jobs);
+    
     if (jobs.length === 0) {
       container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">No jobs yet.<br>Create your first job!</p>';
       return;
