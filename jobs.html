@@ -294,6 +294,7 @@
       width: 100%;
       max-width: 960px;
       margin: 0 auto;
+      cursor: pointer;
     }
     .mini-card:hover {
       transform: translateY(-3px);
@@ -355,6 +356,30 @@
     }
     .all-jobs {
       margin-bottom: 48px;
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+    .job-card-expanded {
+      border: 2px solid var(--accent);
+      box-shadow: 0 16px 40px rgba(124,58,237,0.15);
     }
   </style>
 </head>
@@ -801,6 +826,601 @@ function getPrimaryActionText(stage) {
   };
   return map[stage] || "Next Step";
 }
+// ── Function to render today's jobs ───────────────────────────────────────
+function renderTodayJobs(jobs) {
+  const todayContainer = document.querySelector('.today-previews');
+  if (!todayContainer) return;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Stages that should show in "Today" section
+  const actionStages = ['lead', 'quoted', 'won', 'progress'];
+  
+  // Filter jobs that have actions due today
+  const todayJobs = jobs.filter(job => {
+    // Check if job is in one of the action stages
+    const isActionStage = actionStages.includes(job.status);
+    
+    // Also check if job has a nextServiceDate that is today
+    const hasDateToday = job.nextServiceDate ? (() => {
+      const actionDate = new Date(job.nextServiceDate);
+      actionDate.setHours(0, 0, 0, 0);
+      return actionDate.getTime() === today.getTime();
+    })() : false;
+    
+    // Show job if it's in an action stage OR has a service date today
+    return isActionStage || hasDateToday;
+  });
+  
+  if (todayJobs.length === 0) {
+    todayContainer.innerHTML = '<p style="text-align:center; color:#6b7280; padding:20px;">No actions due today</p>';
+    return;
+  }
+  
+  todayContainer.innerHTML = '';
+  
+  todayJobs.forEach(job => {
+    let clientName = job.client?.firstName || "Unknown";
+    if (job.client?.lastName) {
+      clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
+    }
+    
+    const statusInfo = STAGES.find(s => s.id === job.status)
+                    || STAGES.find(s => s.id === job.status?.toLowerCase())
+                    || STAGES[0];
+    
+    const actionDate = new Date(job.nextServiceDate);
+    const timeString = actionDate.toLocaleTimeString('en-NZ', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // For now, we'll show the nextAction text. If it contains pricing info, great!
+    // Otherwise, we can show a generic action label based on status
+    let actionLabel = job.nextAction || `Next: ${statusInfo.primary}`;
+    
+    const miniCardHTML = `
+      <div class="mini-card" data-job-id="${job.id}" style="position:relative;">
+        <div class="mini-address">${job.address || 'No address'}</div>
+        <div class="mini-client">${clientName}</div>
+        <div class="mini-meta">
+          <span class="mini-status ${statusInfo.color}">${statusInfo.label}</span>
+          <span style="font-size: 0.8rem; color: #6b7280;">${job.nextAction || "—"}</span>
+          <span>${actionLabel} • ${timeString}</span>
+        </div>
+      </div>
+    `;
+    
+    todayContainer.insertAdjacentHTML('beforeend', miniCardHTML);
+  });
+  
+  // Attach click handlers to today's mini cards
+  todayContainer.querySelectorAll('.mini-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Don't expand if clicking on details modal
+      e.stopPropagation();
+      
+      const jobId = card.getAttribute('data-job-id');
+      const job = jobs.find(j => j.id === jobId);
+      if (!job) return;
+      
+      // Close any other expanded mini-card
+      document.querySelectorAll('.mini-card.expanded').forEach(expandedCard => {
+        if (expandedCard !== card) {
+          collapseExpandedMiniCard(expandedCard);
+        }
+      });
+      
+      // Toggle expansion of current card
+      if (card.classList.contains('expanded')) {
+        collapseExpandedMiniCard(card);
+      } else {
+        expandMiniCard(card, job, jobId, jobs);
+      }
+    });
+  });
+  
+  // Close expanded cards when clicking elsewhere on the page
+  document.addEventListener('click', (e) => {
+    const expandedCard = document.querySelector('.mini-card.expanded');
+    if (expandedCard && !e.target.closest('.mini-card') && !e.target.closest('.job-card-expanded')) {
+      collapseExpandedMiniCard(expandedCard);
+    }
+  }, { capture: true });
+}
+
+function expandMiniCard(card, job, jobId, jobs) {
+  card.classList.add('expanded');
+  
+  // Create full job card content
+  let clientName = job.client?.firstName || "Unknown";
+  if (job.client?.lastName) {
+    clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
+  }
+  
+  const statusInfo = STAGES.find(s => s.id === job.status)
+                  || STAGES.find(s => s.id === job.status?.toLowerCase())
+                  || STAGES[0];
+  
+  let recurringBadge = "";
+  if (job.isRecurring && job.recurrence) {
+    recurringBadge = `<span style="font-size:0.82rem; background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; margin-left:8px;">
+      ${job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)}
+    </span>`;
+  }
+  
+  const expandedHTML = `
+    <div class="job-card job-card-expanded" 
+         data-stage="${statusInfo.id || 'created'}"
+         data-job-id="${job.id || 'MISSING-ID'}"
+         style="margin-bottom: 32px; animation: slideDown 0.3s ease;">
+      <div class="overflow">⋯</div>
+      <div class="menu"></div>
+      <div class="job-address">
+        ${job.address || 'No address'}${recurringBadge}
+      </div>
+      <div class="job-client">
+        ${clientName} • ${job.client?.phone || "No phone"}
+        ${job.nextServiceDate ? `
+          <div class="next-service">
+            Next ${job.recurrence ?
+              (job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)) + ' Service' :
+              'Service'
+            } on ${new Date(job.nextServiceDate).toLocaleDateString('en-NZ', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            })}
+          </div>
+        ` : ''}
+      </div>
+      <div class="meta">
+        <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
+        <span class="last-activity" title="${job.activityLog?.map(log => log.timestamp + ': ' + log.action).join('\n') || ''}">
+          Last activity: ${job.nextAction || "—"}
+        </span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <button class="primary-action">${statusInfo.primary}</button>
+      <div class="notes-preview">
+        <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
+      </div>
+    </div>
+  `;
+  
+  // Insert expanded card after mini-card and hide mini-card
+  card.style.display = 'none';
+  card.insertAdjacentHTML('afterend', expandedHTML);
+  
+  // Get the newly created expanded card and attach all event listeners
+  const expandedCard = card.nextElementSibling;
+  attachSingleCardEventListeners(expandedCard, jobs);
+  
+  // Close expanded card when clicking outside
+  setTimeout(() => {
+    document.addEventListener('click', closeExpandedOnClickOutside);
+  }, 0);
+}
+
+function collapseExpandedMiniCard(card) {
+  const expandedCard = card.nextElementSibling;
+  if (expandedCard && expandedCard.classList.contains('job-card-expanded')) {
+    expandedCard.style.animation = 'slideUp 0.3s ease';
+    setTimeout(() => {
+      expandedCard.remove();
+      card.style.display = '';
+      card.classList.remove('expanded');
+    }, 300);
+  }
+}
+
+function closeExpandedOnClickOutside(e) {
+  const expandedCard = document.querySelector('.mini-card.expanded');
+  if (expandedCard && 
+      !e.target.closest('.mini-card.expanded') && 
+      !e.target.closest('.job-card-expanded') &&
+      e.target.closest('.today-previews')) {
+    // Only close if clicking within today-previews area
+    if (!e.target.closest('.mini-card:not(.expanded)')) {
+      collapseExpandedMiniCard(expandedCard);
+      document.removeEventListener('click', closeExpandedOnClickOutside);
+    }
+  }
+}
+
+function attachSingleCardEventListeners(card, jobs) {
+  // 1. Update card visuals (progress, badge, button text, menu items)
+  updateCard(card);
+  
+  // 2. Primary action button (full implementation matching attachCardEventListeners)
+  const primaryBtn = card.querySelector('.primary-action');
+  if (primaryBtn) {
+    primaryBtn.addEventListener('click', async () => {
+      const stage = card.getAttribute('data-stage') || 'unknown';
+      const jobId = card.getAttribute('data-job-id') || '';
+      const quoteIdFromCard = card.getAttribute('data-quote-id') || '';
+      const isRecurring = card.dataset.isRecurring === 'true';
+      
+      console.log('[Primary button clicked on expanded card]', {
+        stage,
+        jobId,
+        quoteIdFromCard,
+        hasJobId: !!jobId,
+        hasQuoteId: !!quoteIdFromCard && quoteIdFromCard.trim() !== '',
+        isRecurring
+      });
+      
+      // ── Handle paid stage ────────────────────────────────────────
+      if (stage === 'paid') {
+        if (isRecurring) {
+          showScheduleModal(card);
+          return;
+        } else {
+          return;
+        }
+      }
+      
+      // ── Handle lead stage (Create Quote) ───────────────────────
+      if (stage === 'lead') {
+        if (!jobId) {
+          alert("No job ID found");
+          return;
+        }
+        window.location.href = `create_quote.html?jobId=${jobId}`;
+        return;
+      }
+      
+      // ── Handle quoted stage ────────────────────────────────────
+      if (stage === 'quoted') {
+        showModal(`
+          <h2 class="modal-title">Send Quote</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the quote to the client:</p>
+          <div class="send-options">
+            <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+            <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+            <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+          </div>
+          <div class="modal-buttons" style="margin-top:24px;">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          </div>
+        `);
+        const modalContent = document.getElementById('modalContent');
+        modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const isEmail = btn.classList.contains('send-email');
+            if (!isEmail) {
+              closeModal();
+              advanceStage(card);
+              loadAndRenderJobs();
+              return;
+            }
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+            let finalQuoteId = quoteIdFromCard;
+            try {
+              if (!finalQuoteId || finalQuoteId.trim() === '') {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Not signed in");
+                const token = await user.getIdToken();
+                if (!jobId) throw new Error("No job ID");
+                const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!jobRes.ok) throw new Error(`Job fetch failed: ${jobRes.status}`);
+                const jobData = await jobRes.json();
+                const latestQ = jobData.quotes?.length > 0
+                  ? jobData.quotes.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b)
+                  : null;
+                finalQuoteId = latestQ?.id;
+                if (!finalQuoteId) throw new Error("No quote found");
+              }
+              const user = auth.currentUser;
+              const token = await user.getIdToken();
+              const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              if (!sendRes.ok) {
+                let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                throw new Error(errMsg);
+              }
+              closeModal();
+              advanceStage(card);
+              alert("Quote email sent successfully!");
+              loadAndRenderJobs();
+            } catch (err) {
+              console.error('[Email send failed]', err);
+              alert("Failed to send email:\n" + err.message);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = "Email";
+            }
+          });
+        });
+      }
+      
+      // ── Handle quoteSent stage ──────────────────────────────────
+      else if (stage === 'quoteSent') {
+        showScheduleModal(card);
+      }
+      
+      // ── Handle won stage (Start Job) ────────────────────────────
+      else if (stage === 'won') {
+        showModal(`
+          <h2 class="modal-title">Start Job</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">
+            Are you sure you want to start this job on site?
+          </p>
+          <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-primary-modal confirm-start-job">Yes – Start Job</button>
+          </div>
+        `);
+        const modal = document.getElementById('modalContent');
+        modal.querySelector('.confirm-start-job').addEventListener('click', async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            const jobId = card.getAttribute('data-job-id');
+            if (!jobId) throw new Error("No job ID on card");
+            const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                status: 'progress',
+                nextAction: 'Service started on site',
+                startedAt: new Date().toISOString()
+              })
+            });
+            if (!patchRes.ok) {
+              const errData = await patchRes.json().catch(() => ({}));
+              throw new Error(errData.error || `Update failed (${patchRes.status})`);
+            }
+            closeModal();
+            card.dataset.stage = 'progress';
+            updateCard(card);
+            alert("Service started on site!");
+            loadAndRenderJobs();
+          } catch (err) {
+            console.error("Start job failed:", err);
+            alert("Failed to start job:\n" + err.message);
+          }
+        });
+      }
+      
+      // ── Handle progress stage (Complete Job) ────────────────────
+      else if (stage === 'progress') {
+        showModal(`
+          <h2 class="modal-title">Complete Job</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">
+            Mark this job as completed?<br>
+            You can create an invoice afterwards.
+          </p>
+          <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-primary-modal confirm-complete-job">Yes – Complete</button>
+          </div>
+        `);
+        const modal = document.getElementById('modalContent');
+        modal.querySelector('.confirm-complete-job').addEventListener('click', async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            const jobId = card.getAttribute('data-job-id');
+            if (!jobId) throw new Error("No job ID on card");
+            const patchBody = {
+              status: 'completed',
+              nextAction: 'Job completed',
+              completedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(patchBody)
+            });
+            if (!patchRes.ok) {
+              const errData = await patchRes.json().catch(() => ({}));
+              throw new Error(errData.error || `Update failed (${patchRes.status})`);
+            }
+            closeModal();
+            card.dataset.stage = 'completed';
+            updateCard(card);
+            alert("Job marked as completed!");
+            loadAndRenderJobs();
+          } catch (err) {
+            console.error("Complete job failed:", err);
+            alert("Failed to complete job:\n" + err.message);
+          }
+        });
+      }
+      
+      // ── Handle completed stage (Create Invoice) ─────────────────
+      else if (stage === 'completed') {
+        showModal(`
+          <div id="invoiceStep1">
+            <h2 class="modal-title">Create Invoice</h2>
+            <p style="margin-bottom:16px; color:#4b5563;">
+              Select which quote to base the invoice on:
+            </p>
+            <label style="display:block; margin-bottom:8px; font-weight:600;">Quote</label>
+            <select id="modal-quote-select" class="modal-select">
+              <option value="">-- Select a quote --</option>
+            </select>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button id="next-to-send" class="btn-modal btn-primary-modal" disabled>Next →</button>
+            </div>
+          </div>
+          <div id="invoiceStep2" style="display:none;">
+            <h2 class="modal-title">Send Invoice</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+              How would you like to send the invoice to the client?
+            </p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+          </div>
+        `);
+        const modalContent = document.getElementById('modalContent');
+        const quoteSelect = modalContent.querySelector('#modal-quote-select');
+        const nextBtn = modalContent.querySelector('#next-to-send');
+        const jobId = card.getAttribute('data-job-id');
+        
+        (async () => {
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error("Couldn't load job quotes");
+            const job = await res.json();
+            const quotes = job.quotes || [];
+            if (quotes.length === 0) {
+              quoteSelect.innerHTML = '<option value="">No quotes found for this job</option>';
+              return;
+            }
+            quotes.forEach(q => {
+              const opt = document.createElement('option');
+              opt.value = q.id;
+              const dateStr = new Date(q.date || q.createdAt || Date.now())
+                .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+              const amount = (q.totalInclGst || q.total || 0).toFixed(2);
+              opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
+              opt.dataset.quoteId = q.id;
+              quoteSelect.appendChild(opt);
+            });
+            quoteSelect.addEventListener('change', () => {
+              nextBtn.disabled = !quoteSelect.value;
+            });
+          } catch (err) {
+            console.error(err);
+            quoteSelect.innerHTML = '<option value="">Error loading quotes</option>';
+          }
+        })();
+        
+        nextBtn.addEventListener('click', () => {
+          document.getElementById('invoiceStep1').style.display = 'none';
+          document.getElementById('invoiceStep2').style.display = 'block';
+        });
+        
+        modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const selectedQuoteId = quoteSelect.value;
+            if (!selectedQuoteId) return alert("Please select a quote first");
+            try {
+              const token = await auth.currentUser.getIdToken();
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  status: 'invoiced',
+                  nextAction: 'Invoice created',
+                  invoicedAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                })
+              });
+              if (!patchRes.ok) {
+                const errData = await patchRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${patchRes.status})`);
+              }
+              closeModal();
+              window.location.href = `create_invoice.html?jobId=${jobId}&quoteId=${selectedQuoteId}`;
+            } catch (err) {
+              console.error("Invoice creation flow failed:", err);
+              alert("Failed to update job status:\n" + err.message);
+            }
+          });
+        });
+      }
+      
+      // ── Handle invoiced stage (Mark as Paid) ────────────────────
+      else if (stage === 'invoiced') {
+        showModal(`
+          <h2 class="modal-title">Mark as Paid</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">
+            Confirm that the full invoice has been paid?<br>
+            This will move the job to "Paid" status.
+          </p>
+          <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-primary-modal confirm-mark-paid">Yes – Mark as Paid</button>
+          </div>
+        `);
+        const modal = document.getElementById('modalContent');
+        modal.querySelector('.confirm-mark-paid').addEventListener('click', async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            const jobId = card.getAttribute('data-job-id');
+            if (!jobId) throw new Error("No job ID on card");
+            const patchBody = {
+              status: 'paid',
+              nextAction: 'Payment received',
+              paidAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(patchBody)
+            });
+            if (!patchRes.ok) {
+              const errData = await patchRes.json().catch(() => ({}));
+              throw new Error(errData.error || `Update failed (${patchRes.status})`);
+            }
+            closeModal();
+            card.dataset.stage = 'paid';
+            updateCard(card);
+            alert("Job marked as paid!");
+            loadAndRenderJobs();
+          } catch (err) {
+            console.error("Mark as paid failed:", err);
+            alert("Failed to mark job as paid:\n" + err.message);
+          }
+        });
+      }
+    });
+  }
+  
+  // 3. Overflow menu
+  const overflow = card.querySelector('.overflow');
+  const menu = card.querySelector('.menu');
+  if (overflow && menu) {
+    overflow.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.menu.show').forEach(m => m.classList.remove('show'));
+      menu.classList.toggle('show');
+    });
+  }
+}
+
 // ── Main render function ───────────────────────────────────────
 async function loadAndRenderJobs() {
   const container = document.getElementById("jobs-container");
@@ -821,6 +1441,9 @@ async function loadAndRenderJobs() {
     }
     const data = await res.json();
     const jobs = data.jobs || [];
+    
+    // Render today's jobs at the top
+    renderTodayJobs(jobs);
     if (jobs.length === 0) {
       container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">No jobs yet.<br>Create your first job!</p>';
       return;
