@@ -208,6 +208,24 @@
       }
     }
 
+    /* Override global styles.css that breaks dashboard layout */
+    body {
+      display: block !important;
+      justify-content: unset !important;
+      align-items: unset !important;
+      min-height: 100vh !important;
+      padding: 20px 16px !important;
+    }
+
+    .container {
+      width: 100% !important;
+      max-width: 960px !important;
+      min-height: unset !important;
+      display: block !important;
+      flex-direction: unset !important;
+      gap: unset !important;
+      border-radius: unset !important;
+    }
 
   </style>
 </head>
@@ -217,10 +235,10 @@
 
   <div class="header">
     <div class="welcome">
-      <h1>Welcome back, High</h1>
+      <h1>Welcome back, <span id="userFirstName">there</span></h1>
       <p style="font-size:1.1rem; color:var(--muted);">Here's your overview for today</p>
     </div>
-    <button class="btn-cta" onclick="window.location.href = `jobs.html`";>3 Jobs Today →</button>
+    <button class="btn-cta" id="jobsTodayBtn" onclick="window.location.href = `jobs.html`">Loading... →</button>
   </div>
 
   <div class="stats-grid">
@@ -243,6 +261,7 @@
           <!-- Progress circle -->
           <path
             class="circle"
+            id="progressCircle"
             d="M18 2.0845
                a 15.9155 15.9155 0 0 1 0 31.831
                a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -255,12 +274,12 @@
 
         </svg>
 
-        <div class="donut-text">21</div>
+        <div class="donut-text" id="completedJobs">--</div>
       </div>
 
       <div class="stat-label">Jobs completed this month</div>
       <div class="stat-sub">
-        25 total scheduled • <span class="highlight">4 remaining</span>
+        <span id="totalScheduled">-- total scheduled</span> • <span class="highlight" id="remainingJobs">-- remaining</span>
       </div>
     </div>
 
@@ -268,7 +287,7 @@
     <!-- All-time Revenue -->
     <div class="stat-card">
       <h3>All-time Revenue</h3>
-      <div class="revenue">$89,320</div>
+      <div class="revenue" id="totalRevenue">$0</div>
       <div class="stat-label">Total invoiced & paid</div>
     </div>
 
@@ -293,12 +312,12 @@
       <a href="profile.html" class="card-link">Edit Profile →</a>
     </div>
     <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-      <div style="width:64px; height:64px; background:#e0e7ff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; color:var(--accent);">
-        H
+      <div style="width:64px; height:64px; background:#e0e7ff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; color:var(--accent);" id="userInitial">
+        ?
       </div>
       <div>
-        <div style="font-weight:600; font-size:1.2rem;">High's Lawn & Garden Care</div>
-        <div style="color:var(--muted);">Wellington Region • Established 2023</div>
+        <div style="font-weight:600; font-size:1.2rem;" id="companyName">Loading...</div>
+        <div style="color:var(--muted);" id="companyLocation">Loading...</div>
       </div>
     </div>
     <div style="color:var(--muted); line-height:1.6;">
@@ -327,17 +346,167 @@
 
 </div>
 
-<script>
-  const completed = 21;
-  const total = 25;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-  const percent = (completed / total) * 100;
+const firebaseConfig = {
+  apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+  authDomain: "deep-edge-cc5bd.firebaseapp.com",
+  projectId: "deep-edge-cc5bd",
+  storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+  messagingSenderId: "23198790796",
+  appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+};
 
-  const circle = document.querySelector(".circle");
-  const text = document.querySelector(".donut-text");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-  circle.style.strokeDasharray = `${percent} 100`;
-  text.textContent = completed;
+const WORKER_URL = 'https://firebase-protected-backend.jamesisarad.workers.dev';
+
+async function loadDashboardData() {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      console.log("User not authenticated");
+      return;
+    }
+
+    const token = await user.getIdToken(true);
+    
+    // Fetch user profile
+    const userRes = await fetch(`${WORKER_URL}/api/user`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    let userData = null;
+    if (userRes.ok) {
+      userData = await userRes.json();
+      // Update user greeting
+      if (userData.firstName) {
+        document.getElementById('userFirstName').textContent = userData.firstName;
+      }
+      
+      // Update company profile
+      if (userData.businessName) {
+        document.getElementById('companyName').textContent = userData.businessName;
+      }
+      
+      if (userData.location) {
+        document.getElementById('companyLocation').textContent = userData.location;
+      }
+      
+      // Update user initial
+      if (userData.firstName) {
+        const initial = userData.firstName.charAt(0).toUpperCase();
+        document.getElementById('userInitial').textContent = initial;
+      }
+    }
+
+    // Fetch jobs data
+    const jobsRes = await fetch(`${WORKER_URL}/api/jobs`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!jobsRes.ok) {
+      const errText = await jobsRes.text().catch(() => 'No error details');
+      throw new Error(`Failed to fetch jobs: ${jobsRes.status} - ${errText}`);
+    }
+
+    const data = await jobsRes.json();
+    const jobs = data.jobs || [];
+
+    // Calculate stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Count jobs scheduled for today
+    const jobsToday = jobs.filter(job => {
+      if (job.nextServiceDate) {
+        const jobDate = new Date(job.nextServiceDate);
+        jobDate.setHours(0, 0, 0, 0);
+        return jobDate.getTime() === today.getTime();
+      }
+      return false;
+    }).length;
+
+    // Count completed jobs this month
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const completedThisMonth = jobs.filter(job => {
+      if (job.status === 'completed' || job.status === 'invoiced' || job.status === 'paid') {
+        if (job.completedAt) {
+          const completedDate = new Date(job.completedAt);
+          return completedDate.getMonth() === currentMonth && 
+                 completedDate.getFullYear() === currentYear;
+        }
+      }
+      return false;
+    }).length;
+
+    // Count total scheduled jobs this month
+    const scheduledThisMonth = jobs.filter(job => {
+      if (job.nextServiceDate || job.createdAt) {
+        const checkDate = job.nextServiceDate ? new Date(job.nextServiceDate) : new Date(job.createdAt);
+        return checkDate.getMonth() === currentMonth && 
+               checkDate.getFullYear() === currentYear;
+      }
+      return false;
+    }).length;
+
+    // Calculate total revenue (sum of all paid invoices)
+    const totalRevenue = jobs
+      .filter(job => job.status === 'paid' && job.invoices && job.invoices.length > 0)
+      .reduce((sum, job) => {
+        const jobTotal = job.invoices.reduce((invSum, inv) => invSum + (inv.total || 0), 0);
+        return sum + jobTotal;
+      }, 0);
+
+    const remainingThisMonth = scheduledThisMonth - completedThisMonth;
+
+    // Update UI
+    document.getElementById('jobsTodayBtn').textContent = `${jobsToday} Job${jobsToday !== 1 ? 's' : ''} Today →`;
+    
+    // Update donut chart
+    const percent = scheduledThisMonth > 0 ? (completedThisMonth / scheduledThisMonth) * 100 : 0;
+    const circle = document.getElementById('progressCircle');
+    if (circle) {
+      circle.style.strokeDasharray = `${percent} 100`;
+    }
+    
+    // Update stats
+    document.getElementById('completedJobs').textContent = completedThisMonth;
+    document.getElementById('totalScheduled').textContent = `${scheduledThisMonth} total scheduled`;
+    document.getElementById('remainingJobs').textContent = `${Math.max(0, remainingThisMonth)} remaining`;
+    document.getElementById('totalRevenue').textContent = `$${totalRevenue.toLocaleString('en-NZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    console.log('Dashboard data loaded:', {
+      jobsToday,
+      completedThisMonth,
+      scheduledThisMonth,
+      remainingThisMonth,
+      totalRevenue
+    });
+
+  } catch (err) {
+    console.error('Error loading dashboard data:', err);
+    console.error('Error message:', err.message);
+    console.error('Full error:', err);
+    document.getElementById('jobsTodayBtn').textContent = 'Error loading →';
+  }
+}
+
+// Load data when user is authenticated
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    loadDashboardData();
+  }
+});
 </script>
 
 </body>
