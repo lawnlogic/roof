@@ -163,6 +163,10 @@
       color: var(--text);
       font-size: 0.95rem;
     }
+    .menu-item.menu-disabled {
+      color: #9ca3af;
+      cursor: default;
+    }
     .menu-item:hover { background: #f3f4f6; }
     .menu-danger {
       color: var(--red);
@@ -834,11 +838,24 @@ function updateCard(card) {
     const section = document.createElement('div');
     section.className = 'menu-section';
     config.menuItems.forEach(item => {
+      // Skip "Skip Visit" for one-off jobs (only show for recurring jobs)
+      if (item.action === 'skip-visit' && !isRecurring) return;
+
       const div = document.createElement('div');
       div.className = 'menu-item';
       if (item.danger) div.classList.add('menu-danger');
+
+      // Disable Add Photo for now (greyed out, non-interactive)
+      if (item.action === 'add-photo') {
+        div.classList.add('menu-disabled');
+        div.setAttribute('aria-disabled', 'true');
+      }
+
+      // Treat Change Frequency as reschedule (reuse schedule modal)
+      const action = item.action === 'change-freq' ? 'schedule-visit' : item.action;
+
       div.textContent = item.text;
-      div.dataset.action = item.action;
+      div.dataset.action = action;
       section.appendChild(div);
     });
     menu.appendChild(section);
@@ -2023,6 +2040,8 @@ function attachSingleCardEventListeners(card, jobs) {
   // 4. Menu item clicks (schedule-visit, view-details, edit-quote, delete-quote)
   card.querySelectorAll('.menu-item').forEach(item => {
     item.addEventListener('click', async () => {
+      // Ignore clicks on disabled items
+      if (item.classList.contains('menu-disabled')) return;
       const action = item.dataset.action;
       const jobId = card.getAttribute('data-job-id') || '';
       const quoteId = card.getAttribute('data-quote-id') || '';
@@ -2217,6 +2236,129 @@ function attachSingleCardEventListeners(card, jobs) {
       }
       else if (action === 'send-reminder') {
         if (currentMenu) currentMenu.classList.remove('show');
+
+        // If this card is in 'invoiced' stage, show invoice-specific reminder flow
+        if (card.dataset.stage === 'invoiced') {
+          showModal(`
+            <h2 class="modal-title">Send Invoice Reminder</h2>
+            <p style="margin-bottom:12px; color:#4b5563;">Select which invoice to send a reminder for:</p>
+            <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice</label>
+            <select id="modal-invoice-select" class="modal-select"><option value="">Loading...</option></select>
+            <p style="margin:16px 0 8px 0; color:#4b5563;">How would you like to send the reminder?</p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+          `);
+
+          const modalContent = document.getElementById('modalContent');
+          const invoiceSelect = modalContent.querySelector('#modal-invoice-select');
+
+          (async () => {
+            try {
+              const token = await auth.currentUser.getIdToken();
+              const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!res.ok) throw new Error('Could not load job invoices');
+              const job = await res.json();
+              const invoices = job.invoices || [];
+              if (invoices.length === 0) {
+                invoiceSelect.innerHTML = '<option value="">No invoices for this job</option>';
+                return;
+              }
+              invoiceSelect.innerHTML = '<option value="">-- Select invoice --</option>' + invoices.map(i => `<option value="${i.id}">${i.number || i.id} • ${i.date} • $${(i.total||0).toFixed(2)}</option>`).join('');
+            } catch (e) {
+              console.error('Failed to load invoices', e);
+              invoiceSelect.innerHTML = '<option value="">Error loading invoices</option>';
+            }
+          })();
+
+          modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const selectedInvoiceId = invoiceSelect.value;
+              if (!selectedInvoiceId) return alert('Please select an invoice first');
+              const isEmail = btn.classList.contains('send-email');
+              const isSMS = btn.classList.contains('send-sms');
+              const isClipboard = btn.classList.contains('send-clipboard');
+
+              btn.disabled = true;
+              btn.textContent = isEmail ? 'Sending...' : (isSMS ? 'Sending...' : 'Copying...');
+
+              try {
+                const user = auth.currentUser;
+                if (!user) throw new Error('Not signed in');
+                const token = await user.getIdToken();
+
+                if (isEmail) {
+                  const res = await fetch(`${WORKER_URL}/api/invoices/${selectedInvoiceId}/send-email`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                  });
+                  if (!res.ok) {
+                    const txt = await res.text().catch(() => `HTTP ${res.status}`);
+                    throw new Error(txt);
+                  }
+                  alert('Invoice reminder email sent successfully!');
+                } else if (isClipboard) {
+                  const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                  try { await navigator.clipboard.writeText(link); alert('Invoice link copied to clipboard'); } catch { alert('Failed to copy to clipboard'); }
+                } else if (isSMS) {
+                  // Fetch job & invoice to build sms vars
+                  const tkn = await auth.currentUser.getIdToken();
+                  let jobData = null;
+                  try {
+                    const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                    if (jobRes2.ok) jobData = await jobRes2.json();
+                  } catch (e) {}
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+                  if (!clientPhone) {
+                    alert('Client phone not found');
+                  } else {
+                    // Find invoice total/date for vars
+                    const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
+                    const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
+                    const publicLink = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                    // fetch vendor profile
+                    let vendorName = 'Company', vendorNumber = '';
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                      if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; }
+                    } catch (e) {}
+
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${tkn}`, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        recipient: clientPhone,
+                        template: 'invoice_reminder',
+                        invoiceId: selectedInvoiceId,
+                        vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber }
+                      })
+                    });
+                    if (!smsRes.ok) {
+                      const txt = await smsRes.text().catch(() => '');
+                      throw new Error(txt || `SMS failed ${smsRes.status}`);
+                    }
+                    alert('Invoice reminder SMS sent successfully');
+                  }
+                }
+                closeModal();
+              } catch (err) {
+                console.error('Invoice reminder failed', err);
+                alert('Failed to send invoice reminder:\n' + (err.message || err));
+              } finally {
+                btn.disabled = false;
+                btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
+              }
+            });
+          });
+          return;
+        }
+
+        // Fallback: existing quote reminder flow (unchanged)
         showModal(`
           <h2 class="modal-title">Send Reminder</h2>
           <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the reminder to the client:</p>
@@ -2275,7 +2417,7 @@ function attachSingleCardEventListeners(card, jobs) {
                     const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if (jobRes2.ok) jobData = await jobRes2.json();
                   } catch (e) { /* ignore */ }
-
+                  
                   const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
                   const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
 
@@ -3062,6 +3204,13 @@ function attachCardEventListeners() {
               const selectedQuoteId = quoteSelect.value;
               if (!selectedQuoteId) return alert("Please select a quote first");
               try {
+                // Save user's desired send method so create_invoice.html can act after invoice is created
+                const method = btn.classList.contains('send-email') ? 'email' : (btn.classList.contains('send-sms') ? 'sms' : 'clipboard');
+                try {
+                  localStorage.setItem('pendingInvoiceSend', JSON.stringify({ method, jobId, quoteId: selectedQuoteId, ts: Date.now() }));
+                } catch (e) {
+                  console.warn('Could not write pendingInvoiceSend to localStorage', e);
+                }
                 const token = await auth.currentUser.getIdToken();
                 // Update job status to 'invoiced'
                 const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
@@ -3360,6 +3509,111 @@ function attachCardEventListeners() {
         }
         else if (action === 'send-reminder') {
           if (currentMenu) currentMenu.classList.remove('show');
+
+          // Invoice-specific reminder when job is invoiced
+          if (card.dataset.stage === 'invoiced') {
+            showModal(`
+              <h2 class="modal-title">Send Invoice Reminder</h2>
+              <p style="margin-bottom:12px; color:#4b5563;">Select which invoice to send a reminder for:</p>
+              <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice</label>
+              <select id="modal-invoice-select" class="modal-select"><option value="">Loading...</option></select>
+              <p style="margin:16px 0 8px 0; color:#4b5563;">How would you like to send the reminder?</p>
+              <div class="send-options">
+                <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+                <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+                <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+              </div>
+              <div class="modal-buttons" style="margin-top:24px;">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              </div>
+            `);
+
+            const modalContent = document.getElementById('modalContent');
+            const invoiceSelect = modalContent.querySelector('#modal-invoice-select');
+
+            (async () => {
+              try {
+                const token = await auth.currentUser.getIdToken();
+                const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Could not load job invoices');
+                const job = await res.json();
+                const invoices = job.invoices || [];
+                if (invoices.length === 0) {
+                  invoiceSelect.innerHTML = '<option value="">No invoices for this job</option>';
+                  return;
+                }
+                invoiceSelect.innerHTML = '<option value="">-- Select invoice --</option>' + invoices.map(i => `<option value="${i.id}">${i.number || i.id} • ${i.date} • $${(i.total||0).toFixed(2)}</option>`).join('');
+              } catch (e) {
+                console.error('Failed to load invoices', e);
+                invoiceSelect.innerHTML = '<option value="">Error loading invoices</option>';
+              }
+            })();
+
+            modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                const selectedInvoiceId = invoiceSelect.value;
+                if (!selectedInvoiceId) return alert('Please select an invoice first');
+                const isEmail = btn.classList.contains('send-email');
+                const isSMS = btn.classList.contains('send-sms');
+                const isClipboard = btn.classList.contains('send-clipboard');
+
+                btn.disabled = true;
+                btn.textContent = isEmail ? 'Sending...' : (isSMS ? 'Sending...' : 'Copying...');
+
+                try {
+                  const user = auth.currentUser;
+                  if (!user) throw new Error('Not signed in');
+                  const token = await user.getIdToken();
+
+                  if (isEmail) {
+                    const res = await fetch(`${WORKER_URL}/api/invoices/${selectedInvoiceId}/send-email`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                    });
+                    if (!res.ok) {
+                      const txt = await res.text().catch(() => `HTTP ${res.status}`);
+                      throw new Error(txt);
+                    }
+                    alert('Invoice reminder email sent successfully!');
+                  } else if (isClipboard) {
+                    const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                    try { await navigator.clipboard.writeText(link); alert('Invoice link copied to clipboard'); } catch { alert('Failed to copy to clipboard'); }
+                  } else if (isSMS) {
+                    const tkn = await auth.currentUser.getIdToken();
+                    let jobData = null;
+                    try { const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${tkn}` } }); if (jobRes2.ok) jobData = await jobRes2.json(); } catch (e) {}
+                    const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+                    if (!clientPhone) { alert('Client phone not found'); }
+                    else {
+                      const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
+                      const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
+                      const publicLink = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                      let vendorName = 'Company', vendorNumber = '';
+                      try { const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${tkn}` } }); if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; } } catch (e) {}
+
+                      const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${tkn}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ recipient: clientPhone, template: 'invoice_reminder', invoiceId: selectedInvoiceId, vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } })
+                      });
+                      if (!smsRes.ok) { const txt = await smsRes.text().catch(() => ''); throw new Error(txt || `SMS failed ${smsRes.status}`); }
+                      alert('Invoice reminder SMS sent successfully');
+                    }
+                  }
+                  closeModal();
+                } catch (err) {
+                  console.error('Invoice reminder failed', err);
+                  alert('Failed to send invoice reminder:\n' + (err.message || err));
+                } finally {
+                  btn.disabled = false;
+                  btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
+                }
+              });
+            });
+            return;
+          }
+
+          // Fallback to existing quote reminder flow
           showModal(`
             <h2 class="modal-title">Send Reminder</h2>
             <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the reminder to the client:</p>
@@ -3388,87 +3642,28 @@ function attachCardEventListeners() {
                 const token = await user.getIdToken();
                 
                 if (isEmail) {
-                  // Email reminder - call backend email reminder endpoint
-                  const reminderRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-reminder-email`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    }
-                  });
-                  if (!reminderRes.ok) {
-                    let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`);
-                    throw new Error(errMsg);
-                  }
+                  const reminderRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-reminder-email`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+                  if (!reminderRes.ok) { let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`); throw new Error(errMsg); }
                   alert("Reminder email sent successfully!");
                 } else if (isClipboard) {
-                  // Copy to clipboard
                   const reminderLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
-                  navigator.clipboard.writeText(reminderLink).then(() => {
-                    alert("Reminder link copied to clipboard!");
-                  }).catch(() => {
-                    alert("Failed to copy to clipboard");
-                  });
+                  navigator.clipboard.writeText(reminderLink).then(() => { alert("Reminder link copied to clipboard!"); }).catch(() => { alert("Failed to copy to clipboard"); });
                 } else if (isSMS) {
-                  // Send SMS reminder via backend /api/sms
                   try {
-                    // Fetch job data to get client phone/name
                     let jobData = null;
-                    try {
-                      const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                      if (jobRes2.ok) jobData = await jobRes2.json();
-                    } catch (e) { /* ignore */ }
-
+                    try { const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } }); if (jobRes2.ok) jobData = await jobRes2.json(); } catch (e) { }
                     const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
                     const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                     if (!clientPhone) throw new Error('Client phone number not found');
-
                     const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
-
-                    // Fetch company profile for vendor details
                     let company = { companyName: 'Company', phone: '' };
-                    try {
-                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-                      if (profRes.ok) {
-                        const pj = await profRes.json();
-                        company.companyName = pj.profile?.companyName || company.companyName;
-                        company.phone = pj.profile?.phone || '';
-                      }
-                    } catch (e) {}
-
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                        recipient: clientPhone,
-                        template: 'quote_reminder',
-                        jobId: jobId,
-                        vars: {
-                          clientName,
-                          quoteUrl: publicLink,
-                          vendorName: company.companyName,
-                          vendorNumber: company.phone
-                        }
-                      })
-                    });
-
-                    if (!smsRes.ok) {
-                      const txt = await smsRes.text().catch(() => '');
-                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                    }
-
+                    try { const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } }); if (profRes.ok) { const pj = await profRes.json(); company.companyName = pj.profile?.companyName || company.companyName; company.phone = pj.profile?.phone || ''; } } catch (e) {}
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: clientPhone, template: 'quote_reminder', jobId: jobId, vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } }) });
+                    if (!smsRes.ok) { const txt = await smsRes.text().catch(() => ''); throw new Error(txt || `SMS endpoint returned ${smsRes.status}`); }
                     const smsData = await smsRes.json().catch(() => ({}));
                     alert('Reminder SMS sent successfully!');
-                  } catch (e) {
-                    console.error('SMS send failed', e);
-                    alert('Failed to send SMS: ' + (e.message || e));
-                  }
+                  } catch (e) { console.error('SMS send failed', e); alert('Failed to send SMS: ' + (e.message || e)); }
                 }
-                
                 closeModal();
               } catch (err) {
                 console.error('[Send reminder failed]', err);

@@ -270,6 +270,106 @@
 
         alert(`Invoice created successfully!`);
 
+        // After creation: check localStorage for pending send preference
+        try {
+          const pendingRaw = localStorage.getItem('pendingInvoiceSend');
+          if (pendingRaw) {
+            const pending = JSON.parse(pendingRaw);
+            // Basic validation: ensure jobId/quoteId match (if provided)
+            if (!pending.jobId || String(pending.jobId) === String(jobId)) {
+              const method = pending.method;
+              const token2 = await currentUser.getIdToken();
+              if (method === 'email') {
+                try {
+                  const sendRes = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}/send-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token2}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  if (!sendRes.ok) {
+                    const txt = await sendRes.text().catch(() => '');
+                    console.warn('Invoice email send failed', txt || sendRes.status);
+                    alert('Invoice created but automatic email failed to send.');
+                  } else {
+                    alert('Invoice email sent successfully');
+                  }
+                } catch (e) {
+                  console.error('Invoice email send error', e);
+                }
+              } else if (method === 'sms') {
+                try {
+                  // fetch job to get client phone
+                  const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token2}` } });
+                  let jobData = null;
+                  if (jobRes2.ok) jobData = await jobRes2.json();
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+                  if (!clientPhone) {
+                    alert('Invoice created but client phone not found for SMS');
+                  } else {
+                    const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
+                    // Build richer vars for SMS: client name, amount, vendor info
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
+                    const amountStr = invoiceData && invoiceData.totalInclGst ? `$${Number(invoiceData.totalInclGst).toFixed(2)}` : (invoiceData && invoiceData.total ? `$${Number(invoiceData.total).toFixed(2)}` : '$0.00');
+                    let vendorName = 'Company';
+                    let vendorNumber = '';
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token2}` } });
+                      if (profRes.ok) {
+                        const pj = await profRes.json();
+                        vendorName = pj.profile?.companyName || vendorName;
+                        vendorNumber = pj.profile?.phone || vendorNumber;
+                      }
+                    } catch (e) { /* ignore profile fetch errors */ }
+
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token2}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        recipient: clientPhone,
+                        template: 'invoice_sent',
+                        invoiceId: invoiceId,
+                        vars: {
+                          clientName: clientName,
+                          invoiceUrl: publicLink,
+                          amount: amountStr,
+                          vendorName: vendorName,
+                          vendorNumber: vendorNumber
+                        }
+                      })
+                    });
+                    if (!smsRes.ok) {
+                      const txt = await smsRes.text().catch(() => '');
+                      console.warn('Invoice SMS send failed', txt || smsRes.status);
+                      alert('Invoice created but automatic SMS failed to send.');
+                    } else {
+                      alert('Invoice SMS sent successfully');
+                    }
+                  }
+                } catch (e) {
+                  console.error('Invoice SMS send error', e);
+                }
+              } else if (method === 'clipboard') {
+                try {
+                  const link = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
+                  await navigator.clipboard.writeText(link);
+                  alert('Invoice link copied to clipboard');
+                } catch (e) {
+                  console.warn('Clipboard copy failed', e);
+                }
+              }
+            }
+            // Clear pending preference regardless
+            try { localStorage.removeItem('pendingInvoiceSend'); } catch (e) {}
+          }
+        } catch (e) {
+          console.warn('Error handling pendingInvoiceSend', e);
+        }
+
         // Redirect back to jobs list with jobId param
         setTimeout(() => {
           window.location.href = `jobs.html?jobId=${jobId}`;
