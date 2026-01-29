@@ -192,8 +192,94 @@
       line-height: 1.4;
       cursor: pointer;
       border: 1px solid #e5e7eb;
+      transition: all 0.25s;
     }
     .notes-preview:hover { background: #f3f4f6; }
+    .notes-expanded {
+      margin-top: 16px;
+      display: none;
+    }
+    .notes-expanded.open {
+      display: block;
+    }
+    .notes-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      font-size: 0.92rem;
+      color: #4b5563;
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
+    .notes-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(124,58,237,0.1);
+    }
+    .notes-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-save-notes, .btn-cancel-notes {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-save-notes {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-save-notes:hover {
+      background: #6d28d9;
+    }
+    .btn-cancel-notes {
+      background: #e5e7eb;
+      color: var(--text);
+    }
+    .btn-cancel-notes:hover {
+      background: #d1d5db;
+    }
+    .activity-expanded {
+      margin-top: 16px;
+      display: none;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+      padding: 12px;
+    }
+    .activity-expanded.open {
+      display: block;
+    }
+    .activity-item {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.9rem;
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    .activity-timestamp {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+    .activity-action {
+      color: #4b5563;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -422,7 +508,7 @@
     }
     .search-input::placeholder {
       color: var(--muted);
-      
+
     }
     @media (max-width: 600px) {
       .calendar-grid {
@@ -1378,16 +1464,31 @@ function expandMiniCard(card, job, jobId, jobs) {
       </div>
       <div class="meta">
         <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
-        <span class="last-activity" title="${job.activityLog?.map(log => log.timestamp + ': ' + log.action).join('\n') || ''}">
-          Last activity: ${job.nextAction || "—"}
+        <span class="last-activity" data-job-id="${jobId}" style="cursor:pointer; font-style:normal; color:#4b5563; font-weight:500;">
+          Last activity: ${job.nextAction || "—"} ${job.activityLog && job.activityLog.length > 0 ? `<span style="color:var(--accent); font-size:0.8rem;">(${job.activityLog.length} logs)</span>` : ''}
         </span>
+      </div>
+      <div class="activity-expanded" data-job-id="${jobId}">
+        ${job.activityLog && job.activityLog.length > 0 ? job.activityLog.slice().reverse().map(log => `
+          <div class="activity-item">
+            <div class="activity-timestamp">${formatTimestamp(log.timestamp)}</div>
+            <div class="activity-action">${escapeHtml(log.action)}</div>
+          </div>
+        `).join('') : '<div style="padding:10px; color:#9ca3af;">No activity logged yet.</div>'}
       </div>
       <div class="progress-bar">
         <div class="progress-fill"></div>
       </div>
       <button class="primary-action">${statusInfo.primary}</button>
-      <div class="notes-preview">
+      <div class="notes-preview" data-job-id="${jobId}">
         <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
+      </div>
+      <div class="notes-expanded" data-job-id="${jobId}">
+        <textarea class="notes-textarea" placeholder="Add job notes...">${job.jobNotes || ''}</textarea>
+        <div class="notes-actions">
+          <button class="btn-save-notes">Save Notes</button>
+          <button class="btn-cancel-notes">Cancel</button>
+        </div>
       </div>
     </div>
   `;
@@ -1921,6 +2022,76 @@ function attachSingleCardEventListeners(card, jobs) {
       if (currentMenu) currentMenu.classList.remove('show');
     });
   });
+
+  // 5. Notes section - click to expand/edit
+  const notesPreview = card.querySelector('.notes-preview');
+  const notesExpanded = card.querySelector('.notes-expanded');
+  const saveNotesBtn = card.querySelector('.btn-save-notes');
+  const cancelNotesBtn = card.querySelector('.btn-cancel-notes');
+  const notesTextarea = card.querySelector('.notes-textarea');
+  const jobId = card.getAttribute('data-job-id');
+
+  if (notesPreview && notesExpanded) {
+    notesPreview.addEventListener('click', () => {
+      notesExpanded.classList.add('open');
+      notesPreview.style.display = 'none';
+      notesTextarea?.focus();
+    });
+
+    cancelNotesBtn?.addEventListener('click', () => {
+      notesExpanded.classList.remove('open');
+      notesPreview.style.display = 'block';
+    });
+
+    saveNotesBtn?.addEventListener('click', async () => {
+      try {
+        const notes = notesTextarea?.value || '';
+        const user = auth.currentUser;
+        if (!user) throw new Error("Not signed in");
+        const token = await user.getIdToken();
+        
+        const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            jobNotes: notes,
+            updatedAt: new Date().toISOString()
+          })
+        });
+
+        if (!patchRes.ok) {
+          const errData = await patchRes.json().catch(() => ({}));
+          throw new Error(errData.error || `Update failed (${patchRes.status})`);
+        }
+
+        // Update the preview text
+        const preview = notes ? notes.substring(0, 120) + (notes.length > 120 ? "..." : "") : "No notes added yet";
+        notesPreview.innerHTML = `<b>NOTES:</b> ${preview}`;
+        
+        notesExpanded.classList.remove('open');
+        notesPreview.style.display = 'block';
+        alert("Notes saved successfully!");
+        loadAndRenderJobs();
+      } catch (err) {
+        console.error("Save notes failed:", err);
+        alert("Failed to save notes:\n" + err.message);
+      }
+    });
+  }
+
+  // 6. Activity log section - click to expand
+  const activityButton = card.querySelector('.last-activity');
+  const activityExpanded = card.querySelector('.activity-expanded');
+
+  if (activityButton && activityExpanded) {
+    activityButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      activityExpanded.classList.toggle('open');
+    });
+  }
 }
 
 // ── Main render function ───────────────────────────────────────
@@ -2041,16 +2212,31 @@ async function loadAndRenderJobs() {
           </div>
           <div class="meta">
             <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
-            <span class="last-activity" title="${job.activityLog?.map(log => log.timestamp + ': ' + log.action).join('\n') || ''}">
-              Last activity: ${job.nextAction || "—"}
+            <span class="last-activity" data-job-id="${job.id}" style="cursor:pointer; font-style:normal; color:#4b5563; font-weight:500;">
+              Last activity: ${job.nextAction || "—"} ${job.activityLog && job.activityLog.length > 0 ? `<span style="color:var(--accent); font-size:0.8rem;">(${job.activityLog.length} logs)</span>` : ''}
             </span>
+          </div>
+          <div class="activity-expanded" data-job-id="${job.id}">
+            ${job.activityLog && job.activityLog.length > 0 ? job.activityLog.slice().reverse().map(log => `
+              <div class="activity-item">
+                <div class="activity-timestamp">${formatTimestamp(log.timestamp)}</div>
+                <div class="activity-action">${escapeHtml(log.action)}</div>
+              </div>
+            `).join('') : '<div style="padding:10px; color:#9ca3af;">No activity logged yet.</div>'}
           </div>
           <div class="progress-bar">
             <div class="progress-fill"></div>
           </div>
           <button class="primary-action">${statusInfo.primary}</button>
-          <div class="notes-preview">
+          <div class="notes-preview" data-job-id="${job.id}">
             <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
+          </div>
+          <div class="notes-expanded" data-job-id="${job.id}">
+            <textarea class="notes-textarea" placeholder="Add job notes...">${job.jobNotes || ''}</textarea>
+            <div class="notes-actions">
+              <button class="btn-save-notes">Save Notes</button>
+              <button class="btn-cancel-notes">Cancel</button>
+            </div>
           </div>
         </div>
       `;
@@ -2663,6 +2849,76 @@ function attachCardEventListeners() {
         if (currentMenu) currentMenu.classList.remove('show');
       });
     });
+
+    // 5. Notes section - click to expand/edit
+    const notesPreview = card.querySelector('.notes-preview');
+    const notesExpanded = card.querySelector('.notes-expanded');
+    const saveNotesBtn = card.querySelector('.btn-save-notes');
+    const cancelNotesBtn = card.querySelector('.btn-cancel-notes');
+    const notesTextarea = card.querySelector('.notes-textarea');
+    const jobId = card.getAttribute('data-job-id');
+
+    if (notesPreview && notesExpanded) {
+      notesPreview.addEventListener('click', () => {
+        notesExpanded.classList.add('open');
+        notesPreview.style.display = 'none';
+        notesTextarea?.focus();
+      });
+
+      cancelNotesBtn?.addEventListener('click', () => {
+        notesExpanded.classList.remove('open');
+        notesPreview.style.display = 'block';
+      });
+
+      saveNotesBtn?.addEventListener('click', async () => {
+        try {
+          const notes = notesTextarea?.value || '';
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not signed in");
+          const token = await user.getIdToken();
+          
+          const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              jobNotes: notes,
+              updatedAt: new Date().toISOString()
+            })
+          });
+
+          if (!patchRes.ok) {
+            const errData = await patchRes.json().catch(() => ({}));
+            throw new Error(errData.error || `Update failed (${patchRes.status})`);
+          }
+
+          // Update the preview text
+          const preview = notes ? notes.substring(0, 120) + (notes.length > 120 ? "..." : "") : "No notes added yet";
+          notesPreview.innerHTML = `<b>NOTES:</b> ${preview}`;
+          
+          notesExpanded.classList.remove('open');
+          notesPreview.style.display = 'block';
+          alert("Notes saved successfully!");
+          loadAndRenderJobs();
+        } catch (err) {
+          console.error("Save notes failed:", err);
+          alert("Failed to save notes:\n" + err.message);
+        }
+      });
+    }
+
+    // 6. Activity log section - click to expand
+    const activityButton = card.querySelector('.last-activity');
+    const activityExpanded = card.querySelector('.activity-expanded');
+
+    if (activityButton && activityExpanded) {
+      activityButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activityExpanded.classList.toggle('open');
+      });
+    }
   });
   // Close menus when clicking anywhere outside
   document.addEventListener('click', e => {
