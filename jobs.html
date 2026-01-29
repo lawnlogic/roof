@@ -1399,6 +1399,63 @@ function renderTodayJobs(jobs, selectedDate = null) {
     });
   });
   
+  // Add "Route in Apple Maps" button if there are today's jobs
+  if (todayJobs.length > 0) {
+    const routeBtn = document.createElement('button');
+    routeBtn.textContent = '🗺️ Route in Apple Maps';
+    routeBtn.style.cssText = `
+      margin-bottom: 48px;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+      width: 100%;
+      transition: background 0.2s, transform 0.15s;
+    `;
+    routeBtn.onmouseover = () => routeBtn.style.background = '#6d28d9';
+    routeBtn.onmouseout = () => routeBtn.style.background = 'var(--accent)';
+    routeBtn.onmousedown = () => routeBtn.style.transform = 'scale(0.98)';
+    routeBtn.onmouseup = () => routeBtn.style.transform = 'scale(1)';
+    
+    routeBtn.addEventListener('click', () => {
+      const addresses = Array.from(todayContainer.querySelectorAll('.mini-address'))
+        .map(el => el.textContent.trim())
+        .filter(addr => addr && addr !== 'No address');
+      
+      if (addresses.length === 0) {
+        alert('No addresses found to route');
+        return;
+      }
+      
+      // Build Apple Maps URL
+      let mapsUrl = 'https://maps.apple.com/directions?dirflg=d';
+      
+      if (addresses.length === 1) {
+        // Single address - just set as destination
+        mapsUrl += `&destination=${encodeURIComponent(addresses[0])}`;
+      } else {
+        // Multiple addresses
+        mapsUrl += `&source=${encodeURIComponent(addresses[0])}`;
+        mapsUrl += `&destination=${encodeURIComponent(addresses[addresses.length - 1])}`;
+        
+        // Add waypoints (all addresses except first and last)
+        if (addresses.length > 2) {
+          const waypoints = addresses.slice(1, -1);
+          mapsUrl += `&daddr=${waypoints.map(encodeURIComponent).join('|')}`;
+        }
+      }
+      
+      // Open in new tab
+      window.open(mapsUrl, '_blank');
+    });
+    
+    todayContainer.parentNode.insertBefore(routeBtn, todayContainer.nextSibling);
+  }
+  
   // Close expanded cards when clicking elsewhere on the page
   document.addEventListener('click', (e) => {
     const expandedCard = document.querySelector('.mini-card.expanded');
