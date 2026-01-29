@@ -22,6 +22,12 @@
 </head>
 
 <body>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading property data...</p>
+  </div>
+
   <div class="create-quote-container">
     <h2>Quote Creator</h2>
     <p style="margin: 8px 0 24px 0; color: var(--text); font-size: 1.05rem; text-align: left;">
@@ -131,20 +137,6 @@
         <span>TOTAL (incl GST):</span>
         <strong id="total-incl">$0.00</strong>
       </div>
-      <div class="summary-box">
-        <div class="summary-row">
-          <span>Estimated Cost (time × hourly):</span>
-          <strong id="est-cost">$0.00</strong>
-        </div>
-        <div class="summary-row">
-          <span>Estimated Profit (ex GST):</span>
-          <strong id="est-profit">$0.00</strong>
-        </div>
-        <div class="summary-row total">
-          <span>Profit per Hour:</span>
-          <strong id="profit-hour">$0.00</strong>
-        </div>
-      </div>
       <button id="generate-pdf-btn">Generate Quote Link</button>
       <div id="quote-link-box" class="hidden">
         Share this quote with your client:<br>
@@ -196,7 +188,11 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
+    // Show loading splash initially
+    const loadingSplash = document.getElementById('loading-splash');
+    
     if (jobId) {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -210,14 +206,27 @@
               const job = await res.json();
               if (job.address) {
                 document.getElementById('address').value = job.address;
-                document.getElementById('lookup-btn').click();
+                // Auto-trigger search and hide splash when complete
+                setTimeout(() => {
+                  document.getElementById('lookup-btn').click();
+                }, 300);
               }
             }
           } catch (err) {
             console.warn("Failed to pre-fill job address:", err);
+            if (loadingSplash) {
+              loadingSplash.classList.add('fade-out');
+              setTimeout(() => loadingSplash.style.display = 'none', 500);
+            }
           }
         }
       });
+    } else {
+      // No jobId → hide splash immediately
+      if (loadingSplash) {
+        loadingSplash.classList.add('fade-out');
+        setTimeout(() => loadingSplash.style.display = 'none', 500);
+      }
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -236,8 +245,6 @@
     if (isEditMode) {
       document.getElementById('generate-pdf-btn').textContent = "Update Quote";
     }
-
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
     const btn = document.getElementById('lookup-btn');
     const addressInput = document.getElementById('address');
@@ -529,9 +536,13 @@
       document.getElementById('total-revenue').textContent  = '$' + totalRevenueEx.toFixed(2);
       document.getElementById('gst').textContent            = '$' + gst.toFixed(2);
       document.getElementById('total-incl').textContent     = '$' + totalIncl.toFixed(2);
-      document.getElementById('est-cost').textContent       = '$' + estCost.toFixed(2);
-      document.getElementById('est-profit').textContent     = '$' + estProfit.toFixed(2);
-      document.getElementById('profit-hour').textContent    = '$' + profitPerHour.toFixed(2);
+      // Only update if elements exist
+      const estCostEl = document.getElementById('est-cost');
+      const estProfitEl = document.getElementById('est-profit');
+      const profitHourEl = document.getElementById('profit-hour');
+      if (estCostEl) estCostEl.textContent = '$' + estCost.toFixed(2);
+      if (estProfitEl) estProfitEl.textContent = '$' + estProfit.toFixed(2);
+      if (profitHourEl) profitHourEl.textContent = '$' + profitPerHour.toFixed(2);
     }
 
     function ensureNegativeLayer() {
@@ -863,8 +874,19 @@
         timeDisplay.textContent = `Found in ${timeTaken} seconds`;
         resultDiv.classList.remove('hidden');
         showAerialMap(data);
+        
+        // Hide loading splash when data is loaded
+        if (loadingSplash) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
       } catch (err) {
         showError(err.message || "Failed to fetch data");
+        // Hide splash on error too
+        if (loadingSplash) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
       } finally {
         btn.disabled = false;
         btn.textContent = "Search Property";
