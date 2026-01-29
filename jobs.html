@@ -1671,7 +1671,63 @@ function attachSingleCardEventListeners(card, jobs) {
               } else if (isClipboard) {
                 alert("Quote link copied to clipboard!");
               } else if (isSMS) {
-                alert("Quote SMS will be sent when SMS feature is available!");
+                // Prepare and send SMS via backend /api/sms
+                try {
+                  // Ensure we have job data to get client phone/name
+                  let jobData = null;
+                  try {
+                    const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (jobRes2.ok) jobData = await jobRes2.json();
+                  } catch (e) { /* ignore */ }
+
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                  if (!clientPhone) throw new Error('Client phone number not found');
+
+                  const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
+
+                  // Fetch company profile for vendor details (optional)
+                  let company = { companyName: 'Company', phone: '' };
+                  try {
+                    const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (profRes.ok) {
+                      const pj = await profRes.json();
+                      company.companyName = pj.profile?.companyName || company.companyName;
+                      company.phone = pj.profile?.phone || '';
+                    }
+                  } catch (e) {}
+
+                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      recipient: clientPhone,
+                      template: 'quote_sent',
+                      jobId: jobId,
+                      vars: {
+                        clientName,
+                        quoteUrl: publicLink,
+                        vendorName: company.companyName,
+                        vendorNumber: company.phone
+                      }
+                    })
+                  });
+
+                  if (!smsRes.ok) {
+                    const txt = await smsRes.text().catch(() => '');
+                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                  }
+
+                  const smsData = await smsRes.json().catch(() => ({}));
+                  alert('Quote SMS sent successfully!');
+                } catch (e) {
+                  console.error('SMS send failed', e);
+                  alert('Failed to send SMS: ' + (e.message || e));
+                }
               }
               
               closeModal();
@@ -2026,6 +2082,260 @@ function attachSingleCardEventListeners(card, jobs) {
           console.error("Delete quote failed:", err);
           alert("Failed to delete quote:\n" + err.message);
         }
+      }
+      else if (action === 'resend-quote') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        // Resend Quote uses the same flow as Send Quote
+        showModal(`
+          <h2 class="modal-title">Resend Quote</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">Choose how to resend the quote to the client:</p>
+          <div class="send-options">
+            <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+            <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+            <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+          </div>
+          <div class="modal-buttons" style="margin-top:24px;">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          </div>
+        `);
+        const resendModalContent = document.getElementById('modalContent');
+        resendModalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const isEmail = btn.classList.contains('send-email');
+            const isSMS = btn.classList.contains('send-sms');
+            const isClipboard = btn.classList.contains('send-clipboard');
+            
+            btn.disabled = true;
+            btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
+            let finalQuoteId = quoteId;
+            
+            try {
+              if (!finalQuoteId || finalQuoteId.trim() === '') {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Not signed in");
+                const token = await user.getIdToken();
+                if (!jobId) throw new Error("No job ID");
+                const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!jobRes.ok) throw new Error(`Job fetch failed: ${jobRes.status}`);
+                const jobData = await jobRes.json();
+                const latestQ = jobData.quotes?.length > 0
+                  ? jobData.quotes.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b)
+                  : null;
+                finalQuoteId = latestQ?.id;
+                if (!finalQuoteId) throw new Error("No quote found");
+              }
+              
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              
+              // If email, call the send-email endpoint
+              if (isEmail) {
+                const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                if (!sendRes.ok) {
+                  let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                  throw new Error(errMsg);
+                }
+                alert("Quote email resent successfully!");
+              } else if (isClipboard) {
+                alert("Quote link copied to clipboard!");
+              } else if (isSMS) {
+                // Resend via SMS using the quote_sent template
+                try {
+                  let jobData = null;
+                  try {
+                    const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (jobRes2.ok) jobData = await jobRes2.json();
+                  } catch (e) { /* ignore */ }
+
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                  if (!clientPhone) throw new Error('Client phone number not found');
+
+                  const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
+
+                  let company = { companyName: 'Company', phone: '' };
+                  try {
+                    const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (profRes.ok) {
+                      const pj = await profRes.json();
+                      company.companyName = pj.profile?.companyName || company.companyName;
+                      company.phone = pj.profile?.phone || '';
+                    }
+                  } catch (e) {}
+
+                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      recipient: clientPhone,
+                      template: 'quote_sent',
+                      jobId: jobId,
+                      vars: {
+                        clientName,
+                        quoteUrl: publicLink,
+                        vendorName: company.companyName,
+                        vendorNumber: company.phone
+                      }
+                    })
+                  });
+
+                  if (!smsRes.ok) {
+                    const txt = await smsRes.text().catch(() => '');
+                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                  }
+
+                  alert('Quote SMS resent successfully!');
+                } catch (e) {
+                  console.error('SMS send failed', e);
+                  alert('Failed to send SMS: ' + (e.message || e));
+                }
+              }
+              
+              closeModal();
+            } catch (err) {
+              console.error('[Resend quote failed]', err);
+              alert(`Failed to resend quote:\n${err.message}`);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
+            }
+          });
+        });
+      }
+      else if (action === 'send-reminder') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        showModal(`
+          <h2 class="modal-title">Send Reminder</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the reminder to the client:</p>
+          <div class="send-options">
+            <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+            <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+            <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+          </div>
+          <div class="modal-buttons" style="margin-top:24px;">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          </div>
+        `);
+        const reminderModalContent = document.getElementById('modalContent');
+        reminderModalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const isEmail = btn.classList.contains('send-email');
+            const isSMS = btn.classList.contains('send-sms');
+            const isClipboard = btn.classList.contains('send-clipboard');
+            
+            btn.disabled = true;
+            btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
+            
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              
+              if (isEmail) {
+                // Email reminder - call backend email reminder endpoint
+                const reminderRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-reminder-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                if (!reminderRes.ok) {
+                  let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`);
+                  throw new Error(errMsg);
+                }
+                alert("Reminder email sent successfully!");
+              } else if (isClipboard) {
+                // Copy to clipboard
+                const reminderLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+                navigator.clipboard.writeText(reminderLink).then(() => {
+                  alert("Reminder link copied to clipboard!");
+                }).catch(() => {
+                  alert("Failed to copy to clipboard");
+                });
+              } else if (isSMS) {
+                // Send SMS reminder via backend /api/sms
+                try {
+                  // Fetch job data to get client phone/name
+                  let jobData = null;
+                  try {
+                    const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (jobRes2.ok) jobData = await jobRes2.json();
+                  } catch (e) { /* ignore */ }
+
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                  if (!clientPhone) throw new Error('Client phone number not found');
+
+                  const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+
+                  // Fetch company profile for vendor details
+                  let company = { companyName: 'Company', phone: '' };
+                  try {
+                    const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (profRes.ok) {
+                      const pj = await profRes.json();
+                      company.companyName = pj.profile?.companyName || company.companyName;
+                      company.phone = pj.profile?.phone || '';
+                    }
+                  } catch (e) {}
+
+                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      recipient: clientPhone,
+                      template: 'quote_reminder',
+                      jobId: jobId,
+                      vars: {
+                        clientName,
+                        quoteUrl: publicLink,
+                        vendorName: company.companyName,
+                        vendorNumber: company.phone
+                      }
+                    })
+                  });
+
+                  if (!smsRes.ok) {
+                    const txt = await smsRes.text().catch(() => '');
+                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                  }
+
+                  const smsData = await smsRes.json().catch(() => ({}));
+                  alert('Reminder SMS sent successfully!');
+                } catch (e) {
+                  console.error('SMS send failed', e);
+                  alert('Failed to send SMS: ' + (e.message || e));
+                }
+              }
+              
+              closeModal();
+            } catch (err) {
+              console.error('[Send reminder failed]', err);
+              alert(`Failed to send reminder:\n${err.message}`);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
+            }
+          });
+        });
       }
       else if (action === 'schedule-visit') {
         if (currentMenu) currentMenu.classList.remove('show');
@@ -2495,7 +2805,63 @@ function attachCardEventListeners() {
                 } else if (isClipboard) {
                   alert("Quote link copied to clipboard!");
                 } else if (isSMS) {
-                  alert("Quote SMS will be sent when SMS feature is available!");
+                  // Prepare and send SMS via backend /api/sms
+                  try {
+                    // Ensure we have job data to get client phone/name
+                    let jobData = null;
+                    try {
+                      const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (jobRes2.ok) jobData = await jobRes2.json();
+                    } catch (e) { /* ignore */ }
+
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                    if (!clientPhone) throw new Error('Client phone number not found');
+
+                    const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
+
+                    // Fetch company profile for vendor details (optional)
+                    let company = { companyName: 'Company', phone: '' };
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (profRes.ok) {
+                        const pj = await profRes.json();
+                        company.companyName = pj.profile?.companyName || company.companyName;
+                        company.phone = pj.profile?.phone || '';
+                      }
+                    } catch (e) {}
+
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        recipient: clientPhone,
+                        template: 'quote_sent',
+                        jobId: jobId,
+                        vars: {
+                          clientName,
+                          quoteUrl: publicLink,
+                          vendorName: company.companyName,
+                          vendorNumber: company.phone
+                        }
+                      })
+                    });
+
+                    if (!smsRes.ok) {
+                      const txt = await smsRes.text().catch(() => '');
+                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                    }
+
+                    const smsData = await smsRes.json().catch(() => ({}));
+                    alert('Quote SMS sent successfully!');
+                  } catch (e) {
+                    console.error('SMS send failed', e);
+                    alert('Failed to send SMS: ' + (e.message || e));
+                  }
                 }
                 
                 closeModal();
@@ -2858,6 +3224,261 @@ function attachCardEventListeners() {
         else if (action === 'schedule-visit') {
           if (currentMenu) currentMenu.classList.remove('show');
           showScheduleModal(card);
+        }
+        else if (action === 'resend-quote') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          // Resend Quote uses the same flow as Send Quote
+          showModal(`
+            <h2 class="modal-title">Resend Quote</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">Choose how to resend the quote to the client:</p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+          `);
+          const resendModalContent = document.getElementById('modalContent');
+          resendModalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const isEmail = btn.classList.contains('send-email');
+              const isSMS = btn.classList.contains('send-sms');
+              const isClipboard = btn.classList.contains('send-clipboard');
+              
+              btn.disabled = true;
+              btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
+              let finalQuoteId = quoteId;
+              
+              try {
+                if (!finalQuoteId || finalQuoteId.trim() === '') {
+                  const user = auth.currentUser;
+                  if (!user) throw new Error("Not signed in");
+                  const token = await user.getIdToken();
+                  if (!jobId) throw new Error("No job ID");
+                  const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (!jobRes.ok) throw new Error(`Job fetch failed: ${jobRes.status}`);
+                  const jobData = await jobRes.json();
+                  const latestQ = jobData.quotes?.length > 0
+                    ? jobData.quotes.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b)
+                    : null;
+                  finalQuoteId = latestQ?.id;
+                  if (!finalQuoteId) throw new Error("No quote found");
+                }
+                
+                const user = auth.currentUser;
+                if (!user) throw new Error("Not signed in");
+                const token = await user.getIdToken();
+                
+                // If email, call the send-email endpoint
+                if (isEmail) {
+                  const sendRes = await fetch(`${WORKER_URL}/api/quotes/${finalQuoteId}/send-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  if (!sendRes.ok) {
+                    let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
+                    throw new Error(errMsg);
+                  }
+                  alert("Quote email resent successfully!");
+                } else if (isClipboard) {
+                  alert("Quote link copied to clipboard!");
+                } else if (isSMS) {
+                  // Resend via SMS using the quote_sent template
+                  try {
+                    let jobData = null;
+                    try {
+                      const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (jobRes2.ok) jobData = await jobRes2.json();
+                    } catch (e) { /* ignore */ }
+
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                    if (!clientPhone) throw new Error('Client phone number not found');
+
+                    const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
+
+                    let company = { companyName: 'Company', phone: '' };
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (profRes.ok) {
+                        const pj = await profRes.json();
+                        company.companyName = pj.profile?.companyName || company.companyName;
+                        company.phone = pj.profile?.phone || '';
+                      }
+                    } catch (e) {}
+
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        recipient: clientPhone,
+                        template: 'quote_sent',
+                        jobId: jobId,
+                        vars: {
+                          clientName,
+                          quoteUrl: publicLink,
+                          vendorName: company.companyName,
+                          vendorNumber: company.phone
+                        }
+                      })
+                    });
+
+                    if (!smsRes.ok) {
+                      const txt = await smsRes.text().catch(() => '');
+                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                    }
+
+                    const smsData = await smsRes.json().catch(() => ({}));
+                    alert('Quote SMS resent successfully!');
+                  } catch (e) {
+                    console.error('SMS send failed', e);
+                    alert('Failed to send SMS: ' + (e.message || e));
+                  }
+                }
+                
+                closeModal();
+              } catch (err) {
+                console.error('[Resend quote failed]', err);
+                alert(`Failed to resend quote:\n${err.message}`);
+              } finally {
+                btn.disabled = false;
+                btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
+              }
+            });
+          });
+        }
+        else if (action === 'send-reminder') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          showModal(`
+            <h2 class="modal-title">Send Reminder</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">Choose how to send the reminder to the client:</p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+          `);
+          const reminderModalContent = document.getElementById('modalContent');
+          reminderModalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const isEmail = btn.classList.contains('send-email');
+              const isSMS = btn.classList.contains('send-sms');
+              const isClipboard = btn.classList.contains('send-clipboard');
+              
+              btn.disabled = true;
+              btn.textContent = isEmail ? "Sending..." : (isSMS ? "Sending..." : "Copying...");
+              
+              try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Not signed in");
+                const token = await user.getIdToken();
+                
+                if (isEmail) {
+                  // Email reminder - call backend email reminder endpoint
+                  const reminderRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-reminder-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  if (!reminderRes.ok) {
+                    let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`);
+                    throw new Error(errMsg);
+                  }
+                  alert("Reminder email sent successfully!");
+                } else if (isClipboard) {
+                  // Copy to clipboard
+                  const reminderLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+                  navigator.clipboard.writeText(reminderLink).then(() => {
+                    alert("Reminder link copied to clipboard!");
+                  }).catch(() => {
+                    alert("Failed to copy to clipboard");
+                  });
+                } else if (isSMS) {
+                  // Send SMS reminder via backend /api/sms
+                  try {
+                    // Fetch job data to get client phone/name
+                    let jobData = null;
+                    try {
+                      const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (jobRes2.ok) jobData = await jobRes2.json();
+                    } catch (e) { /* ignore */ }
+
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+
+                    if (!clientPhone) throw new Error('Client phone number not found');
+
+                    const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
+
+                    // Fetch company profile for vendor details
+                    let company = { companyName: 'Company', phone: '' };
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                      if (profRes.ok) {
+                        const pj = await profRes.json();
+                        company.companyName = pj.profile?.companyName || company.companyName;
+                        company.phone = pj.profile?.phone || '';
+                      }
+                    } catch (e) {}
+
+                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        recipient: clientPhone,
+                        template: 'quote_reminder',
+                        jobId: jobId,
+                        vars: {
+                          clientName,
+                          quoteUrl: publicLink,
+                          vendorName: company.companyName,
+                          vendorNumber: company.phone
+                        }
+                      })
+                    });
+
+                    if (!smsRes.ok) {
+                      const txt = await smsRes.text().catch(() => '');
+                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
+                    }
+
+                    const smsData = await smsRes.json().catch(() => ({}));
+                    alert('Reminder SMS sent successfully!');
+                  } catch (e) {
+                    console.error('SMS send failed', e);
+                    alert('Failed to send SMS: ' + (e.message || e));
+                  }
+                }
+                
+                closeModal();
+              } catch (err) {
+                console.error('[Send reminder failed]', err);
+                alert(`Failed to send reminder:\n${err.message}`);
+              } finally {
+                btn.disabled = false;
+                btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
+              }
+            });
+          });
         }
         if (currentMenu) currentMenu.classList.remove('show');
       });

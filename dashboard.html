@@ -310,64 +310,11 @@
 
   <div class="stats-grid">
 
-    <!-- Jobs Today / Progress Donut -->
-    <div class="stat-card">
-      <div class="donut-container">
-        <svg class="donut" viewBox="0 0 36 36">
-
-          <!-- Background circle -->
-          <path
-            d="M18 2.0845
-               a 15.9155 15.9155 0 0 1 0 31.831
-               a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none"
-            stroke="#e5e7eb"
-            stroke-width="3.5"
-          />
-
-          <!-- Progress circle -->
-          <path
-            class="circle"
-            id="progressCircle"
-            d="M18 2.0845
-               a 15.9155 15.9155 0 0 1 0 31.831
-               a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none"
-            stroke="var(--accent)"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            stroke-dasharray="84 100"
-          />
-
-        </svg>
-
-        <div class="donut-text" id="completedJobs">--</div>
-      </div>
-
-      <div class="stat-label">Jobs completed this month</div>
-      <div class="stat-sub">
-        <span id="totalScheduled">-- total scheduled</span> • <span class="highlight" id="remainingJobs">-- remaining</span>
-      </div>
-    </div>
-
-
     <!-- All-time Revenue -->
     <div class="stat-card">
       <h3>All-time Revenue</h3>
       <div class="revenue" id="totalRevenue">$0</div>
       <div class="stat-label">Total invoiced & paid</div>
-    </div>
-
-    <!-- Subscription -->
-    <div class="stat-card">
-      <h3>Subscription</h3>
-      <div style="font-size:1.8rem; font-weight:700; margin:12px 0;">Premium Tier</div>
-      <div class="subscription-info">
-        $50<span style="font-size:0.9rem;">/month</span><br>
-        Up to <span class="highlight">25 jobs</span> active<br>
-        SMS & Email alerts included<br>
-        Extra jobs @ <span class="highlight">$3 each</span>
-      </div>
     </div>
 
     <!-- SMS Usage -->
@@ -409,20 +356,20 @@
       <button class="btn-topup">Top Up SMS</button>
     </div>
 
-  </div>
+    <!-- Total Active Customers Widget -->
+    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+      <h3 style="color: white;">Active Customers</h3>
+      <div class="stat-value" style="color: white; font-size: 3.5rem;" id="activeCustomersCount">0</div>
+      <div class="stat-label" style="color: rgba(255,255,255,0.9);">Currently working with</div>
+    </div>
 
-  <!-- New Customers Widget -->
-  <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; margin-bottom: 32px;">
-    <h3 style="color: white;">New Customers</h3>
-    <div class="stat-value" style="color: white; font-size: 3.5rem;" id="newCustomersCount">0</div>
-    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Created this month</div>
-  </div>
+    <!-- New Customers Widget -->
+    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; margin-bottom: 32px;">
+      <h3 style="color: white;">New Customers</h3>
+      <div class="stat-value" style="color: white; font-size: 3.5rem;" id="newCustomersCount">0</div>
+      <div class="stat-label" style="color: rgba(255,255,255,0.9);">Created this month</div>
+    </div>
 
-  <!-- Total Active Customers Widget -->
-  <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; margin-bottom: 32px;">
-    <h3 style="color: white;">Active Customers</h3>
-    <div class="stat-value" style="color: white; font-size: 3.5rem;" id="activeCustomersCount">0</div>
-    <div class="stat-label" style="color: rgba(255,255,255,0.9);">Currently working with</div>
   </div>
 
   <!-- Company Profile Card -->
@@ -555,6 +502,24 @@ async function loadDashboardData() {
           userInitialDiv.textContent = '';
         }
       }
+      
+      // Update SMS Usage display
+      if (profile.sms && profile.sms.total && profile.sms.used !== undefined) {
+        const { total, used } = profile.sms;
+        document.getElementById('smsUsageText').textContent = `${used}/${total}`;
+        
+        // Update SMS circle stroke-dasharray for progress visualization
+        const percentage = (used / total) * 100;
+        const smsCircle = document.getElementById('smsCircle');
+        if (smsCircle) {
+          // Circumference of circle is ~100 (for stroke-dasharray calculations)
+          const dashValue = percentage;
+          smsCircle.setAttribute('stroke-dasharray', `${dashValue} 100`);
+        }
+      } else {
+        // If SMS key doesn't exist, show "locked"
+        document.getElementById('smsUsageText').textContent = 'Locked';
+      }
     }
 
     // Fetch jobs data
@@ -669,17 +634,7 @@ async function loadDashboardData() {
     // Update UI
     document.getElementById('jobsTodayBtn').textContent = `${jobsToday} Job${jobsToday !== 1 ? 's' : ''} Today →`;
     
-    // Update donut chart
-    const percent = scheduledThisMonth > 0 ? (completedThisMonth / scheduledThisMonth) * 100 : 0;
-    const circle = document.getElementById('progressCircle');
-    if (circle) {
-      circle.style.strokeDasharray = `${percent} 100`;
-    }
-    
     // Update stats
-    document.getElementById('completedJobs').textContent = completedThisMonth;
-    document.getElementById('totalScheduled').textContent = `${scheduledThisMonth} total scheduled`;
-    document.getElementById('remainingJobs').textContent = `${Math.max(0, remainingThisMonth)} remaining`;
     document.getElementById('totalRevenue').textContent = `$${totalRevenue.toLocaleString('en-NZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     document.getElementById('newCustomersCount').textContent = newCustomersThisMonth.size;
     document.getElementById('activeCustomersCount').textContent = activeCustomers.size;
