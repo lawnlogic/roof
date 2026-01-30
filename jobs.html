@@ -1328,16 +1328,15 @@ function renderTodayJobs(jobs, selectedDate = null) {
         if (createdDate.getTime() === targetDate.getTime()) return true;
       }
       
-      // 3. Check if job is quoteSent and quote was sent on the day BEFORE
-      if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+      // 3. Check if job is quoteSent with nextServiceDate and quote was sent before this day
+      if (job.status === 'quoteSent' && job.nextServiceDate && job.activityLog && job.activityLog.length > 0) {
         const quoteSentAction = job.activityLog.find(log => 
           log.action && log.action.toLowerCase().includes('quote sent')
         );
         if (quoteSentAction && quoteSentAction.timestamp) {
           const sentDate = new Date(quoteSentAction.timestamp);
-          sentDate.setDate(sentDate.getDate() + 1); // Add 1 day
           sentDate.setHours(0, 0, 0, 0);
-          if (sentDate.getTime() === targetDate.getTime()) return true;
+          if (sentDate.getTime() < targetDate.getTime()) return true;
         }
       }
       
@@ -1346,7 +1345,9 @@ function renderTodayJobs(jobs, selectedDate = null) {
     
     // Default behavior (for today): show new/quoted jobs, or any job with service date today
     // Jobs that always show (new jobs, ready to quote/send)
-    const alwaysShowStages = ['lead', 'created', 'quoted', 'quoteSent'];
+    // Default behavior (for today): show new/quoted jobs, or any job with service date today
+    // Jobs that always show (new jobs, ready to quote/send) - quoteSent handled by date logic below
+    const alwaysShowStages = ['lead', 'created', 'quoted'];
     if (alwaysShowStages.includes(job.status)) return true;
     
     // Jobs that only show if they have a nextServiceDate today (won, progress, completed)
@@ -1356,16 +1357,15 @@ function renderTodayJobs(jobs, selectedDate = null) {
       if (actionDate.getTime() === targetDate.getTime()) return true;
     }
     
-    // For quoteSent, also check if quote was sent yesterday (appears on day after)
-    if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+    // For quoteSent, only show if it has a nextServiceDate and quote was sent before today
+    if (job.status === 'quoteSent' && job.nextServiceDate && job.activityLog && job.activityLog.length > 0) {
       const quoteSentAction = job.activityLog.find(log => 
-        log.action && log.action.includes('Quote sent')
+        log.action && log.action.toLowerCase().includes('quote sent')
       );
       if (quoteSentAction && quoteSentAction.timestamp) {
-        const quoteSentDate = new Date(quoteSentAction.timestamp);
-        quoteSentDate.setHours(0, 0, 0, 0);
-        const yesterdayTime = targetDate.getTime() - (24 * 60 * 60 * 1000);
-        if (quoteSentDate.getTime() === yesterdayTime) return true;
+        const sentDate = new Date(quoteSentAction.timestamp);
+        sentDate.setHours(0, 0, 0, 0);
+        if (sentDate.getTime() < targetDate.getTime()) return true;
       }
     }
     
