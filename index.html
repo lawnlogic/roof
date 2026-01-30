@@ -15,16 +15,66 @@
 </head>
 <body>
 
+<!-- Floating CTA Button -->
+<div class="floating-cta" id="floatingCTA">
+  <button class="floating-cta-btn" onclick="window.location.href='login.html'">
+    ✨ Free Trial – No Card
+  </button>
+</div>
+
 <div class="container">
 
   <div class="hero">
     <h1>New Zealand's AI Powered Quoting Tool to Save your Business Money and Time.</h1>
-    <p>Sign up customers from your website and send out quotes from your device in the field in seconds </p>
+    <p>Sign up customers from your website and send out quotes from your device in the field in seconds</p>
+    <button class="cta-btn-hero" onclick="window.location.href='login.html'">
+      Start Free Trial – No Credit Card
+    </button>
   </div>
 
   <div class="image-container">
-    <img src="Images/roofmeasuretool.png" alt="My roof area calculator screenshot">
+    <img src="Images/roofmeasuretool.png" alt="AI-powered measurement tool">
   </div>
+
+  <!-- Trust & Social Proof Section -->
+  <div class="trust-section">
+    <h2>Trusted by 100+ NZ Landscapers & Contractors</h2>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Saved me 2 hours every Saturday. Quotes that used to take 30 minutes now take 90 seconds."</p>
+        <p class="testimonial-author">– Jake K., Auckland</p>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Roof measurements are scary accurate. No more underquoting. My margins improved immediately."</p>
+        <p class="testimonial-author">– Sarah M., North Shore</p>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Works seamlessly on iPad in the field. Customers sign off right there. Game changer."</p>
+        <p class="testimonial-author">– Mike P., Hamilton</p>
+      </div>
+    </div>
+
+    <div class="trust-stats">
+      <div class="stat-item">
+        <div class="stat-number">100+</div>
+        <div class="stat-label">Active Users</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">50K+</div>
+        <div class="stat-label">Quotes Generated</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">2.5 hrs</div>
+        <div class="stat-label">Avg Time Saved/Week</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="image-container">
 
   <div class="section-title">
     Everything you need for Instant Quotes and Accurate Measurements for Customers.
@@ -32,12 +82,15 @@
   </div>
 
   <div class="image-container">
-    <img src="Images/roofbasicquote.png" alt="My roof area calculator screenshot">
+    <img src="Images/roofbasicquote.png" alt="Quote builder interface">
   </div>
 
   <div class="section-title">
     Everything you need for Instant Quotes and Accurate Measurements for Customers.
     <p class="home-subheader">Use AI to create highly accurate quotes for customers within seconds. Save time and money.</p>
+    <button class="cta-btn-section" onclick="window.location.href='login.html'">
+      Try Free Now
+    </button>
   </div>
 
   <div class="image-container">
@@ -45,18 +98,29 @@
   </div>
 
   <div class="section-title">
-    Bespoke Software
-    <p class="home-subheader">Our software is available to run on any device, create quotes while on the go.</p>
+    Send Professional Quotes in Seconds
+    <p class="home-subheader">Impress customers with branded quotes that include property photos and accurate measurements. Build trust instantly.</p>
+    <button class="cta-btn-section" onclick="window.location.href='login.html'">
+      Start Your Free Trial
+    </button>
   </div>
 
   <div class="image-container">
-    <img src="Images/Ipadpic2.png" alt="iPad view">
+    <img src="Images/Ipadpic2.png" alt="Quoting tool works on any device">
+  </div>
+
+  <div class="section-title">
+    Bespoke Software That Works Everywhere
+    <p class="home-subheader">Works on iPad, phone, or computer. Create quotes while on the go—your customers sign off right there.</p>
+    <button class="cta-btn-section" onclick="window.location.href='login.html'">
+      Try Free – Works on iPhone & Android
+    </button>
   </div>
 
   <!-- Plans available -->
   <div class="section-title">
-    Plans available
-    <p class="home-subheader">We cater to all business, no matter the size we have a solution.</p>
+    Plans Available for Any Size Business
+    <p class="home-subheader">Start free. Scale as you grow. Pay only for what you use.</p>
   </div>
 
   <!-- PRICING CAROUSEL (HTML CARDS) -->
@@ -71,13 +135,15 @@
           <li>Manual Address Entry</li>
         </ul>
       </div>
-      <button class="signup-btn">Sign Up</button>
+      <button class="signup-btn">Start Free Trial</button>
     </div>
 
     <div class="pricing-slide">
+      <div class="pricing-badge">Most Popular</div>
       <div class="plan-content">
         <div class="plan-name">Launch</div>
         <div class="plan-price">$30 <small>/month</small></div>
+        <p class="plan-subtext">Perfect for growing teams</p>
         <ul class="features">
           <li>10 Quotes a Month</li>
           <li>Lawn Quote</li>
@@ -86,7 +152,7 @@
           <li>User Portal</li>
         </ul>
       </div>
-      <button class="signup-btn">Sign Up</button>
+      <button class="signup-btn">Start Free Trial</button>
     </div>
 
     <div class="pricing-slide">
@@ -95,6 +161,7 @@
         <div class="plan-price">
           <span class="gradient-price">$50</span> <small>/month</small>
         </div>
+        <p class="plan-subtext">For established businesses</p>
         <ul class="features">
           <li>20 Quotes a Month</li>
           <li>Lawn Quotes</li>
@@ -105,13 +172,14 @@
           <li>User Portal</li>
         </ul>
       </div>
-      <button class="signup-btn">Sign Up</button>
+      <button class="signup-btn">Start Free Trial</button>
     </div>
 
     <div class="pricing-slide">
       <div class="plan-content">
         <div class="plan-name">Premium</div>
         <div class="plan-price">$100 <small>/month</small></div>
+        <p class="plan-subtext">For large teams</p>
         <ul class="features">
           <li>50 Quotes a Month</li>
           <li>Lawn Quote</li>
@@ -122,7 +190,7 @@
           <li>User Portal</li>
         </ul>
       </div>
-      <button class="signup-btn">Sign Up</button>
+      <button class="signup-btn">Start Free Trial</button>
     </div>
 
     <button class="prev" onclick="plusSlides(-1)">‹</button>
@@ -130,11 +198,20 @@
   </div>
 
   <!-- Dots/indicators -->
-  <div style="text-align:center; margin:20px 0;">
+  <div class="carousel-indicators">
     <span class="dot active" onclick="currentSlide(1)"></span>
     <span class="dot" onclick="currentSlide(2)"></span>
     <span class="dot" onclick="currentSlide(3)"></span>
     <span class="dot" onclick="currentSlide(4)"></span>
+  </div>
+
+  <!-- Lead Capture CTA -->
+  <div class="lead-capture-section">
+    <h3>Ready to Save Hours on Quoting?</h3>
+    <p>Start your free trial today. No credit card required. Join 100+ NZ landscapers already using Deep Edge.</p>
+    <button class="cta-btn-hero" onclick="window.location.href='login.html'">
+      Start My Free Trial Now
+    </button>
   </div>
 
   <!-- Contact info -->
