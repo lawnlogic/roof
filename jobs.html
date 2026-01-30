@@ -384,7 +384,7 @@
       transition: all 0.3s ease;
       width: 100%;
       max-width: 960px;
-      margin: 0 auto;
+      margin: 0 auto 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -437,10 +437,10 @@
         /* letter-spacing: 0.3px; */
     }
     .mini-value {
-      font-size: 1.6rem;
-      /* font-weight: 700; */
-      color: #000000;
-  }
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--green);
+    }
     @media (max-width: 640px) {
       .mini-card { flex-direction: column; align-items: flex-start; gap: 12px; }
       .mini-right { width: 100%; flex-direction: row; justify-content: space-between;}
@@ -648,9 +648,6 @@
   <div class="today-previews">
     <!-- Dynamic today's jobs will be inserted here -->
   </div>
-  <button id="route-apple-maps-btn" class="hidden" style="margin-bottom: 48px; padding: 12px 20px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; width: 100%; transition: background 0.2s, transform 0.15s;">
-    🗺️ Route in Apple Maps
-  </button>
   <h2>Calendar</h2>
   <div class="calendar" id="calendarContainer">
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; justify-content: center;">
@@ -1290,8 +1287,6 @@ function renderTodayJobs(jobs, selectedDate = null) {
   
   // Filter jobs that have actions due on target date
   const todayJobs = jobs.filter(job => {
-    // Exclude paid and invoiced jobs from Today section
-    if (job.status === 'paid' || job.status === 'invoiced') return false;
     
     // If checking a specific date, check all the ways a job could appear on that day
     if (selectedDate) {
@@ -1351,10 +1346,10 @@ function renderTodayJobs(jobs, selectedDate = null) {
     
     // Default behavior (for today): show new/quoted jobs, or any job with service date today
     // Jobs that always show (new jobs, ready to quote/send)
-    const alwaysShowStages = ['lead', 'created', 'quoted'];
+    const alwaysShowStages = ['lead', 'created', 'quoted', 'quoteSent'];
     if (alwaysShowStages.includes(job.status)) return true;
     
-    // Jobs that only show if they have a nextServiceDate today (won, progress, quoteSent)
+    // Jobs that only show if they have a nextServiceDate today (won, progress, completed)
     if (job.nextServiceDate) {
       const actionDate = new Date(job.nextServiceDate);
       actionDate.setHours(0, 0, 0, 0);
@@ -1382,14 +1377,17 @@ function renderTodayJobs(jobs, selectedDate = null) {
     return;
   }
   
+  // Separate jobs into On-Site and Admin categories
+  const onSitePhases = ['won', 'progress'];
+  const adminPhases = ['created', 'lead', 'quoted', 'quoteSent', 'completed', 'invoiced', 'paid'];
+  
+  const onSiteJobs = todayJobs.filter(job => onSitePhases.includes(job.status));
+  const adminJobs = todayJobs.filter(job => adminPhases.includes(job.status));
+  
   todayContainer.innerHTML = '';
   
-  todayJobs.forEach(job => {
-    let clientName = job.client?.firstName || "Unknown";
-    if (job.client?.lastName) {
-      clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
-    }
-    
+  // Helper function to render mini card HTML
+  const renderMiniCard = (job) => {
     const statusInfo = STAGES.find(s => s.id === job.status)
                     || STAGES.find(s => s.id === job.status?.toLowerCase())
                     || STAGES[0];
@@ -1400,22 +1398,17 @@ function renderTodayJobs(jobs, selectedDate = null) {
       minute: '2-digit'
     });
     
-    // For now, we'll show the nextAction text. If it contains pricing info, great!
-    // Otherwise, we can show a generic action label based on status
     let actionLabel = job.nextAction || `Next: ${statusInfo.primary}`;
     
-    // Get latest quote total if available
     const latestQuote = job.quotes && job.quotes.length > 0
       ? job.quotes.reduce((a, b) => new Date(a.date || a.createdAt) > new Date(b.date || b.createdAt) ? a : b)
       : null;
     const quoteTotal = latestQuote ? `$${latestQuote.total.toFixed(2)}` : 'TBD';
     
-    // Split address into lines by comma
     const addrParts = (job.address || 'No address').split(',').map(s => s.trim()).filter(Boolean);
     const addrLine1 = addrParts[0] || '';
     const addrLine2 = addrParts.slice(1).join(', ');
     
-    // Get latest activity log entry
     const latestActivityLog = job.activityLog && job.activityLog.length > 0 
       ? job.activityLog[job.activityLog.length - 1]
       : null;
@@ -1426,7 +1419,7 @@ function renderTodayJobs(jobs, selectedDate = null) {
       ? `${escapeHtml(latestActivityLog.action)} • ${activityTimestamp}`
       : `${actionLabel} • ${timeString}`;
     
-    const miniCardHTML = `
+    return `
       <div class="mini-card" data-job-id="${job.id}" style="position:relative;">
         <div class="mini-left">
           <div class="mini-address-line">${escapeHtml(addrLine1)}</div>
@@ -1439,9 +1432,33 @@ function renderTodayJobs(jobs, selectedDate = null) {
         </div>
       </div>
     `;
+  };
+  
+  // Render On-Site section
+  if (onSiteJobs.length > 0) {
+    todayContainer.insertAdjacentHTML('beforeend', '<h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); margin: 12px 0 8px 0; letter-spacing: 0.5px; ">On-Site</h3>');
+    onSiteJobs.forEach(job => {
+      todayContainer.insertAdjacentHTML('beforeend', renderMiniCard(job));
+    });
     
-    todayContainer.insertAdjacentHTML('beforeend', miniCardHTML);
-  });
+    // Add route button after on-site jobs
+    if (onSiteJobs.length > 0) {
+      const routeButtonHTML = `
+        <button id="route-apple-maps-btn-today" style="margin-top: 16px; margin-bottom: 16px; padding: 12px 20px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; width: 100%; transition: background 0.2s, transform 0.15s;">
+          🗺️ Route in Apple Maps
+        </button>
+      `;
+      todayContainer.insertAdjacentHTML('beforeend', routeButtonHTML);
+    }
+  }
+  
+  // Render Admin section
+  if (adminJobs.length > 0) {
+    todayContainer.insertAdjacentHTML('beforeend', '<h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); margin: 12px 0 8px 0; letter-spacing: 0.5px; ">Admin</h3>');
+    adminJobs.forEach(job => {
+      todayContainer.insertAdjacentHTML('beforeend', renderMiniCard(job));
+    });
+  }
   
   // Attach click handlers to today's mini cards
   todayContainer.querySelectorAll('.mini-card').forEach(card => {
@@ -1468,16 +1485,6 @@ function renderTodayJobs(jobs, selectedDate = null) {
       }
     });
   });
-  
-  // Show/hide and update the route button based on today's jobs
-  const routeBtn = document.getElementById('route-apple-maps-btn');
-  if (routeBtn) {
-    if (todayJobs.length > 0) {
-      routeBtn.classList.remove('hidden');
-    } else {
-      routeBtn.classList.add('hidden');
-    }
-  }
   
   // Close expanded cards when clicking elsewhere on the page
   document.addEventListener('click', (e) => {
@@ -2665,99 +2672,82 @@ async function loadAndRenderJobs() {
     }
     container.innerHTML = '';
     jobs.forEach(job => {
-      // Debug what we have from backend
-      console.log('[Job render input]', {
-        id: job.id,
-        status: job.status,
-        hasQuotes: !!job.quotes?.length,
-        quoteIds: job.quotes?.map(q => q.id) || []
-      });
-      let normalizedStatus = job.status?.toLowerCase() || 'created';
-      if (normalizedStatus === 'quotesent') normalizedStatus = 'quoted';
-      // In loadAndRenderJobs, inside jobs.forEach
-      console.log('[Status debug]', { backendStatus: job.status, normalized: job.status });
       const statusInfo = STAGES.find(s => s.id === job.status)
-                      || STAGES.find(s => s.id === job.status.toLowerCase())
-                      || STAGES.find(s => s.id === 'quoted') // Default to 'quoted' for new jobs
+                      || STAGES.find(s => s.id === job.status?.toLowerCase())
                       || STAGES[0];
-      console.log('[Found stage]', { id: statusInfo.id, label: statusInfo.label, primary: statusInfo.primary });
       let clientName = job.client?.firstName || "Unknown";
       if (job.client?.lastName) {
         clientName += ` ${job.client.lastName.charAt(0).toUpperCase()}.`;
       }
-      // Declare recurringBadge BEFORE the template
-      let recurringBadge = "";
-      if (job.isRecurring && job.recurrence) {
-        recurringBadge = `<span style="font-size:0.82rem; background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; margin-left:8px;">
-          ${job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)}
-        </span>`;
-      }
-      // Always calculate latest quote if exists
-      let latestQuote = null;
-      if (Array.isArray(job.quotes) && job.quotes.length > 0) {
-        latestQuote = job.quotes.reduce((a, b) =>
-          new Date(a.date) > new Date(b.date) ? a : b
-        );
-      }
-      const cardHTML = `
-        <div class="job-card"
-             data-stage="${statusInfo.id || 'created'}"
-             data-job-id="${job.id || 'MISSING-ID'}"
-             data-quote-id="${latestQuote?.id || ''}"
-             data-is-recurring="${job.isRecurring === true ? 'true' : 'false'}">  <!-- ← Added here -->
-          <div class="overflow">⋯</div>
-          <div class="menu"></div>
-          <div class="job-address">
-            ${job.address || 'No address'}${recurringBadge}
+      
+      // Get latest quote total if available
+      const latestQuote = job.quotes && job.quotes.length > 0
+        ? job.quotes.reduce((a, b) => new Date(a.date || a.createdAt) > new Date(b.date || b.createdAt) ? a : b)
+        : null;
+      const quoteTotal = latestQuote ? `$${latestQuote.total.toFixed(2)}` : 'TBD';
+      
+      // Split address into lines by comma
+      const addrParts = (job.address || 'No address').split(',').map(s => s.trim()).filter(Boolean);
+      const addrLine1 = addrParts[0] || '';
+      const addrLine2 = addrParts.slice(1).join(', ');
+      
+      // Get latest activity log entry
+      const latestActivityLog = job.activityLog && job.activityLog.length > 0 
+        ? job.activityLog[job.activityLog.length - 1]
+        : null;
+      const timeString = new Date(job.nextServiceDate).toLocaleTimeString('en-NZ', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const activityTimestamp = latestActivityLog 
+        ? new Date(latestActivityLog.timestamp).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })
+        : timeString;
+      const actionLabel = job.nextAction || `Next: ${statusInfo.primary}`;
+      const activityText = latestActivityLog 
+        ? `${escapeHtml(latestActivityLog.action)} • ${activityTimestamp}`
+        : `${actionLabel} • ${timeString}`;
+      
+      const miniCardHTML = `
+        <div class="mini-card" data-job-id="${job.id}" style="position:relative;">
+          <div class="mini-left">
+            <div class="mini-address-line">${escapeHtml(addrLine1)}</div>
+            ${addrLine2 ? `<div class="mini-suburb">${escapeHtml(addrLine2)}</div>` : ''}
+            <div class="mini-activity">${activityText}</div>
           </div>
-          <div class="job-client">
-            ${clientName} • ${job.client?.phone || "No phone"} ${latestQuote ? `<span style="font-weight: 600; color: var(--accent);"> • $${latestQuote.total.toFixed(2)}</span>` : ''}
-            ${job.nextServiceDate ? `
-              <div class="next-service">
-                Next ${job.recurrence ?
-                  (job.recurrence.charAt(0).toUpperCase() + job.recurrence.slice(1)) + ' Service' :
-                  'Service'
-                } on ${new Date(job.nextServiceDate).toLocaleDateString('en-NZ', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                })}
-              </div>
-            ` : ''}
-          </div>
-          <div class="meta">
-            <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
-            <span class="last-activity" data-job-id="${job.id}" style="cursor:pointer; font-style:normal; color:#4b5563; font-weight:500;">
-              Last activity: ${job.nextAction || "—"} ${job.activityLog && job.activityLog.length > 0 ? `<span style="color:var(--accent); font-size:0.8rem;">(${job.activityLog.length} logs)</span>` : ''}
-            </span>
-          </div>
-          <div class="activity-expanded" data-job-id="${job.id}">
-            ${job.activityLog && job.activityLog.length > 0 ? job.activityLog.slice().reverse().map(log => `
-              <div class="activity-item">
-                <div class="activity-timestamp">${formatTimestamp(log.timestamp)}</div>
-                <div class="activity-action">${escapeHtml(log.action)}</div>
-              </div>
-            `).join('') : '<div style="padding:10px; color:#9ca3af;">No activity logged yet.</div>'}
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill"></div>
-          </div>
-          <button class="primary-action">${statusInfo.primary}</button>
-          <div class="notes-preview" data-job-id="${job.id}">
-            <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
-          </div>
-          <div class="notes-expanded" data-job-id="${job.id}">
-            <textarea class="notes-textarea" placeholder="Add job notes...">${job.jobNotes || ''}</textarea>
-            <div class="notes-actions">
-              <button class="btn-save-notes">Save Notes</button>
-              <button class="btn-cancel-notes">Cancel</button>
-            </div>
+          <div class="mini-right">
+            <div class="mini-status ${statusInfo.color}">${statusInfo.label}</div>
+            <div class="mini-value">${quoteTotal}</div>
           </div>
         </div>
       `;
-      container.insertAdjacentHTML("beforeend", cardHTML);
+      container.insertAdjacentHTML("beforeend", miniCardHTML);
     });
-    attachCardEventListeners();
+    
+    // Attach click handlers to all mini cards (same as today's mini cards)
+    container.querySelectorAll('.mini-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        const jobId = card.getAttribute('data-job-id');
+        const job = jobs.find(j => j.id === jobId);
+        if (!job) return;
+        
+        // Close any other expanded mini-card
+        document.querySelectorAll('.mini-card.expanded').forEach(expandedCard => {
+          if (expandedCard !== card) {
+            collapseExpandedMiniCard(expandedCard);
+          }
+        });
+        
+        // Toggle expansion of current card
+        if (card.classList.contains('expanded')) {
+          collapseExpandedMiniCard(card);
+        } else {
+          expandMiniCard(card, job, jobId, jobs);
+        }
+      });
+    });
+    
     setupSearchListener();
   } catch (err) {
     console.error("Failed to load jobs:", err);
@@ -2778,16 +2768,16 @@ function setupSearchListener() {
     
     if (!searchTerm) {
       // Show all jobs if search is empty
-      const allJobCards = container.querySelectorAll('.job-card');
-      allJobCards.forEach(card => {
+      const allMiniCards = container.querySelectorAll('.mini-card:not(.expanded)');
+      allMiniCards.forEach(card => {
         card.style.display = '';
       });
       return;
     }
     
     // Filter jobs based on search
-    const allJobCards = container.querySelectorAll('.job-card');
-    allJobCards.forEach(card => {
+    const allMiniCards = container.querySelectorAll('.mini-card:not(.expanded)');
+    allMiniCards.forEach(card => {
       const jobId = card.getAttribute('data-job-id');
       const job = allJobs.find(j => j.id === jobId);
       
@@ -3871,22 +3861,31 @@ document.addEventListener('DOMContentLoaded', () => {
     status.classList.add(`status-${text}`);
   });
   
-  // Setup route button hover effects and click handler
-  const routeBtn = document.getElementById('route-apple-maps-btn');
-  if (routeBtn) {
-    routeBtn.onmouseover = () => routeBtn.style.background = '#6d28d9';
-    routeBtn.onmouseout = () => routeBtn.style.background = 'var(--accent)';
-    routeBtn.onmousedown = () => routeBtn.style.transform = 'scale(0.98)';
-    routeBtn.onmouseup = () => routeBtn.style.transform = 'scale(1)';
-    
-    routeBtn.addEventListener('click', () => {
+  // Setup route button hover effects and click handler (handles dynamically added buttons)
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'route-apple-maps-btn-today') {
       const todayContainer = document.querySelector('.today-previews');
-      const addresses = Array.from(todayContainer.querySelectorAll('.mini-address'))
-        .map(el => el.textContent.trim())
-        .filter(addr => addr && addr !== 'No address');
+      // Find the Admin heading to know where on-site jobs end
+      const adminHeading = Array.from(todayContainer.querySelectorAll('h3')).find(h => h.textContent.includes('Admin'));
+      // Get all mini-cards and filter only those before the Admin section
+      let addresses = [];
+      const allCards = Array.from(todayContainer.querySelectorAll('.mini-card'));
+      for (const card of allCards) {
+        // Break if we've reached the admin section (admin heading comes before this card in document order)
+        if (adminHeading && !(card.compareDocumentPosition(adminHeading) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+          break; // Admin heading is before or contains this card, so we're in admin section
+        }
+        const addressLine = card.querySelector('.mini-address-line');
+        if (addressLine) {
+          const addr = addressLine.textContent.trim();
+          if (addr && addr !== 'No address') {
+            addresses.push(addr);
+          }
+        }
+      }
       
       if (addresses.length === 0) {
-        alert('No addresses found to route');
+        alert('No on-site jobs to route');
         return;
       }
       
@@ -3906,8 +3905,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Open in new tab
       window.open(mapsUrl, '_blank');
-    });
-  }
+    }
+  });
 });
 </script>
 </body>
