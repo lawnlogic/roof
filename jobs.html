@@ -628,6 +628,77 @@
       color: var(--muted);
       font-weight: 500;
     }
+    /* Dropdown sections for On-Site and Admin */
+    .jobs-section {
+      margin-bottom: 24px;
+    }
+    .jobs-section details {
+      background: transparent;
+    }
+    .jobs-section summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      padding: 8px 0;
+    }
+    .jobs-section summary::-webkit-details-marker {
+      display: none;
+    }
+    .jobs-section summary::after {
+      content: '▼';
+      display: inline-block;
+      transition: transform 0.3s ease;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .jobs-section details[open] summary::after {
+      transform: rotate(-90deg);
+    }
+    .jobs-section summary h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .jobs-section-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .jobs-section-content {
+      animation: slideDown 0.3s ease;
+    }
+    #route-apple-maps-btn-today {
+      align-self: flex-end;
+      margin-left: auto;
+      margin-right: 0;
+      width: auto;
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body>
@@ -1151,9 +1222,12 @@ function renderCalendar(jobs, monthOffset = 0) {
         }
       }
     }
-    // For new jobs (lead or created status), show on creation date (today)
+    // For new jobs (lead or created status), show on the day AFTER creation
     else if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
-      datesToAdd.push(new Date(job.createdAt));
+      const creationDate = new Date(job.createdAt);
+      // Add 1 day to the creation date so it doesn't show on the day it was created
+      creationDate.setDate(creationDate.getDate() + 1);
+      datesToAdd.push(creationDate);
     }
     // For jobs in quoteSent status, show on the day AFTER the quote was sent
     else if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
@@ -1321,11 +1395,12 @@ function renderTodayJobs(jobs, selectedDate = null) {
         }
       }
       
-      // 2. Check if job is lead/created and was created on this day
+      // 2. Check if job is lead/created and was created BEFORE this day (not on this day)
       if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
         const createdDate = new Date(job.createdAt);
         createdDate.setHours(0, 0, 0, 0);
-        if (createdDate.getTime() === targetDate.getTime()) return true;
+        // Only show if created before this day (createdDate < targetDate)
+        if (createdDate.getTime() < targetDate.getTime()) return true;
       }
       
       // 3. Check if job is quoteSent with nextServiceDate and quote was sent before this day
@@ -1344,11 +1419,17 @@ function renderTodayJobs(jobs, selectedDate = null) {
     }
     
     // Default behavior (for today): show new/quoted jobs, or any job with service date today
-    // Jobs that always show (new jobs, ready to quote/send)
-    // Default behavior (for today): show new/quoted jobs, or any job with service date today
     // Jobs that always show (new jobs, ready to quote/send) - quoteSent handled by date logic below
-    const alwaysShowStages = ['lead', 'created', 'quoted'];
-    if (alwaysShowStages.includes(job.status)) return true;
+    
+    // For lead/created, only show if NOT created today (don't show on creation date)
+    if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
+      const createdDate = new Date(job.createdAt);
+      createdDate.setHours(0, 0, 0, 0);
+      if (createdDate.getTime() < targetDate.getTime()) return true;
+    }
+    
+    // Quoted always shows
+    if (job.status === 'quoted') return true;
     
     // Jobs that only show if they have a nextServiceDate today (won, progress, completed)
     if (job.nextServiceDate) {
@@ -1436,28 +1517,39 @@ function renderTodayJobs(jobs, selectedDate = null) {
   
   // Render On-Site section
   if (onSiteJobs.length > 0) {
-    todayContainer.insertAdjacentHTML('beforeend', '<h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); margin: 12px 0 8px 0; letter-spacing: 0.5px; ">On-Site</h3>');
-    onSiteJobs.forEach(job => {
-      todayContainer.insertAdjacentHTML('beforeend', renderMiniCard(job));
-    });
-    
-    // Add route button after on-site jobs
-    if (onSiteJobs.length > 0) {
-      const routeButtonHTML = `
-        <button id="route-apple-maps-btn-today" style="margin-top: 16px; margin-bottom: 16px; padding: 12px 20px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; width: 100%; transition: background 0.2s, transform 0.15s;">
-          🗺️ Route in Apple Maps
-        </button>
-      `;
-      todayContainer.insertAdjacentHTML('beforeend', routeButtonHTML);
-    }
+    const onSiteHTML = `
+      <div class="jobs-section">
+        <details open>
+          <summary>
+            <h3>On-Site <span class="jobs-section-badge">${onSiteJobs.length}</span></h3>
+          </summary>
+          <div class="jobs-section-content">
+            ${onSiteJobs.map(job => renderMiniCard(job)).join('')}
+            <button id="route-apple-maps-btn-today" style="padding: 10px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s, transform 0.15s;">
+              🗺️ Route in Apple Maps
+            </button>
+          </div>
+        </details>
+      </div>
+    `;
+    todayContainer.insertAdjacentHTML('beforeend', onSiteHTML);
   }
   
   // Render Admin section
   if (adminJobs.length > 0) {
-    todayContainer.insertAdjacentHTML('beforeend', '<h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); margin: 12px 0 8px 0; letter-spacing: 0.5px; ">Admin</h3>');
-    adminJobs.forEach(job => {
-      todayContainer.insertAdjacentHTML('beforeend', renderMiniCard(job));
-    });
+    const adminHTML = `
+      <div class="jobs-section">
+        <details>
+          <summary>
+            <h3>Admin <span class="jobs-section-badge">${adminJobs.length}</span></h3>
+          </summary>
+          <div class="jobs-section-content">
+            ${adminJobs.map(job => renderMiniCard(job)).join('')}
+          </div>
+        </details>
+      </div>
+    `;
+    todayContainer.insertAdjacentHTML('beforeend', adminHTML);
   }
   
   // Attach click handlers to today's mini cards
