@@ -75,7 +75,7 @@
       box-shadow: 0 16px 40px rgba(124,58,237,0.15);
     }
     .job-address {
-      font-size: 1.48rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--accent);
       margin-bottom: 6px;
@@ -99,6 +99,7 @@
       font-weight: 600;
       font-size: 0.88rem;
     }
+    .status-create_quote { background: #f3f4f6; color: #4b5563; }
     .status-created { background: #f3f4f6; color: #4b5563; }
     .status-quoted { background: #ede9fe; color: #6d28d9; }
     .status-won { background: #ecfdf5; color: #059669; }
@@ -378,41 +379,72 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 18px 22px;
+      padding: 16px 20px;
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
       width: 100%;
       max-width: 960px;
       margin: 0 auto;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
     }
     .mini-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 24px rgba(124,58,237,0.1);
     }
-    .mini-address {
-      font-size: 1.1rem;
+    .mini-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .mini-address-line {
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--accent);
-      margin-bottom: 4px;
+      line-height: 1.2;
     }
-    .mini-client {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 8px;
+    .mini-suburb {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.2;
     }
-    .mini-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
+    .mini-activity {
+      font-size: 0.82rem;
       color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+    .mini-right {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        /* min-width: 140px; */
+        flex-shrink: 0;
     }
     .mini-status {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.75rem;
+        padding: 6px 16px;
+        border-radius: 24px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        /* letter-spacing: 0.3px; */
+    }
+    .mini-value {
+      font-size: 1.6rem;
+      /* font-weight: 700; */
+      color: #000000;
+  }
+    @media (max-width: 640px) {
+      .mini-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .mini-right { width: 100%; flex-direction: row; justify-content: space-between;}
+      .mini-value { font-size: 1.15rem; }
     }
     .calendar {
       background: var(--card);
@@ -1376,16 +1408,34 @@ function renderTodayJobs(jobs, selectedDate = null) {
     const latestQuote = job.quotes && job.quotes.length > 0
       ? job.quotes.reduce((a, b) => new Date(a.date || a.createdAt) > new Date(b.date || b.createdAt) ? a : b)
       : null;
-    const quoteTotal = latestQuote ? `$${latestQuote.total.toFixed(2)}` : 'No quote';
+    const quoteTotal = latestQuote ? `$${latestQuote.total.toFixed(2)}` : 'TBD';
+    
+    // Split address into lines by comma
+    const addrParts = (job.address || 'No address').split(',').map(s => s.trim()).filter(Boolean);
+    const addrLine1 = addrParts[0] || '';
+    const addrLine2 = addrParts.slice(1).join(', ');
+    
+    // Get latest activity log entry
+    const latestActivityLog = job.activityLog && job.activityLog.length > 0 
+      ? job.activityLog[job.activityLog.length - 1]
+      : null;
+    const activityTimestamp = latestActivityLog 
+      ? new Date(latestActivityLog.timestamp).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })
+      : timeString;
+    const activityText = latestActivityLog 
+      ? `${escapeHtml(latestActivityLog.action)} • ${activityTimestamp}`
+      : `${actionLabel} • ${timeString}`;
     
     const miniCardHTML = `
       <div class="mini-card" data-job-id="${job.id}" style="position:relative;">
-        <div class="mini-address">${job.address || 'No address'}</div>
-        <div class="mini-client">${clientName}</div>
-        <div class="mini-meta">
-          <span class="mini-status ${statusInfo.color}">${statusInfo.label}</span>
-          <span style="font-size: 0.8rem; color: #6b7280;">${quoteTotal}</span>
-          <span>${actionLabel} • ${timeString}</span>
+        <div class="mini-left">
+          <div class="mini-address-line">${escapeHtml(addrLine1)}</div>
+          ${addrLine2 ? `<div class="mini-suburb">${escapeHtml(addrLine2)}</div>` : ''}
+          <div class="mini-activity">${activityText}</div>
+        </div>
+        <div class="mini-right">
+          <div class="mini-status ${statusInfo.color}">${statusInfo.label}</div>
+          <div class="mini-value">${quoteTotal}</div>
         </div>
       </div>
     `;
