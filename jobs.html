@@ -1078,7 +1078,7 @@ function showJobDetailsModal(job, jobId) {
   // Manual status update — now uses passed jobId
   modal.querySelector('#applyManualStatus').onclick = async () => {
     const newStatus = modal.querySelector('#manualStatus').value;
-    if (!newStatus) return alert("Select a status");
+    if (!newStatus) return showToast('Select a status');
     try {
       const token = await auth.currentUser.getIdToken();
       const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
@@ -1099,9 +1099,9 @@ function showJobDetailsModal(job, jobId) {
       }
       closeModal();
       loadAndRenderJobs(); // refresh full list
-      alert(`Status updated to ${newStatus}!`);
+      showToast(`Status updated to ${newStatus}!`);
     } catch (err) {
-      alert("Failed to update status:\n" + err.message);
+      showToast('Failed to update status:\n' + err.message, 'error');
     }
   };
   // Delete job — uses passed jobId
@@ -1116,9 +1116,9 @@ function showJobDetailsModal(job, jobId) {
       if (!res.ok) throw new Error("Delete failed");
       closeModal();
       loadAndRenderJobs();
-      alert("Job deleted");
+      showToast('Job deleted');
     } catch (err) {
-      alert("Failed to delete job: " + err.message);
+      showToast('Failed to delete job: ' + err.message, 'error');
     }
   };
 }
@@ -1761,7 +1761,7 @@ function attachSingleCardEventListeners(card, jobs) {
       // ── Handle lead stage (Create Quote) ───────────────────────
       if (stage === 'lead') {
         if (!jobId) {
-          alert("No job ID found");
+          showToast('No job ID found');
           return;
         }
         window.location.href = `create_quote.html?jobId=${jobId}`;
@@ -1847,9 +1847,9 @@ function attachSingleCardEventListeners(card, jobs) {
                   let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
                   throw new Error(errMsg);
                 }
-                alert("Quote email sent successfully!");
+                showToast('Quote email sent successfully!', 'success');
               } else if (isClipboard) {
-                alert("Quote link copied to clipboard!");
+                showToast('Quote link copied to clipboard!');
               } else if (isSMS) {
                 // Show SMS modal to send via client's SMS app
                 try {
@@ -1879,7 +1879,7 @@ function attachSingleCardEventListeners(card, jobs) {
                   window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
                   console.error('SMS prepare failed', e);
-                  alert('Failed to prepare SMS: ' + (e.message || e));
+                  showToast('Failed to prepare SMS: ' + (e.message || e), 'error');
                 }
               }
               
@@ -1889,7 +1889,7 @@ function attachSingleCardEventListeners(card, jobs) {
               loadAndRenderJobs();
             } catch (err) {
               console.error('[Send quote failed]', err);
-              alert(`Failed to send quote:\n${err.message}`);
+              showToast(`Failed to send quote:\n${err.message}`, 'error');
             } finally {
               btn.disabled = false;
               btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -1942,11 +1942,11 @@ function attachSingleCardEventListeners(card, jobs) {
             closeModal();
             card.dataset.stage = 'progress';
             updateCard(card);
-            alert("Service started on site!");
+            showToast('Service started on site!');
             loadAndRenderJobs();
           } catch (err) {
             console.error("Start job failed:", err);
-            alert("Failed to start job:\n" + err.message);
+            showToast('Failed to start job:\n' + err.message, 'error');
           }
         });
       }
@@ -1993,11 +1993,11 @@ function attachSingleCardEventListeners(card, jobs) {
             closeModal();
             card.dataset.stage = 'completed';
             updateCard(card);
-            alert("Job marked as completed!");
+            showToast('Job marked as completed!', 'success');
             loadAndRenderJobs();
           } catch (err) {
             console.error("Complete job failed:", err);
-            alert("Failed to complete job:\n" + err.message);
+            showToast('Failed to complete job:\n' + err.message, 'error');
           }
         });
       }
@@ -2079,7 +2079,7 @@ function attachSingleCardEventListeners(card, jobs) {
         modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
           btn.addEventListener('click', async () => {
             const selectedQuoteId = quoteSelect.value;
-            if (!selectedQuoteId) return alert("Please select a quote first");
+            if (!selectedQuoteId) return showToast('Please select a quote first');
             try {
               const token = await auth.currentUser.getIdToken();
               const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
@@ -2103,7 +2103,7 @@ function attachSingleCardEventListeners(card, jobs) {
               window.location.href = `create_invoice.html?jobId=${jobId}&quoteId=${selectedQuoteId}`;
             } catch (err) {
               console.error("Invoice creation flow failed:", err);
-              alert("Failed to update job status:\n" + err.message);
+              showToast('Failed to update job status:\n' + err.message, 'error');
             }
           });
         });
@@ -2151,11 +2151,11 @@ function attachSingleCardEventListeners(card, jobs) {
             closeModal();
             card.dataset.stage = 'paid';
             updateCard(card);
-            alert("Job marked as paid!");
+            showToast('Job marked as paid!');
             loadAndRenderJobs();
           } catch (err) {
             console.error("Mark as paid failed:", err);
-            alert("Failed to mark job as paid:\n" + err.message);
+            showToast('Failed to mark job as paid:\n' + err.message, 'error');
           }
         });
       }
@@ -2187,7 +2187,7 @@ function attachSingleCardEventListeners(card, jobs) {
         if (currentMenu) currentMenu.classList.remove('show');
         const jobId = card.getAttribute('data-job-id');
         if (!jobId) {
-          alert("Cannot load details — job ID missing");
+          showToast('Cannot load details — job ID missing');
           return;
         }
         const token = await auth.currentUser.getIdToken();
@@ -2204,7 +2204,7 @@ function attachSingleCardEventListeners(card, jobs) {
         })
         .catch(err => {
           console.error("Failed to load job details:", err);
-          alert("Could not load job details: " + err.message);
+          showToast('Could not load job details: ' + err.message);
         });
       }
       else if (action === 'edit-quote') {
@@ -2213,7 +2213,7 @@ function attachSingleCardEventListeners(card, jobs) {
       else if (action === 'delete-quote') {
         if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
         if (!quoteId || quoteId.trim() === '') {
-          alert("Cannot delete — no quote is associated with this job card");
+          showToast('Cannot delete — no quote is associated with this job card');
           return;
         }
         try {
@@ -2231,11 +2231,11 @@ function attachSingleCardEventListeners(card, jobs) {
           card.dataset.stage = 'lead';
           updateCard(card);
           if (currentMenu) currentMenu.classList.remove('show');
-          alert("Quote deleted successfully");
+          showToast('Quote deleted successfully', 'success');
           loadAndRenderJobs();
         } catch (err) {
           console.error("Delete quote failed:", err);
-          alert("Failed to delete quote:\n" + err.message);
+          showToast('Failed to delete quote:\n' + err.message, 'error');
         }
       }
       else if (action === 'resend-quote') {
@@ -2299,9 +2299,9 @@ function attachSingleCardEventListeners(card, jobs) {
                   let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
                   throw new Error(errMsg);
                 }
-                alert("Quote email resent successfully!");
+                showToast('Quote email resent successfully!', 'success');
               } else if (isClipboard) {
-                alert("Quote link copied to clipboard!");
+                showToast('Quote link copied to clipboard!');
               } else if (isSMS) {
                 // Resend via SMS using the quote_sent template
                 try {
@@ -2331,14 +2331,14 @@ function attachSingleCardEventListeners(card, jobs) {
                   window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
                   console.error('SMS prepare failed', e);
-                  alert('Failed to prepare SMS: ' + (e.message || e));
+                  showToast('Failed to prepare SMS: ' + (e.message || e), 'error');
                 }
               }
               
               closeModal();
             } catch (err) {
               console.error('[Resend quote failed]', err);
-              alert(`Failed to resend quote:\n${err.message}`);
+              showToast(`Failed to resend quote:\n${err.message}`, 'error');
             } finally {
               btn.disabled = false;
               btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -2391,7 +2391,7 @@ function attachSingleCardEventListeners(card, jobs) {
           modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
             btn.addEventListener('click', async () => {
               const selectedInvoiceId = invoiceSelect.value;
-              if (!selectedInvoiceId) return alert('Please select an invoice first');
+              if (!selectedInvoiceId) return showToast('Please select an invoice first');
               const isEmail = btn.classList.contains('send-email');
               const isSMS = btn.classList.contains('send-sms');
               const isClipboard = btn.classList.contains('send-clipboard');
@@ -2413,10 +2413,10 @@ function attachSingleCardEventListeners(card, jobs) {
                     const txt = await res.text().catch(() => `HTTP ${res.status}`);
                     throw new Error(txt);
                   }
-                  alert('Invoice reminder email sent successfully!');
+                  showToast('Invoice reminder email sent successfully!', 'success');
                 } else if (isClipboard) {
                   const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
-                  try { await navigator.clipboard.writeText(link); alert('Invoice link copied to clipboard'); } catch { alert('Failed to copy to clipboard'); }
+                  try { await navigator.clipboard.writeText(link); showToast('Invoice link copied to clipboard'); } catch { showToast('Failed to copy to clipboard', 'error'); }
                 } else if (isSMS) {
                   // Fetch job & invoice to build sms vars
                   const tkn = await auth.currentUser.getIdToken();
@@ -2427,7 +2427,7 @@ function attachSingleCardEventListeners(card, jobs) {
                   } catch (e) {}
                   const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
                   if (!clientPhone) {
-                    alert('Client phone not found');
+                    showToast('Client phone not found');
                   } else {
                     // Find invoice total/date for vars
                     const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
@@ -2447,7 +2447,7 @@ function attachSingleCardEventListeners(card, jobs) {
                 closeModal();
               } catch (err) {
                 console.error('Invoice reminder failed', err);
-                alert('Failed to send invoice reminder:\n' + (err.message || err));
+                showToast('Failed to send invoice reminder:\n' + (err.message || err, 'error'));
               } finally {
                 btn.disabled = false;
                 btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
@@ -2498,14 +2498,14 @@ function attachSingleCardEventListeners(card, jobs) {
                   let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`);
                   throw new Error(errMsg);
                 }
-                alert("Reminder email sent successfully!");
+                showToast('Reminder email sent successfully!', 'success');
               } else if (isClipboard) {
                 // Copy to clipboard
                 const reminderLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
                 navigator.clipboard.writeText(reminderLink).then(() => {
-                  alert("Reminder link copied to clipboard!");
+                  showToast('Reminder link copied to clipboard!');
                 }).catch(() => {
-                  alert("Failed to copy to clipboard");
+                  showToast('Failed to copy to clipboard', 'error');
                 });
               } else if (isSMS) {
                 // Send SMS reminder via client's SMS app
@@ -2538,14 +2538,14 @@ function attachSingleCardEventListeners(card, jobs) {
                   window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_reminder', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
                   console.error('SMS prepare failed', e);
-                  alert('Failed to prepare SMS: ' + (e.message || e));
+                  showToast('Failed to prepare SMS: ' + (e.message || e), 'error');
                 }
               }
               
               closeModal();
             } catch (err) {
               console.error('[Send reminder failed]', err);
-              alert(`Failed to send reminder:\n${err.message}`);
+              showToast(`Failed to send reminder:\n${err.message}`, 'error');
             } finally {
               btn.disabled = false;
               btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -2612,11 +2612,11 @@ function attachSingleCardEventListeners(card, jobs) {
         
         notesExpanded.classList.remove('open');
         notesPreview.style.display = 'block';
-        alert("Notes saved successfully!");
+        showToast('Notes saved successfully!', 'success');
         loadAndRenderJobs();
       } catch (err) {
         console.error("Save notes failed:", err);
-        alert("Failed to save notes:\n" + err.message);
+        showToast('Failed to save notes:\n' + err.message, 'error');
       }
     });
   }
@@ -2840,7 +2840,7 @@ function showScheduleModal(card) {
     const frequency = modal.querySelector('#frequencySelect').value;
     const nextDate = modal.querySelector('#nextDateInput').value;
     if (!nextDate) {
-      alert("Please select a start date");
+      showToast('Please select a start date');
       return;
     }
     try {
@@ -2870,10 +2870,10 @@ function showScheduleModal(card) {
       closeModal();
       card.dataset.stage = 'won'; // match backend status
       updateCard(card);
-      alert("Service scheduled successfully!");
+      showToast('Service scheduled successfully!', 'success');
     } catch (err) {
       console.error("Schedule save failed:", err);
-      alert("Failed to save schedule:\n" + err.message);
+      showToast('Failed to save schedule:\n' + err.message, 'error');
     }
   });
 }
@@ -2913,7 +2913,7 @@ function attachCardEventListeners() {
         if (stage === 'lead') {
           const jobId = card.getAttribute('data-job-id');
           if (!jobId) {
-            alert("No job ID found");
+            showToast('No job ID found');
             return;
           }
           window.location.href = `create_quote.html?jobId=${jobId}`;
@@ -3000,9 +3000,9 @@ function attachCardEventListeners() {
                     let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
                     throw new Error(errMsg);
                   }
-                  alert("Quote email sent successfully!");
+                  showToast('Quote email sent successfully!', 'success');
                 } else if (isClipboard) {
-                  alert("Quote link copied to clipboard!");
+                  showToast('Quote link copied to clipboard!');
                 } else if (isSMS) {
                   // Show SMS modal to send via client's SMS app
                   try {
@@ -3034,7 +3034,7 @@ function attachCardEventListeners() {
                     window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                   } catch (e) {
                     console.error('SMS prepare failed', e);
-                    alert('Failed to prepare SMS: ' + (e.message || e));
+                    showToast('Failed to prepare SMS: ' + (e.message || e), 'error');
                   }
                 }
                 
@@ -3044,7 +3044,7 @@ function attachCardEventListeners() {
                 loadAndRenderJobs(); // refresh to sync backend
               } catch (err) {
                 console.error('[Send quote failed]', err);
-                alert(`Failed to send quote:\n${err.message}`);
+                showToast(`Failed to send quote:\n${err.message}`, 'error');
               } finally {
                 btn.disabled = false;
                 btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -3094,12 +3094,12 @@ function attachCardEventListeners() {
               closeModal();
               card.dataset.stage = 'progress'; // match backend
               updateCard(card);
-              alert("Service started on site!");
+              showToast('Service started on site!');
               // Optional: refresh full list
               loadAndRenderJobs();
             } catch (err) {
               console.error("Start job failed:", err);
-              alert("Failed to start job:\n" + err.message);
+              showToast('Failed to start job:\n' + err.message, 'error');
             }
           });
         }
@@ -3147,12 +3147,12 @@ function attachCardEventListeners() {
               // Update local card immediately
               card.dataset.stage = 'completed';
               updateCard(card);
-              alert("Job marked as completed!");
+              showToast('Job marked as completed!', 'success');
               // Refresh full list to be safe (especially important if activity log is shown)
               loadAndRenderJobs();
             } catch (err) {
               console.error("Complete job failed:", err);
-              alert("Failed to complete job:\n" + err.message);
+              showToast('Failed to complete job:\n' + err.message, 'error');
             }
           });
         }
@@ -3234,7 +3234,7 @@ function attachCardEventListeners() {
           modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
             btn.addEventListener('click', async () => {
               const selectedQuoteId = quoteSelect.value;
-              if (!selectedQuoteId) return alert("Please select a quote first");
+              if (!selectedQuoteId) return showToast('Please select a quote first');
               try {
                 // Save user's desired send method so create_invoice.html can act after invoice is created
                 const method = btn.classList.contains('send-email') ? 'email' : (btn.classList.contains('send-sms') ? 'sms' : 'clipboard');
@@ -3267,7 +3267,7 @@ function attachCardEventListeners() {
                 window.location.href = `create_invoice.html?jobId=${jobId}&quoteId=${selectedQuoteId}`;
               } catch (err) {
                 console.error("Invoice creation flow failed:", err);
-                alert("Failed to update job status:\n" + err.message);
+                showToast('Failed to update job status:\n' + err.message, 'error');
               }
             });
           });
@@ -3315,12 +3315,12 @@ function attachCardEventListeners() {
               // Update local card immediately
               card.dataset.stage = 'paid';
               updateCard(card);
-              alert("Job marked as paid!");
+              showToast('Job marked as paid!');
               // Refresh full list to show updated status/activity log
               loadAndRenderJobs();
             } catch (err) {
               console.error("Mark as paid failed:", err);
-              alert("Failed to mark job as paid:\n" + err.message);
+              showToast('Failed to mark job as paid:\n' + err.message, 'error');
             }
           });
         }
@@ -3350,7 +3350,7 @@ function attachCardEventListeners() {
           if (currentMenu) currentMenu.classList.remove('show');
           const jobId = card.getAttribute('data-job-id');
           if (!jobId) {
-            alert("Cannot load details — job ID missing");
+            showToast('Cannot load details — job ID missing');
             return;
           }
           // Fetch fresh job data (recommended for full details)
@@ -3368,7 +3368,7 @@ function attachCardEventListeners() {
           })
           .catch(err => {
             console.error("Failed to load job details:", err);
-            alert("Could not load job details: " + err.message);
+            showToast('Could not load job details: ' + err.message);
           });
         }
         else if (action === 'edit-quote') {
@@ -3377,7 +3377,7 @@ function attachCardEventListeners() {
         else if (action === 'delete-quote') {
           if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
           if (!quoteId || quoteId.trim() === '') {
-            alert("Cannot delete — no quote is associated with this job card");
+            showToast('Cannot delete — no quote is associated with this job card');
             return;
           }
           try {
@@ -3395,11 +3395,11 @@ function attachCardEventListeners() {
             card.dataset.stage = 'lead';
             updateCard(card);
             if (currentMenu) currentMenu.classList.remove('show');
-            alert("Quote deleted successfully");
+            showToast('Quote deleted successfully', 'success');
             loadAndRenderJobs(); // refresh to sync backend
           } catch (err) {
             console.error("Delete quote failed:", err);
-            alert("Failed to delete quote:\n" + err.message);
+            showToast('Failed to delete quote:\n' + err.message, 'error');
           }
         }
         else if (action === 'schedule-visit') {
@@ -3467,9 +3467,9 @@ function attachCardEventListeners() {
                     let errMsg = await sendRes.text().catch(() => `HTTP ${sendRes.status}`);
                     throw new Error(errMsg);
                   }
-                  alert("Quote email resent successfully!");
+                  showToast('Quote email resent successfully!', 'success');
                 } else if (isClipboard) {
-                  alert("Quote link copied to clipboard!");
+                  showToast('Quote link copied to clipboard!');
                 } else if (isSMS) {
                   // Resend via SMS using the quote_sent template
                   try {
@@ -3499,14 +3499,14 @@ function attachCardEventListeners() {
                     window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                   } catch (e) {
                     console.error('SMS prepare failed', e);
-                    alert('Failed to prepare SMS: ' + (e.message || e));
+                    showToast('Failed to prepare SMS: ' + (e.message || e), 'error');
                   }
                 }
                 
                 closeModal();
               } catch (err) {
                 console.error('[Resend quote failed]', err);
-                alert(`Failed to resend quote:\n${err.message}`);
+                showToast(`Failed to resend quote:\n${err.message}`, 'error');
               } finally {
                 btn.disabled = false;
                 btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -3559,7 +3559,7 @@ function attachCardEventListeners() {
             modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
               btn.addEventListener('click', async () => {
                 const selectedInvoiceId = invoiceSelect.value;
-                if (!selectedInvoiceId) return alert('Please select an invoice first');
+                if (!selectedInvoiceId) return showToast('Please select an invoice first');
                 const isEmail = btn.classList.contains('send-email');
                 const isSMS = btn.classList.contains('send-sms');
                 const isClipboard = btn.classList.contains('send-clipboard');
@@ -3581,16 +3581,16 @@ function attachCardEventListeners() {
                       const txt = await res.text().catch(() => `HTTP ${res.status}`);
                       throw new Error(txt);
                     }
-                    alert('Invoice reminder email sent successfully!');
+                    showToast('Invoice reminder email sent successfully!', 'success');
                   } else if (isClipboard) {
                     const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
-                    try { await navigator.clipboard.writeText(link); alert('Invoice link copied to clipboard'); } catch { alert('Failed to copy to clipboard'); }
+                    try { await navigator.clipboard.writeText(link); showToast('Invoice link copied to clipboard'); } catch { showToast('Failed to copy to clipboard', 'error'); }
                   } else if (isSMS) {
                     const tkn = await auth.currentUser.getIdToken();
                     let jobData = null;
                     try { const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${tkn}` } }); if (jobRes2.ok) jobData = await jobRes2.json(); } catch (e) {}
                     const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-                    if (!clientPhone) { alert('Client phone not found'); }
+                    if (!clientPhone) { showToast('Client phone not found'); }
                     else {
                       const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
                       const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
@@ -3605,7 +3605,7 @@ function attachCardEventListeners() {
                   closeModal();
                 } catch (err) {
                   console.error('Invoice reminder failed', err);
-                  alert('Failed to send invoice reminder:\n' + (err.message || err));
+                  showToast('Failed to send invoice reminder:\n' + (err.message || err, 'error'));
                 } finally {
                   btn.disabled = false;
                   btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
@@ -3646,10 +3646,10 @@ function attachCardEventListeners() {
                 if (isEmail) {
                   const reminderRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}/send-reminder-email`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
                   if (!reminderRes.ok) { let errMsg = await reminderRes.text().catch(() => `HTTP ${reminderRes.status}`); throw new Error(errMsg); }
-                  alert("Reminder email sent successfully!");
+                  showToast('Reminder email sent successfully!', 'success');
                 } else if (isClipboard) {
                   const reminderLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
-                  navigator.clipboard.writeText(reminderLink).then(() => { alert("Reminder link copied to clipboard!"); }).catch(() => { alert("Failed to copy to clipboard"); });
+                  navigator.clipboard.writeText(reminderLink).then(() => { showToast('Reminder link copied to clipboard!'); }).catch(() => { showToast('Failed to copy to clipboard', 'error'); });
                 } else if (isSMS) {
                   try {
                     let jobData = null;
@@ -3662,12 +3662,12 @@ function attachCardEventListeners() {
                     try { const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } }); if (profRes.ok) { const pj = await profRes.json(); company.companyName = pj.profile?.companyName || company.companyName; company.phone = pj.profile?.phone || ''; } } catch (e) {}
                     const message = window.buildMessageFromTemplate('quote_reminder', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
                     window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_reminder', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
-                  } catch (e) { console.error('SMS prepare failed', e); alert('Failed to prepare SMS: ' + (e.message || e)); }
+                  } catch (e) { console.error('SMS prepare failed', e); showToast('Failed to prepare SMS: ' + (e.message || e), 'error'); }
                 }
                 closeModal();
               } catch (err) {
                 console.error('[Send reminder failed]', err);
-                alert(`Failed to send reminder:\n${err.message}`);
+                showToast(`Failed to send reminder:\n${err.message}`, 'error');
               } finally {
                 btn.disabled = false;
                 btn.textContent = isEmail ? "Email" : (isSMS ? "SMS" : "Copy to Clipboard");
@@ -3729,11 +3729,11 @@ function attachCardEventListeners() {
           
           notesExpanded.classList.remove('open');
           notesPreview.style.display = 'block';
-          alert("Notes saved successfully!");
+          showToast('Notes saved successfully!', 'success');
           loadAndRenderJobs();
         } catch (err) {
           console.error("Save notes failed:", err);
-          alert("Failed to save notes:\n" + err.message);
+          showToast('Failed to save notes:\n' + err.message, 'error');
         }
       });
     }
@@ -3845,7 +3845,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       if (addresses.length === 0) {
-        alert('No on-site jobs to route');
+        showToast('No on-site jobs to route');
         return;
       }
       
