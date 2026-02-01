@@ -309,7 +309,6 @@
                     alert('Invoice created but client phone not found for SMS');
                   } else {
                     const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
-                    // Build richer vars for SMS: client name, amount, vendor info
                     const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                     const amountStr = invoiceData && invoiceData.totalInclGst ? `$${Number(invoiceData.totalInclGst).toFixed(2)}` : (invoiceData && invoiceData.total ? `$${Number(invoiceData.total).toFixed(2)}` : '$0.00');
                     let vendorName = 'Company';
@@ -323,32 +322,8 @@
                       }
                     } catch (e) { /* ignore profile fetch errors */ }
 
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token2}`,
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                        recipient: clientPhone,
-                        template: 'invoice_sent',
-                        invoiceId: invoiceId,
-                        vars: {
-                          clientName: clientName,
-                          invoiceUrl: publicLink,
-                          amount: amountStr,
-                          vendorName: vendorName,
-                          vendorNumber: vendorNumber
-                        }
-                      })
-                    });
-                    if (!smsRes.ok) {
-                      const txt = await smsRes.text().catch(() => '');
-                      console.warn('Invoice SMS send failed', txt || smsRes.status);
-                      alert('Invoice created but automatic SMS failed to send.');
-                    } else {
-                      alert('Invoice SMS sent successfully');
-                    }
+                    const message = window.buildMessageFromTemplate('invoice_sent', { clientName, invoiceUrl: publicLink, amount: amountStr, vendorName, vendorNumber });
+                    window.showSmsModal(clientName, clientPhone, message, { invoiceId, template: 'invoice_sent', vars: { clientName, invoiceUrl: publicLink, amount: amountStr, vendorName, vendorNumber } });
                   }
                 } catch (e) {
                   console.error('Invoice SMS send error', e);

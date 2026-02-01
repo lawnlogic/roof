@@ -376,21 +376,22 @@
       margin-bottom: 48px;
     }
     .mini-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        transition: all 0.3s ease;
+        /* width: 100%; */
+        max-width: 960px;
+        margin: 0 auto 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 10px;
     }
+
     .mini-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 24px rgba(124,58,237,0.1);
@@ -633,7 +634,7 @@
       margin-bottom: 24px;
     }
     .jobs-section details {
-      background: transparent;
+      background: var(--card);
     }
     .jobs-section summary {
       list-style: none;
@@ -642,7 +643,6 @@
       align-items: center;
       justify-content: space-between;
       user-select: none;
-      padding: 8px 0;
     }
     .jobs-section summary::-webkit-details-marker {
       display: none;
@@ -988,7 +988,7 @@ function closeModal() {
 function showJobDetailsModal(job, jobId) {
   showModal(`
     <div style="max-width:700px; width:90%; max-height:90vh; overflow-y:auto; padding:24px;">
-      <h2 class="modal-title" style="margin-bottom:24px;">Job Details • ${escapeHtml(job.address || 'No address')}</h2>
+      <h2 class="modal-title">Job Details • ${escapeHtml(job.address || 'No address')}</h2>
       <!-- Client Information -->
       <div class="detail-section">
         <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
@@ -1525,7 +1525,7 @@ function renderTodayJobs(jobs, selectedDate = null) {
           </summary>
           <div class="jobs-section-content">
             ${onSiteJobs.map(job => renderMiniCard(job)).join('')}
-            <button id="route-apple-maps-btn-today" style="padding: 10px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s, transform 0.15s;">
+            <button id="route-apple-maps-btn-today" style="padding: 10px 16px;background: var(--accent);color: white;border: none;border-radius: 8px;font-weight: 600;cursor: pointer;font-size: 0.9rem;transition: background 0.2s, transform 0.15s;display: flex;margin: 10px;/* justify-content: flex-end; */align-items: center;/* flex-direction: row; *//* justify-content: flex-start; */float: right;">
               🗺️ Route in Apple Maps
             </button>
           </div>
@@ -1837,23 +1837,20 @@ function attachSingleCardEventListeners(card, jobs) {
               } else if (isClipboard) {
                 alert("Quote link copied to clipboard!");
               } else if (isSMS) {
-                // Prepare and send SMS via backend /api/sms
+                // Show SMS modal to send via client's SMS app
                 try {
-                  // Ensure we have job data to get client phone/name
                   let jobData = null;
                   try {
                     const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if (jobRes2.ok) jobData = await jobRes2.json();
                   } catch (e) { /* ignore */ }
 
-                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                   const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                   if (!clientPhone) throw new Error('Client phone number not found');
 
                   const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
 
-                  // Fetch company profile for vendor details (optional)
                   let company = { companyName: 'Company', phone: '' };
                   try {
                     const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -1864,35 +1861,11 @@ function attachSingleCardEventListeners(card, jobs) {
                     }
                   } catch (e) {}
 
-                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      recipient: clientPhone,
-                      template: 'quote_sent',
-                      jobId: jobId,
-                      vars: {
-                        clientName,
-                        quoteUrl: publicLink,
-                        vendorName: company.companyName,
-                        vendorNumber: company.phone
-                      }
-                    })
-                  });
-
-                  if (!smsRes.ok) {
-                    const txt = await smsRes.text().catch(() => '');
-                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                  }
-
-                  const smsData = await smsRes.json().catch(() => ({}));
-                  alert('Quote SMS sent successfully!');
+                  const message = window.buildMessageFromTemplate('quote_sent', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                  window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
-                  console.error('SMS send failed', e);
-                  alert('Failed to send SMS: ' + (e.message || e));
+                  console.error('SMS prepare failed', e);
+                  alert('Failed to prepare SMS: ' + (e.message || e));
                 }
               }
               
@@ -2324,9 +2297,8 @@ function attachSingleCardEventListeners(card, jobs) {
                     if (jobRes2.ok) jobData = await jobRes2.json();
                   } catch (e) { /* ignore */ }
 
-                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                   const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                   if (!clientPhone) throw new Error('Client phone number not found');
 
                   const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
@@ -2341,34 +2313,11 @@ function attachSingleCardEventListeners(card, jobs) {
                     }
                   } catch (e) {}
 
-                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      recipient: clientPhone,
-                      template: 'quote_sent',
-                      jobId: jobId,
-                      vars: {
-                        clientName,
-                        quoteUrl: publicLink,
-                        vendorName: company.companyName,
-                        vendorNumber: company.phone
-                      }
-                    })
-                  });
-
-                  if (!smsRes.ok) {
-                    const txt = await smsRes.text().catch(() => '');
-                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                  }
-
-                  alert('Quote SMS resent successfully!');
+                  const message = window.buildMessageFromTemplate('quote_sent', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                  window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
-                  console.error('SMS send failed', e);
-                  alert('Failed to send SMS: ' + (e.message || e));
+                  console.error('SMS prepare failed', e);
+                  alert('Failed to prepare SMS: ' + (e.message || e));
                 }
               }
               
@@ -2477,21 +2426,8 @@ function attachSingleCardEventListeners(card, jobs) {
                       if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; }
                     } catch (e) {}
 
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                      method: 'POST',
-                      headers: { 'Authorization': `Bearer ${tkn}`, 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        recipient: clientPhone,
-                        template: 'invoice_reminder',
-                        invoiceId: selectedInvoiceId,
-                        vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber }
-                      })
-                    });
-                    if (!smsRes.ok) {
-                      const txt = await smsRes.text().catch(() => '');
-                      throw new Error(txt || `SMS failed ${smsRes.status}`);
-                    }
-                    alert('Invoice reminder SMS sent successfully');
+                    const message = window.buildMessageFromTemplate('invoice_reminder', { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, dueDate: '', amount, vendorName, vendorNumber });
+                    window.showSmsModal(jobData?.client?.firstName || 'Customer', clientPhone, message, { invoiceId: selectedInvoiceId, template: 'invoice_reminder', vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } });
                   }
                 }
                 closeModal();
@@ -2558,7 +2494,7 @@ function attachSingleCardEventListeners(card, jobs) {
                   alert("Failed to copy to clipboard");
                 });
               } else if (isSMS) {
-                // Send SMS reminder via backend /api/sms
+                // Send SMS reminder via client's SMS app
                 try {
                   // Fetch job data to get client phone/name
                   let jobData = null;
@@ -2567,9 +2503,8 @@ function attachSingleCardEventListeners(card, jobs) {
                     if (jobRes2.ok) jobData = await jobRes2.json();
                   } catch (e) { /* ignore */ }
                   
-                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                  const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                   const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                   if (!clientPhone) throw new Error('Client phone number not found');
 
                   const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
@@ -2585,35 +2520,11 @@ function attachSingleCardEventListeners(card, jobs) {
                     }
                   } catch (e) {}
 
-                  const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      recipient: clientPhone,
-                      template: 'quote_reminder',
-                      jobId: jobId,
-                      vars: {
-                        clientName,
-                        quoteUrl: publicLink,
-                        vendorName: company.companyName,
-                        vendorNumber: company.phone
-                      }
-                    })
-                  });
-
-                  if (!smsRes.ok) {
-                    const txt = await smsRes.text().catch(() => '');
-                    throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                  }
-
-                  const smsData = await smsRes.json().catch(() => ({}));
-                  alert('Reminder SMS sent successfully!');
+                  const message = window.buildMessageFromTemplate('quote_reminder', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                  window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_reminder', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                 } catch (e) {
-                  console.error('SMS send failed', e);
-                  alert('Failed to send SMS: ' + (e.message || e));
+                  console.error('SMS prepare failed', e);
+                  alert('Failed to prepare SMS: ' + (e.message || e));
                 }
               }
               
@@ -3079,7 +2990,7 @@ function attachCardEventListeners() {
                 } else if (isClipboard) {
                   alert("Quote link copied to clipboard!");
                 } else if (isSMS) {
-                  // Prepare and send SMS via backend /api/sms
+                  // Show SMS modal to send via client's SMS app
                   try {
                     // Ensure we have job data to get client phone/name
                     let jobData = null;
@@ -3088,9 +2999,8 @@ function attachCardEventListeners() {
                       if (jobRes2.ok) jobData = await jobRes2.json();
                     } catch (e) { /* ignore */ }
 
-                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                     const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                     if (!clientPhone) throw new Error('Client phone number not found');
 
                     const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
@@ -3106,35 +3016,11 @@ function attachCardEventListeners() {
                       }
                     } catch (e) {}
 
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                        recipient: clientPhone,
-                        template: 'quote_sent',
-                        jobId: jobId,
-                        vars: {
-                          clientName,
-                          quoteUrl: publicLink,
-                          vendorName: company.companyName,
-                          vendorNumber: company.phone
-                        }
-                      })
-                    });
-
-                    if (!smsRes.ok) {
-                      const txt = await smsRes.text().catch(() => '');
-                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                    }
-
-                    const smsData = await smsRes.json().catch(() => ({}));
-                    alert('Quote SMS sent successfully!');
+                    const message = window.buildMessageFromTemplate('quote_sent', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                    window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                   } catch (e) {
-                    console.error('SMS send failed', e);
-                    alert('Failed to send SMS: ' + (e.message || e));
+                    console.error('SMS prepare failed', e);
+                    alert('Failed to prepare SMS: ' + (e.message || e));
                   }
                 }
                 
@@ -3579,9 +3465,8 @@ function attachCardEventListeners() {
                       if (jobRes2.ok) jobData = await jobRes2.json();
                     } catch (e) { /* ignore */ }
 
-                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                     const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-
                     if (!clientPhone) throw new Error('Client phone number not found');
 
                     const publicLink = `${window.location.origin}/roof/quote.html?quote=${finalQuoteId}`;
@@ -3596,35 +3481,11 @@ function attachCardEventListeners() {
                       }
                     } catch (e) {}
 
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({
-                        recipient: clientPhone,
-                        template: 'quote_sent',
-                        jobId: jobId,
-                        vars: {
-                          clientName,
-                          quoteUrl: publicLink,
-                          vendorName: company.companyName,
-                          vendorNumber: company.phone
-                        }
-                      })
-                    });
-
-                    if (!smsRes.ok) {
-                      const txt = await smsRes.text().catch(() => '');
-                      throw new Error(txt || `SMS endpoint returned ${smsRes.status}`);
-                    }
-
-                    const smsData = await smsRes.json().catch(() => ({}));
-                    alert('Quote SMS resent successfully!');
+                    const message = window.buildMessageFromTemplate('quote_sent', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                    window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_sent', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
                   } catch (e) {
-                    console.error('SMS send failed', e);
-                    alert('Failed to send SMS: ' + (e.message || e));
+                    console.error('SMS prepare failed', e);
+                    alert('Failed to prepare SMS: ' + (e.message || e));
                   }
                 }
                 
@@ -3723,13 +3584,8 @@ function attachCardEventListeners() {
                       let vendorName = 'Company', vendorNumber = '';
                       try { const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${tkn}` } }); if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; } } catch (e) {}
 
-                      const smsRes = await fetch(`${WORKER_URL}/api/sms`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${tkn}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ recipient: clientPhone, template: 'invoice_reminder', invoiceId: selectedInvoiceId, vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } })
-                      });
-                      if (!smsRes.ok) { const txt = await smsRes.text().catch(() => ''); throw new Error(txt || `SMS failed ${smsRes.status}`); }
-                      alert('Invoice reminder SMS sent successfully');
+                      const message = window.buildMessageFromTemplate('invoice_reminder', { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber });
+                      window.showSmsModal(jobData?.client?.firstName || 'Customer', clientPhone, message, { invoiceId: selectedInvoiceId, template: 'invoice_reminder', vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } });
                     }
                   }
                   closeModal();
@@ -3784,17 +3640,15 @@ function attachCardEventListeners() {
                   try {
                     let jobData = null;
                     try { const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } }); if (jobRes2.ok) jobData = await jobRes2.json(); } catch (e) { }
-                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer');
+                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
                     const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
                     if (!clientPhone) throw new Error('Client phone number not found');
                     const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteId}`;
                     let company = { companyName: 'Company', phone: '' };
                     try { const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } }); if (profRes.ok) { const pj = await profRes.json(); company.companyName = pj.profile?.companyName || company.companyName; company.phone = pj.profile?.phone || ''; } } catch (e) {}
-                    const smsRes = await fetch(`${WORKER_URL}/api/sms`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient: clientPhone, template: 'quote_reminder', jobId: jobId, vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } }) });
-                    if (!smsRes.ok) { const txt = await smsRes.text().catch(() => ''); throw new Error(txt || `SMS endpoint returned ${smsRes.status}`); }
-                    const smsData = await smsRes.json().catch(() => ({}));
-                    alert('Reminder SMS sent successfully!');
-                  } catch (e) { console.error('SMS send failed', e); alert('Failed to send SMS: ' + (e.message || e)); }
+                    const message = window.buildMessageFromTemplate('quote_reminder', { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone });
+                    window.showSmsModal(clientName, clientPhone, message, { jobId, template: 'quote_reminder', vars: { clientName, quoteUrl: publicLink, vendorName: company.companyName, vendorNumber: company.phone } });
+                  } catch (e) { console.error('SMS prepare failed', e); alert('Failed to prepare SMS: ' + (e.message || e)); }
                 }
                 closeModal();
               } catch (err) {
