@@ -1175,15 +1175,18 @@ function renderCalendar(jobs, monthOffset = 0) {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   
-  // Count jobs due on each day
+  // Count ONLY on-site jobs due on each day (admin tasks don't add to count)
+  const onSitePhases = ['won', 'progress'];
   const jobsByDay = {};
+  
   jobs.forEach(job => {
+    // Only count jobs that are in on-site phases
+    if (!onSitePhases.includes(job.status)) return;
+    
     const datesToAdd = [];
     
     // For jobs with nextServiceDate, use that
     if (job.nextServiceDate) {
-      datesToAdd.push(new Date(job.nextServiceDate));
-      
       // If recurring, generate all occurrences in this month
       if (job.isRecurring && job.recurrence) {
         const startDate = new Date(job.nextServiceDate);
@@ -1220,26 +1223,9 @@ function renderCalendar(jobs, monthOffset = 0) {
             currentDate.setMonth(currentDate.getMonth() + 1);
           }
         }
-      }
-    }
-    // For new jobs (lead or created status), show on the day AFTER creation
-    else if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
-      const creationDate = new Date(job.createdAt);
-      // Add 1 day to the creation date so it doesn't show on the day it was created
-      creationDate.setDate(creationDate.getDate() + 1);
-      datesToAdd.push(creationDate);
-    }
-    // For jobs in quoteSent status, show on the day AFTER the quote was sent
-    else if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
-      // Find the most recent "Quote sent" action in the activity log
-      const quoteSentAction = job.activityLog.find(log => 
-        log.action && log.action.toLowerCase().includes('quote sent')
-      );
-      if (quoteSentAction && quoteSentAction.timestamp) {
-        const jobDate = new Date(quoteSentAction.timestamp);
-        // Add 1 day to the quote sent date
-        jobDate.setDate(jobDate.getDate() + 1);
-        datesToAdd.push(jobDate);
+      } else {
+        // Non-recurring: just add the single date
+        datesToAdd.push(new Date(job.nextServiceDate));
       }
     }
     
@@ -1359,13 +1345,54 @@ function renderTodayJobs(jobs, selectedDate = null) {
   // Stages that should show in "Today" section
   const actionStages = ['lead', 'created', 'quoted', 'won', 'progress'];
   
+  // Helper to get admin task's initial date (when it first becomes visible)
+  const getAdminTaskInitialDate = (job) => {
+    // Only these phases roll over daily - terminal states (paid, completed, invoiced) don't appear as rolling admin tasks
+    const rollingAdminPhases = ['created', 'lead', 'quoted', 'quoteSent'];
+    if (!rollingAdminPhases.includes(job.status)) return null;
+    
+    if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
+      // Show 1 day after creation
+      const date = new Date(job.createdAt);
+      date.setDate(date.getDate() + 1);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+    
+    if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
+      const quoteSentAction = job.activityLog.find(log => 
+        log.action && log.action.toLowerCase().includes('quote sent')
+      );
+      if (quoteSentAction && quoteSentAction.timestamp) {
+        // Show 1 day after quote sent
+        const date = new Date(quoteSentAction.timestamp);
+        date.setDate(date.getDate() + 1);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      }
+    }
+    
+    if (job.status === 'quoted' && job.createdAt) {
+      // For quoted, use creation date
+      const date = new Date(job.createdAt);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+    
+    return null;
+  };
+  
   // Filter jobs that have actions due on target date
   const todayJobs = jobs.filter(job => {
+    const rollingAdminPhases = ['created', 'lead', 'quoted', 'quoteSent'];
+    const onSitePhases = ['won', 'progress'];
+    const isAdminTask = rollingAdminPhases.includes(job.status);
+    const isOnSiteTask = onSitePhases.includes(job.status);
     
     // If checking a specific date, check all the ways a job could appear on that day
     if (selectedDate) {
-      // 1. Check if job has nextServiceDate on this day
-      if (job.nextServiceDate) {
+      // 1. Check if job is ON-SITE (won/progress) with nextServiceDate on this day
+      if (isOnSiteTask && job.nextServiceDate) {
         const actionDate = new Date(job.nextServiceDate);
         actionDate.setHours(0, 0, 0, 0);
         if (actionDate.getTime() === targetDate.getTime()) return true;
@@ -1395,23 +1422,11 @@ function renderTodayJobs(jobs, selectedDate = null) {
         }
       }
       
-      // 2. Check if job is lead/created and was created BEFORE this day (not on this day)
-      if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
-        const createdDate = new Date(job.createdAt);
-        createdDate.setHours(0, 0, 0, 0);
-        // Only show if created before this day (createdDate < targetDate)
-        if (createdDate.getTime() < targetDate.getTime()) return true;
-      }
-      
-      // 3. Check if job is quoteSent with nextServiceDate and quote was sent before this day
-      if (job.status === 'quoteSent' && job.nextServiceDate && job.activityLog && job.activityLog.length > 0) {
-        const quoteSentAction = job.activityLog.find(log => 
-          log.action && log.action.toLowerCase().includes('quote sent')
-        );
-        if (quoteSentAction && quoteSentAction.timestamp) {
-          const sentDate = new Date(quoteSentAction.timestamp);
-          sentDate.setHours(0, 0, 0, 0);
-          if (sentDate.getTime() < targetDate.getTime()) return true;
+      // 2. Admin tasks roll over: show if initial date <= targetDate and still in admin phase
+      if (isAdminTask) {
+        const initialDate = getAdminTaskInitialDate(job);
+        if (initialDate && initialDate.getTime() <= targetDate.getTime()) {
+          return true;
         }
       }
       
@@ -1419,8 +1434,6 @@ function renderTodayJobs(jobs, selectedDate = null) {
     }
     
     // Default behavior (for today): show new/quoted jobs, or any job with service date today
-    // Jobs that always show (new jobs, ready to quote/send) - quoteSent handled by date logic below
-    
     // For lead/created, only show if NOT created today (don't show on creation date)
     if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
       const createdDate = new Date(job.createdAt);
@@ -1438,8 +1451,8 @@ function renderTodayJobs(jobs, selectedDate = null) {
       if (actionDate.getTime() === targetDate.getTime()) return true;
     }
     
-    // For quoteSent, only show if it has a nextServiceDate and quote was sent before today
-    if (job.status === 'quoteSent' && job.nextServiceDate && job.activityLog && job.activityLog.length > 0) {
+    // For quoteSent, show if quote was sent before today
+    if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
       const quoteSentAction = job.activityLog.find(log => 
         log.action && log.action.toLowerCase().includes('quote sent')
       );
@@ -1460,10 +1473,10 @@ function renderTodayJobs(jobs, selectedDate = null) {
   
   // Separate jobs into On-Site and Admin categories
   const onSitePhases = ['won', 'progress'];
-  const adminPhases = ['created', 'lead', 'quoted', 'quoteSent', 'completed', 'invoiced', 'paid'];
+  const rollingAdminPhases = ['created', 'lead', 'quoted', 'quoteSent'];
   
   const onSiteJobs = todayJobs.filter(job => onSitePhases.includes(job.status));
-  const adminJobs = todayJobs.filter(job => adminPhases.includes(job.status));
+  const adminJobs = todayJobs.filter(job => rollingAdminPhases.includes(job.status));
   
   todayContainer.innerHTML = '';
   
