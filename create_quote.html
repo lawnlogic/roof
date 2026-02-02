@@ -545,6 +545,137 @@
       if (profitHourEl) profitHourEl.textContent = '$' + profitPerHour.toFixed(2);
     }
 
+    function constrainPointToParcel(latlng) {
+      if (!parcelLayer) return latlng;
+      
+      // Get parcel geometry
+      const parcelGeometry = parcelLayer.toGeoJSON().features[0]?.geometry;
+      if (!parcelGeometry) return latlng;
+      
+      // Check if point is inside parcel
+      const point = turf.point([latlng.lng, latlng.lat]);
+      const polygon = turf.polygon(parcelGeometry.coordinates);
+      
+      if (turf.booleanPointInPolygon(point, polygon)) {
+        return latlng; // Point is inside, keep it
+      }
+      
+      // Point is outside - find closest point on boundary
+      const polygonLine = turf.polygonToLine(polygon);
+      const nearestPoint = turf.nearestPointOnLine(point, polygonLine);
+      
+      return L.latLng(nearestPoint.geometry.coordinates[1], nearestPoint.geometry.coordinates[0]);
+    }
+
+    function clipPolygonToParcel(layer) {
+      if (!parcelLayer) {
+        console.log('[CLIP] No parcel layer');
+        return;
+      }
+      
+      const latLngs = layer.getLatLngs()[0] || layer.getLatLngs();
+      console.log(`[CLIP] Starting with ${latLngs.length} points`);
+      
+      if (latLngs.length < 3) {
+        console.log('[CLIP] Less than 3 points, skipping');
+        return;
+      }
+      
+      // Get parcel boundary points
+      let parcelBoundaryLatLngs = [];
+      try {
+        const parcelGeoJSON = parcelLayer.toGeoJSON();
+        const parcelGeometry = parcelGeoJSON.features?.[0]?.geometry || parcelGeoJSON.geometry;
+        
+        if (parcelGeometry && parcelGeometry.coordinates) {
+          // For Polygon, coordinates[0] is the outer ring
+          const coords = parcelGeometry.coordinates[0] || parcelGeometry.coordinates;
+          parcelBoundaryLatLngs = coords.map(coord => L.latLng(coord[1], coord[0]));
+          console.log(`[CLIP] Parcel has ${parcelBoundaryLatLngs.length} boundary points`);
+        } else {
+          console.log('[CLIP] Cannot extract parcel coordinates');
+          return;
+        }
+      } catch (err) {
+        console.error('[CLIP] Error extracting parcel coordinates:', err);
+        return;
+      }
+      
+      let modified = false;
+      const clippedLatLngs = [];
+      
+      // For each point, check if it's inside the parcel
+      for (let i = 0; i < latLngs.length; i++) {
+        const point = latLngs[i];
+        
+        // Simple point-in-polygon using ray casting
+        const isInside = isPointInPolygon(point, parcelBoundaryLatLngs);
+        console.log(`[CLIP] Point ${i} [${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}]: ${isInside ? 'INSIDE' : 'OUTSIDE'}`);
+        
+        if (isInside) {
+          clippedLatLngs.push(point);
+        } else {
+          // Point is outside - snap to nearest boundary point
+          console.log(`[CLIP] Point ${i} is OUTSIDE - snapping to boundary`);
+          const snappedPoint = snapPointToBoundary(point, parcelBoundaryLatLngs);
+          console.log(`[CLIP] Snapped to [${snappedPoint.lat.toFixed(6)}, ${snappedPoint.lng.toFixed(6)}]`);
+          clippedLatLngs.push(snappedPoint);
+          modified = true;
+        }
+      }
+      
+      if (modified) {
+        console.log(`[CLIP] Updating layer with ${clippedLatLngs.length} clipped points`);
+        try {
+          layer.setLatLngs(clippedLatLngs);
+          console.log('[CLIP] Layer updated successfully');
+        } catch (err) {
+          console.error('[CLIP] Error updating layer:', err);
+        }
+      }
+    }
+    
+    function isPointInPolygon(point, polygon) {
+      // Ray casting algorithm
+      let inside = false;
+      const x = point.lng, y = point.lat;
+      
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].lng, yi = polygon[i].lat;
+        const xj = polygon[j].lng, yj = polygon[j].lat;
+        
+        const intersect = ((yi > y) !== (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      
+      return inside;
+    }
+    
+    function snapPointToBoundary(point, boundaryLatLngs) {
+      // Find the closest point on the boundary
+      let closestPoint = boundaryLatLngs[0];
+      let minDistance = point.distanceTo(closestPoint);
+      
+      for (let i = 1; i < boundaryLatLngs.length; i++) {
+        const distance = point.distanceTo(boundaryLatLngs[i]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestPoint = boundaryLatLngs[i];
+        }
+      }
+      
+      return closestPoint;
+    }
+
+    function attachConstraintListeners(layer) {
+      if (layer.editing) {
+        layer.on('edit', (e) => {
+          updateLawnArea();
+        });
+      }
+    }
+
     function ensureNegativeLayer() {
       if (!map) return null;
       if (!negativeLayer || !map.hasLayer(negativeLayer)) {
@@ -586,6 +717,12 @@
 
       ensureNegativeLayer();
       transferBuildingsToExclusions();
+      
+      // Clear any existing draw handler from previous mode
+      if (map._drawHandler) {
+        map._drawHandler.disable();
+        map._drawHandler = null;
+      }
 
       if (!areaOverlay) {
         areaOverlay = L.control({ position: 'bottomleft' });
@@ -632,16 +769,90 @@
           }
         });
         newPolygonDrawer.enable();
+        
+        // Listen for draw events with comprehensive logging
+        map.on('draw:drawstart', (e) => {
+          console.log('🎨 [DRAW START] User started drawing polygon');
+        });
+
+        map.on('draw:drawvertex', (e) => {
+          console.log('🎨 [DRAW VERTEX] Vertex added to polygon');
+          if (e.layer && e.layer.getLatLngs) {
+            const latLngs = e.layer.getLatLngs()[0] || e.layer.getLatLngs();
+            console.log(`🎨 [DRAW VERTEX] Shape now has ${latLngs.length} points`);
+          }
+        });
 
         map.once('draw:created', (e) => {
-          const layer = e.layer;
-          negativeLayer.addLayer(layer);
-          layer.editing.enable();
-          updateLawnArea();
+          try {
+            console.log('🎨 [DRAW CREATED] Drawing complete!');
+            const layer = e.layer;
+            
+            if (layer && layer.getLatLngs) {
+              const latLngs = layer.getLatLngs()[0] || layer.getLatLngs();
+              console.log(`🎨 [DRAW CREATED] Final shape has ${latLngs.length} points`);
+              
+              // Log all points and check boundary
+              if (parcelLayer) {
+                console.log('🎨 [DRAW CREATED] Parcel layer exists, checking boundaries...');
+                const parcelGeoJSON = parcelLayer.toGeoJSON();
+                console.log('🎨 [DRAW CREATED] Parcel GeoJSON:', parcelGeoJSON);
+                
+                const parcelGeometry = parcelGeoJSON.features?.[0]?.geometry || parcelGeoJSON.geometry;
+                if (parcelGeometry) {
+                  console.log(`🎨 [DRAW CREATED] Parcel geometry type: ${parcelGeometry.type}`);
+                  console.log(`🎨 [DRAW CREATED] Parcel coordinates length: ${JSON.stringify(parcelGeometry.coordinates).length} chars`);
+                  
+                  try {
+                    const polygon = turf.polygon(parcelGeometry.coordinates);
+                    let insideCount = 0, outsideCount = 0;
+                    
+                    latLngs.forEach((pt, i) => {
+                      const turfPt = turf.point([pt.lng, pt.lat]);
+                      const isInside = turf.booleanPointInPolygon(turfPt, polygon);
+                      if (isInside) insideCount++;
+                      else outsideCount++;
+                      console.log(`   Point ${i}: [${pt.lat.toFixed(6)}, ${pt.lng.toFixed(6)}] ${isInside ? '✓ INSIDE' : '✗ OUTSIDE'}`);
+                    });
+                    
+                    console.log(`🎨 [DRAW CREATED] Boundary: ${insideCount} inside, ${outsideCount} outside`);
+                    
+                    if (outsideCount > 0) {
+                      console.log('🎨 [DRAW CREATED] Attempting to clip to boundary...');
+                      try {
+                        clipPolygonToParcel(layer);
+                        console.log('🎨 [DRAW CREATED] Clipping completed successfully');
+                      } catch (err) {
+                        console.error('🎨 [DRAW CREATED] ERROR during clipping:', err);
+                      }
+                    }
+                  } catch (err) {
+                    console.error('🎨 [DRAW CREATED] ERROR checking boundaries:', err);
+                  }
+                } else {
+                  console.log('🎨 [DRAW CREATED] No parcel geometry found');
+                }
+              } else {
+                console.log('🎨 [DRAW CREATED] No parcel layer');
+              }
+            }
+            
+            negativeLayer.addLayer(layer);
+            layer.editing.enable();
+            attachConstraintListeners(layer);
+            updateLawnArea();
+            console.log('🎨 [DRAW CREATED] Shape saved and lawn area updated');
+          } catch (err) {
+            console.error('🎨 [DRAW CREATED] CRITICAL ERROR:', err);
+          }
         });
+
       } else {
         negativeLayer.eachLayer(layer => {
-          if (layer.editing) layer.editing.enable();
+          if (layer.editing) {
+            layer.editing.enable();
+            attachConstraintListeners(layer);
+          }
         });
       }
     }

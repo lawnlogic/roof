@@ -225,6 +225,78 @@
 <!-- Slideshow JavaScript -->
 <script>
 
+// ===== Dynamic Stats Counter =====
+function animateStatCounter(element, finalValue, duration = 2000) {
+  const text = element.textContent;
+  let numericValue, suffix = '';
+  
+  // Parse the value: "100+", "50K+", "2.5 hrs"
+  if (text.includes('K+')) {
+    numericValue = 50;
+    suffix = 'K+';
+  } else if (text.includes('+')) {
+    numericValue = 100;
+    suffix = '+';
+  } else if (text.includes('hrs')) {
+    numericValue = 2.5;
+    suffix = ' hrs';
+  }
+  
+  if (!numericValue) return;
+  
+  const startTime = Date.now();
+  const startValue = 0;
+  
+  function update() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing function for smooth animation
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const currentValue = startValue + (numericValue - startValue) * easeOut;
+    
+    let displayValue;
+    if (suffix === 'K+') {
+      displayValue = Math.round(currentValue) + suffix;
+    } else if (suffix === '+') {
+      displayValue = Math.round(currentValue) + suffix;
+    } else if (suffix === ' hrs') {
+      displayValue = (Math.round(currentValue * 10) / 10).toFixed(1) + suffix;
+    }
+    
+    element.textContent = displayValue;
+    element.classList.add('counting');
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  
+  update();
+}
+
+// Intersection Observer to trigger animation when stats come into view
+const observerOptions = {
+  threshold: 0.3,
+  rootMargin: '0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = 'true';
+      animateStatCounter(entry.target, null, 2500);
+    }
+  });
+}, observerOptions);
+
+// Start observing when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.stat-number').forEach(stat => {
+    observer.observe(stat);
+  });
+});
+
 document.querySelectorAll('.signup-btn').forEach(button => {
   button.addEventListener('click', function(e) {
     // Optional: prevent default if it's a link/button with href
