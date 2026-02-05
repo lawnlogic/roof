@@ -1,0 +1,965 @@
+{
+    "jobs": [
+        {
+            "id": "b421f0ae-cc20-41a7-b60b-6ebcd7e89193",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:21:59.659Z",
+            "updatedAt": "2026-01-30T10:25:31.719Z",
+            "address": "10 Mara Court, Favona, Auckland",
+            "client": {
+                "firstName": "jake",
+                "lastName": "jak",
+                "email": "helllcoael@mgmail.com",
+                "phone": "021 201"
+            },
+            "status": "won",
+            "isRecurring": true,
+            "recurrence": "fortnightly",
+            "nextServiceDate": "2026-01-30",
+            "jobNotes": "scary looking dog yes its scary",
+            "quotes": [
+                {
+                    "id": "f077ec12-fc4d-41c3-a353-e4aece5e7a38",
+                    "number": "Q-2026-075666",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: Fortnightly starting 30/01/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:22:00.423Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:23:07.900Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:19.482Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T17:55:04.296Z",
+                    "action": "Scheduled: Weekly starting 31/01/2026"
+                }
+            ]
+        },
+        {
+            "id": "d30a1691-0c90-425a-8271-6be12405e8fd",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:24:47.711Z",
+            "updatedAt": "2026-01-28T17:56:42.572Z",
+            "address": "12 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "jae",
+                "lastName": "j",
+                "email": "helloclaemjsdajsdjd@sgmail.com",
+                "phone": "021"
+            },
+            "status": "won",
+            "isRecurring": true,
+            "recurrence": "fortnightly",
+            "nextServiceDate": "2026-01-31",
+            "jobNotes": "",
+            "quotes": [
+                {
+                    "id": "ea4394ed-20b8-457c-ae95-5aad79714d84",
+                    "number": "Q-2026-189513",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                },
+                {
+                    "id": "40a43c8a-d1a3-4527-bf94-bb90313fa105",
+                    "number": "Q-2026-190816",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: Fortnightly starting 31/01/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:24:48.385Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:25:02.775Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:26.452Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T17:56:42.572Z",
+                    "action": "Scheduled: Fortnightly starting 31/01/2026"
+                }
+            ]
+        },
+        {
+            "id": "a1f49f7e-b726-4c69-aeff-a706846caade",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:25:40.171Z",
+            "updatedAt": "2026-01-28T17:51:20.446Z",
+            "address": "14 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "mich",
+                "lastName": "h",
+                "email": "xxx@gmail.com",
+                "phone": ""
+            },
+            "status": "won",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": "2026-01-31",
+            "jobNotes": "",
+            "quotes": [
+                {
+                    "id": "ffd6a077-3c03-4e07-b9f7-914347c5f6c2",
+                    "number": "Q-2026-241141",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: One-off starting 31/01/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:25:40.845Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:25:53.454Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:32.788Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T17:51:20.446Z",
+                    "action": "Scheduled: One-off starting 31/01/2026"
+                }
+            ]
+        },
+        {
+            "id": "a71fdaa4-50e9-4f5c-9ae1-428a480fd039",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:26:19.771Z",
+            "updatedAt": "2026-01-28T18:04:11.472Z",
+            "address": "16 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "kale",
+                "lastName": "righto",
+                "email": "helloclaem@gmail.com",
+                "phone": "021 0231"
+            },
+            "status": "won",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": "2026-02-01",
+            "jobNotes": "",
+            "quotes": [
+                {
+                    "id": "8e7666b8-a304-4892-a6a5-65cf773a99d3",
+                    "number": "Q-2026-283620",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: One-off starting 1/02/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:26:20.463Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:26:35.679Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:37.060Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T18:04:11.472Z",
+                    "action": "Scheduled: One-off starting 1/02/2026"
+                }
+            ]
+        },
+        {
+            "id": "28dc5e80-8c45-4ab2-ae45-6d9210750692",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:27:15.774Z",
+            "updatedAt": "2026-02-04T00:08:48.173Z",
+            "address": "16 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "jk",
+                "lastName": "rolion",
+                "email": "helloclaem@gmail.com",
+                "phone": "021 02191"
+            },
+            "status": "won",
+            "isRecurring": true,
+            "recurrence": "fortnightly",
+            "nextServiceDate": "2026-02-04",
+            "jobNotes": "damn",
+            "quotes": [
+                {
+                    "id": "380a36d1-3052-4767-a1c5-70ef36d4eb28",
+                    "number": "Q-2026-339179",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: Fortnightly starting 4/02/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:27:16.458Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:27:31.512Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:42.557Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T18:19:20.603Z",
+                    "action": "Scheduled: One-off starting 5/02/2026"
+                }
+            ]
+        },
+        {
+            "id": "89a54659-03dc-4fd4-b4ab-4ca0d89bb1d9",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:28:06.524Z",
+            "updatedAt": "2026-02-01T17:49:25.818Z",
+            "address": "18 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "yeah right",
+                "lastName": "yeah right",
+                "email": "hellocalenm@gmail.com",
+                "phone": "02109912921"
+            },
+            "status": "won",
+            "isRecurring": true,
+            "recurrence": "weekly",
+            "nextServiceDate": "2026-02-02",
+            "jobNotes": "updated via mini\n",
+            "quotes": [
+                {
+                    "id": "17b49262-18c0-4076-9941-808f578ca59d",
+                    "number": "Q-2026-388210",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: Weekly starting 2/02/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:28:07.206Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:28:20.554Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:46.870Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T19:29:23.861Z",
+                    "action": "Scheduled: One-off starting 29/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-30T10:02:38.483Z",
+                    "action": "(Manual) Job set to QuoteSent"
+                },
+                {
+                    "timestamp": "2026-02-01T17:49:25.818Z",
+                    "action": "Scheduled: Weekly starting 2/02/2026"
+                }
+            ]
+        },
+        {
+            "id": "bf2d1781-9e10-4403-9f9a-e3fbb8b9d6f7",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:28:58.384Z",
+            "updatedAt": "2026-02-01T18:16:33.377Z",
+            "address": "20 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "yeahhh",
+                "lastName": "ok",
+                "email": "helloclaem@gmail.com",
+                "phone": "021021021"
+            },
+            "status": "quoteSent",
+            "isRecurring": true,
+            "recurrence": "monthly",
+            "nextServiceDate": "2026-02-02",
+            "jobNotes": "shuit",
+            "quotes": [
+                {
+                    "id": "38d6877d-053e-4df4-b048-0e068c4f3c14",
+                    "number": "Q-2026-440307",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Quote sent via SMS",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:28:59.086Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:29:12.508Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:41:51.117Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-28T18:04:41.887Z",
+                    "action": "Scheduled: Monthly starting 2/02/2026"
+                },
+                {
+                    "timestamp": "2026-01-30T10:59:54.919Z",
+                    "action": "(Manual) Job set to Created"
+                },
+                {
+                    "timestamp": "2026-02-01T18:16:33.377Z",
+                    "action": "Quote sent via SMS"
+                }
+            ]
+        },
+        {
+            "id": "13e5ff0b-cfc3-47f1-bef7-bf1b9c90adf7",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:29:49.087Z",
+            "updatedAt": "2026-01-28T19:28:50.862Z",
+            "address": "22 Kingsland Avenue, Kingsland, Auckland",
+            "client": {
+                "firstName": "yup",
+                "lastName": "ue",
+                "email": "helloclaem@gmail.com",
+                "phone": "9219219190"
+            },
+            "status": "quoteSent",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": null,
+            "jobNotes": "notch",
+            "quotes": [
+                {
+                    "id": "d6545677-9a4c-4b62-802a-eaafe199c98e",
+                    "number": "Q-2026-498033",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Quote sent via clipboard",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:30:10.222Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T19:28:50.862Z",
+                    "action": "Quote sent via clipboard"
+                }
+            ]
+        },
+        {
+            "id": "9e6da297-5b9a-4d8c-833f-486492a61501",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-28T17:30:42.787Z",
+            "updatedAt": "2026-02-01T18:08:05.894Z",
+            "address": "10 James Avenue, Leithfield",
+            "client": {
+                "firstName": "t",
+                "lastName": "g",
+                "email": "helloxxxn@gmail.com",
+                "phone": "9291"
+            },
+            "status": "won",
+            "isRecurring": true,
+            "recurrence": "fortnightly",
+            "nextServiceDate": "2026-02-02",
+            "jobNotes": "292923",
+            "quotes": [
+                {
+                    "id": "c3d2324f-cb2c-4a55-acd9-caabb1f0e84d",
+                    "number": "Q-2026-546524",
+                    "date": "2026-01-28",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Scheduled: Fortnightly starting 2/02/2026",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-28T17:30:43.484Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-28T17:30:58.741Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-28T18:50:51.976Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-02-01T18:08:05.894Z",
+                    "action": "Scheduled: Fortnightly starting 2/02/2026"
+                }
+            ]
+        },
+        {
+            "id": "a3716490-ef73-4a95-96fa-b671cad6431c",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-29T03:06:10.107Z",
+            "updatedAt": "2026-02-01T18:16:59.986Z",
+            "address": "40 Sabina Street, Shirley, Christchurch",
+            "client": {
+                "firstName": "james",
+                "lastName": "bea",
+                "email": "xxx@gmail.com",
+                "phone": "02108827322"
+            },
+            "status": "quoteSent",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": null,
+            "jobNotes": "no notes",
+            "quotes": [
+                {
+                    "id": "726455d4-0319-4535-a84a-503074b7e191",
+                    "number": "Q-2026-238884",
+                    "date": "2026-01-29",
+                    "total": 54.63
+                }
+            ],
+            "invoices": [],
+            "nextAction": "Quote sent via SMS",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-29T03:06:10.672Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-29T03:25:50.881Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-02-01T18:16:59.986Z",
+                    "action": "Quote sent via SMS"
+                }
+            ]
+        },
+        {
+            "id": "a75c6432-746d-4d3e-8405-bb7bf7629342",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-29T03:30:45.440Z",
+            "updatedAt": "2026-01-30T10:01:46.267Z",
+            "address": "30 Griffin Road, Omanawa",
+            "client": {
+                "firstName": "peter",
+                "lastName": "griffen",
+                "email": "xxx@gmail.com",
+                "phone": "021098201892"
+            },
+            "status": "quoteSent",
+            "isRecurring": true,
+            "recurrence": "monthly",
+            "nextServiceDate": "2026-01-29",
+            "jobNotes": "nothing to add",
+            "quotes": [
+                {
+                    "id": "e3f959af-d257-46f2-91bc-d02ecb6f8ef6",
+                    "number": "Q-2026-562930",
+                    "date": "2026-01-29",
+                    "total": 960.25
+                }
+            ],
+            "invoices": [],
+            "nextAction": "(Manual) Job set to QuoteSent",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-29T03:30:46.137Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-29T03:31:14.783Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-29T03:59:47.718Z",
+                    "action": "Quote sent via clipboard"
+                },
+                {
+                    "timestamp": "2026-01-29T04:00:13.306Z",
+                    "action": "Scheduled: Monthly starting 29/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-30T10:01:46.267Z",
+                    "action": "(Manual) Job set to QuoteSent"
+                }
+            ]
+        },
+        {
+            "id": "b389eeeb-118a-43e4-9401-abf7524d4b8e",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-29T09:53:34.966Z",
+            "updatedAt": "2026-01-29T10:37:27.079Z",
+            "address": "689 Hills Road, Marshland, Christchurch",
+            "client": {
+                "firstName": "xxx",
+                "lastName": "beaz",
+                "email": "xxx@gmail.com",
+                "phone": "64111111"
+            },
+            "status": "paid",
+            "isRecurring": true,
+            "recurrence": "monthly",
+            "nextServiceDate": "2026-01-29",
+            "jobNotes": "Also trim hedges roses",
+            "quotes": [
+                {
+                    "id": "0e103674-2e18-40a7-b63b-d332380105db",
+                    "number": "Q-2026-520572",
+                    "date": "2026-01-29",
+                    "total": 299
+                }
+            ],
+            "invoices": [
+                {
+                    "id": "ee09d1c0-0057-4d04-89d4-9600fb5a4c67",
+                    "number": "INV-2026-003796",
+                    "date": "2026-01-29",
+                    "total": 299
+                }
+            ],
+            "nextAction": "Payment received",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-29T09:53:35.648Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-29T09:53:52.517Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-29T09:54:18.829Z",
+                    "action": "Quote sent via SMS"
+                },
+                {
+                    "timestamp": "2026-01-29T09:56:01.222Z",
+                    "action": "(Manual) Job set to Quoted"
+                },
+                {
+                    "timestamp": "2026-01-29T09:56:08.162Z",
+                    "action": "Quote sent via SMS"
+                },
+                {
+                    "timestamp": "2026-01-29T09:57:37.829Z",
+                    "action": "(Manual) Job set to Quoted"
+                },
+                {
+                    "timestamp": "2026-01-29T09:57:45.778Z",
+                    "action": "Quote sent via SMS"
+                },
+                {
+                    "timestamp": "2026-01-29T10:00:17.195Z",
+                    "action": "(Manual) Job set to Quoted"
+                },
+                {
+                    "timestamp": "2026-01-29T10:00:30.335Z",
+                    "action": "Quote sent via SMS"
+                },
+                {
+                    "timestamp": "2026-01-29T10:24:32.188Z",
+                    "action": "SMS reminder sent to 64111111"
+                },
+                {
+                    "timestamp": "2026-01-29T10:33:24.510Z",
+                    "action": "SMS reminder sent to 64111111"
+                },
+                {
+                    "timestamp": "2026-01-29T10:34:59.379Z",
+                    "action": "Scheduled: Monthly starting 29/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-29T10:35:34.525Z",
+                    "action": "Service started on site"
+                },
+                {
+                    "timestamp": "2026-01-29T10:36:03.492Z",
+                    "action": "Job completed"
+                },
+                {
+                    "timestamp": "2026-01-29T10:36:37.442Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T10:37:18.193Z",
+                    "action": "SMS reminder sent to 64111111"
+                },
+                {
+                    "timestamp": "2026-01-29T10:37:27.079Z",
+                    "action": "Payment received"
+                }
+            ],
+            "startedAt": "2026-01-29T10:35:34.391Z",
+            "completedAt": "2026-01-29T10:36:03.094Z",
+            "invoicedAt": "2026-01-29T10:36:37.348Z",
+            "paidAt": "2026-01-29T10:37:26.986Z"
+        },
+        {
+            "id": "ea9e9c69-1b19-4105-a116-23a7873e862f",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-29T17:03:30.130Z",
+            "updatedAt": "2026-01-29T18:11:48.433Z",
+            "address": "20 Hillsborough Road, Hillsborough, Auckland",
+            "client": {
+                "firstName": "xxx",
+                "lastName": "beazley",
+                "email": "xxx@gmail.com",
+                "phone": "64111111"
+            },
+            "status": "paid",
+            "isRecurring": true,
+            "recurrence": "fortnightly",
+            "nextServiceDate": "2026-01-30",
+            "jobNotes": "real sms\n",
+            "quotes": [
+                {
+                    "id": "e8c14f90-0ca7-49b3-b357-1300a4f236ce",
+                    "number": "Q-2026-352553",
+                    "date": "2026-01-29",
+                    "total": 115
+                }
+            ],
+            "invoices": [
+                {
+                    "id": "fd6413bc-c56d-4a92-a8f0-7ddab8db1f28",
+                    "number": "INV-2026-972221",
+                    "date": "2026-01-29",
+                    "total": 115
+                },
+                {
+                    "id": "0a66dae6-4215-4357-9833-d802408c7b13",
+                    "number": "INV-2026-436311",
+                    "date": "2026-01-29",
+                    "total": 115
+                },
+                {
+                    "id": "ed7665d2-aaa9-475f-98e9-e14615d60440",
+                    "number": "INV-2026-515067",
+                    "date": "2026-01-29",
+                    "total": 115
+                },
+                {
+                    "id": "21be367e-1bc9-42e3-8adf-fded3921da60",
+                    "number": "INV-2026-777771",
+                    "date": "2026-01-29",
+                    "total": 115
+                },
+                {
+                    "id": "81dbd1fe-cee0-45aa-8530-409e2d1c28e1",
+                    "number": "INV-2026-131754",
+                    "date": "2026-01-29",
+                    "total": 115
+                },
+                {
+                    "id": "ad12ce90-f292-4708-ad69-27009200a1b5",
+                    "number": "INV-2026-866919",
+                    "date": "2026-01-29",
+                    "total": 115
+                }
+            ],
+            "nextAction": "Payment received",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-29T17:26:02.010Z",
+                    "action": "Scheduled: Fortnightly starting 30/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-29T17:27:18.822Z",
+                    "action": "(Manual) Job set to QuoteSent"
+                },
+                {
+                    "timestamp": "2026-01-29T17:27:27.855Z",
+                    "action": "Scheduled: Fortnightly starting 30/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-29T17:28:38.196Z",
+                    "action": "Service started on site"
+                },
+                {
+                    "timestamp": "2026-01-29T17:31:41.878Z",
+                    "action": "Job completed"
+                },
+                {
+                    "timestamp": "2026-01-29T17:32:36.486Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T17:33:24.931Z",
+                    "action": "(Manual) Job set to Completed"
+                },
+                {
+                    "timestamp": "2026-01-29T17:40:32.505Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T17:41:20.250Z",
+                    "action": "(Manual) Job set to Completed"
+                },
+                {
+                    "timestamp": "2026-01-29T17:41:36.639Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T17:43:24.492Z",
+                    "action": "(Manual) Job set to Completed"
+                },
+                {
+                    "timestamp": "2026-01-29T17:43:55.882Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T17:51:25.826Z",
+                    "action": "(Manual) Job set to Completed"
+                },
+                {
+                    "timestamp": "2026-01-29T17:52:05.117Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T18:04:02.081Z",
+                    "action": "(Manual) Job set to Completed"
+                },
+                {
+                    "timestamp": "2026-01-29T18:04:22.243Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-29T18:04:51.925Z",
+                    "action": "Payment received"
+                },
+                {
+                    "timestamp": "2026-01-29T18:05:08.248Z",
+                    "action": "(Manual) Job set to Invoiced"
+                },
+                {
+                    "timestamp": "2026-01-29T18:05:20.600Z",
+                    "action": "SMS reminder sent to 64111111"
+                },
+                {
+                    "timestamp": "2026-01-29T18:11:48.433Z",
+                    "action": "Payment received"
+                }
+            ],
+            "startedAt": "2026-01-29T17:30:07.568Z",
+            "completedAt": "2026-01-29T17:33:11.545Z",
+            "invoicedAt": "2026-01-29T18:05:52.210Z",
+            "paidAt": "2026-01-29T18:13:18.420Z"
+        },
+        {
+            "id": "41b81372-da25-46e4-9e8c-8a176e91d01c",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-29T18:42:20.875Z",
+            "updatedAt": "2026-01-29T18:43:26.049Z",
+            "address": "10A Cameron Street, Whangarei",
+            "client": {
+                "firstName": "T",
+                "lastName": "G",
+                "email": "xxx@gmail.com",
+                "phone": "642102653330"
+            },
+            "status": "quoteSent",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": null,
+            "jobNotes": "",
+            "quotes": [
+                {
+                    "id": "49343770-5865-48e4-9f63-4fca40488ad0",
+                    "number": "Q-2026-178512",
+                    "date": "2026-01-29",
+                    "total": 69
+                }
+            ],
+            "invoices": [],
+            "nextAction": "SMS reminder sent to 642102653330",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-29T18:42:21.571Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-29T18:43:01.249Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-29T18:43:23.770Z",
+                    "action": "Quote sent via SMS"
+                },
+                {
+                    "timestamp": "2026-01-29T18:43:26.049Z",
+                    "action": "SMS reminder sent to 642102653330"
+                }
+            ]
+        },
+        {
+            "id": "55b8c70c-0186-49d5-86ab-fd5f6bbd795b",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-30T10:27:46.452Z",
+            "updatedAt": "2026-01-30T10:35:27.302Z",
+            "address": "40 Griffen Park Road, Mount Roskill, Auckland",
+            "client": {
+                "firstName": "james",
+                "lastName": "b",
+                "email": "jamesisarad@gmail.com",
+                "phone": "64210591949"
+            },
+            "status": "paid",
+            "isRecurring": true,
+            "recurrence": "monthly",
+            "nextServiceDate": "2026-01-30",
+            "jobNotes": "no",
+            "quotes": [
+                {
+                    "id": "e44558e3-4776-496d-9c82-81b9be61c43e",
+                    "number": "Q-2026-021248",
+                    "date": "2026-01-30",
+                    "total": 86.25
+                }
+            ],
+            "invoices": [
+                {
+                    "id": "825f7fdf-de24-4c29-823a-174ed3ec2c14",
+                    "number": "INV-2026-276623",
+                    "date": "2026-01-30",
+                    "total": 86.25
+                }
+            ],
+            "nextAction": "Payment received",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-30T10:27:47.147Z",
+                    "action": "Job created"
+                },
+                {
+                    "timestamp": "2026-01-30T10:28:53.550Z",
+                    "action": "Quote created"
+                },
+                {
+                    "timestamp": "2026-01-30T10:29:13.473Z",
+                    "action": "Quote sent via email"
+                },
+                {
+                    "timestamp": "2026-01-30T10:29:16.588Z",
+                    "action": "Quote sent to client via Email"
+                },
+                {
+                    "timestamp": "2026-01-30T10:31:06.136Z",
+                    "action": "SMS reminder sent to 64210591949"
+                },
+                {
+                    "timestamp": "2026-01-30T10:32:15.281Z",
+                    "action": "Scheduled: Monthly starting 30/01/2026"
+                },
+                {
+                    "timestamp": "2026-01-30T10:33:20.979Z",
+                    "action": "Service started on site"
+                },
+                {
+                    "timestamp": "2026-01-30T10:33:55.976Z",
+                    "action": "Job completed"
+                },
+                {
+                    "timestamp": "2026-01-30T10:34:21.136Z",
+                    "action": "Invoice created"
+                },
+                {
+                    "timestamp": "2026-01-30T10:35:27.302Z",
+                    "action": "Payment received"
+                }
+            ],
+            "startedAt": "2026-01-30T10:34:50.684Z",
+            "completedAt": "2026-01-30T10:35:26.257Z",
+            "invoicedAt": "2026-01-30T10:35:51.117Z",
+            "paidAt": "2026-01-30T10:36:57.292Z"
+        },
+        {
+            "id": "3da7f113-0d20-460e-9fdc-9740d5f438ca",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-01-30T10:56:01.024Z",
+            "updatedAt": "2026-01-30T10:56:01.704Z",
+            "address": "4/11 Hereford Street, Te Atatu Peninsula, Auckland",
+            "client": {
+                "firstName": "d",
+                "lastName": "",
+                "email": "d@gmail.com",
+                "phone": ""
+            },
+            "status": "created",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": null,
+            "jobNotes": "",
+            "quotes": [],
+            "invoices": [],
+            "nextAction": "Job created",
+            "activityLog": [
+                {
+                    "timestamp": "2026-01-30T10:56:01.704Z",
+                    "action": "Job created"
+                }
+            ]
+        },
+        {
+            "id": "2114128c-28ad-458b-84b5-a0d8f858f098",
+            "ownerUid": "Ozb4OjgRtSaQN9AxGpLXG4eBEDl2",
+            "createdAt": "2026-02-02T00:41:40.559Z",
+            "updatedAt": "2026-02-02T00:41:41.243Z",
+            "address": "40 Griffen Park Road, Mount Roskill, Auckland",
+            "client": {
+                "firstName": "John",
+                "lastName": "Smith",
+                "email": "xxx@gmail.com",
+                "phone": "64111111"
+            },
+            "status": "created",
+            "isRecurring": false,
+            "recurrence": null,
+            "nextServiceDate": null,
+            "jobNotes": "no notes",
+            "quotes": [],
+            "invoices": [],
+            "nextAction": "Job created",
+            "activityLog": [
+                {
+                    "timestamp": "2026-02-02T00:41:41.243Z",
+                    "action": "Job created"
+                }
+            ]
+        }
+    ]
+}

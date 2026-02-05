@@ -1,335 +1,875 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <title>Deep Edge - All-in-One CRM for Landscapers & Contractors</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="header.js" defer></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Edge - CRM for Landscapers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./dist/assets/index-FsI4UGjo.css">
+    <style>
+        /* Core custom styles */
+        :root {
+            --background: 270 30% 97%;
+            --foreground: 245 35% 15%;
+            --card: 0 0% 100%;
+            --card-foreground: 245 35% 15%;
+            --primary: 288 52% 36%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 270 20% 96%;
+            --muted: 270 20% 96%;
+            --muted-foreground: 245 10% 45%;
+            --accent: 288 52% 36%;
+            --accent-foreground: 0 0% 100%;
+            --border: 245 20% 88%;
+            --input: 245 20% 88%;
+            --ring: 288 52% 36%;
+            --radius: 1.75rem;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+            line-height: 0.98;
+        }
+        html.scroll-smooth {
+            scroll-behavior: smooth;
+        }
+        /* Utility classes */
+        .gradient-bg {
+            background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+        }
+        .tint-speed { background-color: rgba(123, 45, 142, 0.06); }
+        .tint-accuracy { background-color: rgba(123, 45, 142, 0.08); }
+        .tint-payments { background-color: rgba(123, 45, 142, 0.10); }
+        .tint-platform { background-color: rgba(123, 45, 142, 0.08); }
+        .tint-access { background-color: rgba(123, 45, 142, 0.06); }
+        .tint-pricing { background-color: rgba(123, 45, 142, 0.10); }
+        .tint-final { background-color: rgba(123, 45, 142, 0.12); }
+        .card-shadow { box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); }
+        .ring-decoration {
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 50%;
+        }
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.04;
+            mix-blend-mode: multiply;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        .button-primary {
+            background-color: #7B2D8E;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-primary:hover {
+            background-color: #662375;
+            box-shadow: 0 8px 16px rgba(123, 45, 142, 0.3);
+        }
+        .button-outline {
+            border: 2px solid #7B2D8E;
+            color: #7B2D8E;
+            background: transparent;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-outline:hover {
+            background-color: #7B2D8E;
+            color: white;
+        }
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+            padding: 0 1.5rem;
+            height: 5rem;
+        }
+        nav.scrolled {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 1px 3px rgba(27, 27, 47, 0.1);
+        }
+        nav.not-scrolled {
+            background-color: transparent;
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: #1B1B2F;
+        }
+        .nav-logo-icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            background-color: #7B2D8E;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        .nav-logo-text {
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: -0.025em;
+        }
+        .nav-menu-desktop {
+            display: none;
+            gap: 2rem;
+            align-items: center;
+        }
+        @media (min-width: 1024px) {
+            .nav-menu-desktop {
+                display: flex;
+            }
+            .nav-menu-mobile {
+                display: none;
+            }
+        }
+        .nav-link {
+            background: none;
+            border: none;
+            color: #6E6E82;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #1B1B2F;
+        }
+        /* Mobile menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+        .mobile-menu.open {
+            display: block;
+        }
+        .mobile-menu-panel {
+            position: absolute;
+            top: 5rem;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .mobile-menu-panel button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            font-weight: 500;
+            color: #1B1B2F;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+        .mobile-menu-panel button:hover {
+            background-color: #f3f4f6;
+        }
+        /* Sections */
+        section {
+            scroll-margin-top: 5rem;
+        }
+        .section-content {
+            width: 100%;
+            padding: 0 1.25rem;
+        }
+        @media (min-width: 640px) {
+            .section-content { padding: 0 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+            .section-content { padding: 0 3rem; }
+        }
+        .section-container {
+            max-width: 80rem;
+            margin: 0 auto;
+        }
+        /* Form inputs */
+        input {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #7B2D8E;
+            box-shadow: 0 0 0 3px rgba(123, 45, 142, 0.1);
+        }
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @media (max-width: 1023px) {
+            .hidden-mobile { display: none; }
+        }
+        @media (max-width: 639px) {
+            .hidden-sm { display: none; }
+        }
+    </style>
 </head>
-<body>
+<body class="scroll-smooth">
+    <div class="grain-overlay"></div>
 
-<!-- Floating CTA Button -->
-<div class="floating-cta" id="floatingCTA">
-  <button class="floating-cta-btn" onclick="window.location.href='login.html'">
-    ✨ Free Trial – No Card
-  </button>
-</div>
+    <!-- Navigation -->
+    <nav class="not-scrolled">
+        <div class="container">
+            <a href="#" class="nav-logo" onclick="scrollToTop(); return false;">
+                <div class="nav-logo-icon">DE</div>
+                <span class="nav-logo-text">Deep Edge</span>
+            </a>
 
-<div class="container">
+            <!-- Desktop Navigation -->
+            <div class="nav-menu-desktop">
+                <button class="nav-link" onclick="smoothScroll('platform')">Features</button>
+                <button class="nav-link" onclick="smoothScroll('pricing')">Pricing</button>
+                <button class="nav-link" onclick="smoothScroll('final-cta')">Support</button>
+                <button class="button-primary" onclick="smoothScroll('final-cta')" style="padding: 0.5rem 1.5rem; font-size: 0.875rem;">Start free</button>
+            </div>
 
-  <div class="hero">
-    <h1>Stop Chasing Jobs. Win Them with Speed and Precision.</h1>
-    <p>The all-in-one CRM platform that handles quoting, payments, invoicing, and customer management. Free to start. Get paid faster.</p>
-    <button class="cta-btn-hero" onclick="window.location.href='login.html'">
-      Create Free Account – Unlimited Jobs & Quotes
-    </button>
-  </div>
+            <!-- Mobile Menu Button -->
+            <button class="nav-menu-mobile" id="mobileMenuBtn" style="background: none; border: none; cursor: pointer; padding: 0.5rem; display: none;" onclick="toggleMobileMenu()">
+                <span id="hamburger" style="font-size: 1.5rem; color: #1B1B2F;">☰</span>
+            </button>
+        </div>
+    </nav>
 
-  <div class="image-container">
-    <img src="Images/roofmeasuretool.png" alt="AI-powered measurement tool">
-  </div>
-
-  <!-- Trust & Social Proof Section -->
-  <div class="trust-section">
-    <h2>Why Contractors Choose Deep Edge</h2>
-    
-    <div class="testimonials-grid">
-      <div class="testimonial-card">
-        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"First quote, first job. The accuracy sealed the deal with our biggest client. No more ballpark estimates."</p>
-        <p class="testimonial-author">– Jake K., Auckland</p>
-      </div>
-      <div class="testimonial-card">
-        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"Quote to payment in 48 hours. I got paid before the work even started. That's the game."</p>
-        <p class="testimonial-author">– Sarah M., North Shore</p>
-      </div>
-      <div class="testimonial-card">
-        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"iPad in the field, payments in the bank, invoices sent. One app does everything. Finally."</p>
-        <p class="testimonial-author">– Mike P., Hamilton</p>
-      </div>
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
+        <div class="mobile-menu-panel" onclick="event.stopPropagation()">
+            <button onclick="smoothScroll('platform'); closeMobileMenu();">Features</button>
+            <button onclick="smoothScroll('pricing'); closeMobileMenu();">Pricing</button>
+            <button onclick="smoothScroll('final-cta'); closeMobileMenu();">Support</button>
+            <button class="button-primary" style="width: 100%; margin: 1rem 0; border-radius: 9999px;" onclick="smoothScroll('final-cta'); closeMobileMenu();">Start free</button>
+        </div>
     </div>
 
-    <div class="trust-stats">
-      <div class="stat-item">
-        <div class="stat-number">100+</div>
-        <div class="stat-label">Active Users</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">50K+</div>
-        <div class="stat-label">Quotes Generated</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">2.5 hrs</div>
-        <div class="stat-label">Saved Per Week</div>
-      </div>
-    </div>
-  </div>
+    <!-- Main Content -->
+    <main class="relative">
+        <!-- Hero Section -->
+        <section id="hero" class="w-full min-h-screen relative overflow-hidden gradient-bg flex items-center" style="padding-top: 5rem;">
+            <div class="hidden-mobile ring-decoration absolute" style="left: 6vw; top: 10vh; width: 34vw; height: 34vw; opacity: 0.75;"></div>
+            <div class="hidden-mobile ring-decoration absolute" style="left: 18vw; top: 26vh; width: 22vw; height: 22vw; opacity: 0.55;"></div>
 
-  <div class="image-container">
+            <div class="section-content" style="padding-top: 5rem; padding-bottom: 5rem;">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center; justify-content: center;">
+                    <div style="width: 100%; text-align: center;">
+                        <h1 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(32px, 8vw, 64px); line-height: 1.05;">
+                            The fastest way from quote to paid.
+                        </h1>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6; max-width: 420px; margin-left: auto; margin-right: auto;">
+                            Quoting, scheduling, and payments—built for landscapers and trades.
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                            <button class="button-primary" onclick="smoothScroll('final-cta')" style="font-size: 1rem; padding: 1.25rem 2rem;">
+                                Create free account
+                            </button>
+                            <p style="color: #6E6E82; font-size: 0.875rem;">No card required.</p>
+                        </div>
+                    </div>
 
-  <div class="section-title">
-    AI-Powered Quoting That Wins Jobs
-    <p class="home-subheader">Accurate measurements, instant quotes, property photos—all from your iPad. Fast quotes close faster. Period.</p>
-  </div>
+                    <div style="width: 100%; max-width: 480px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); margin-top: 2rem;">
+                        <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="color: #6E6E82;">🔍</span>
+                            <span style="color: #6E6E82; font-size: 0.875rem;">Search properties...</span>
+                        </div>
+                        <div style="position: relative; height: 300px; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="text-align: center; color: #6E6E82;">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📍</div>
+                                <p style="font-size: 0.875rem;">Property preview</p>
+                            </div>
+                        </div>
+                        <div style="padding: 1.25rem; border-top: 1px solid #f3f4f6;">
+                            <button class="button-primary" style="width: 100%; font-size: 1rem;">Create Quote</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <div class="image-container">
-    <img src="Images/roofbasicquote.png" alt="Quote builder interface">
-  </div>
+        <!-- Speed Section -->
+        <section id="speed" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-speed flex items-center" style="padding: 4rem 0;">
+            <div class="hidden-mobile ring-decoration absolute" style="left: 6vw; top: 10vh; width: 34vw; height: 34vw; opacity: 0.75;"></div>
+            <div class="hidden-mobile ring-decoration absolute" style="left: 18vw; top: 26vh; width: 22vw; height: 22vw; opacity: 0.55;"></div>
 
-  <div class="section-title">
-    Get Paid. Fast. No Friction.
-    <p class="home-subheader">Stripe integration handles customer payments—one-off or subscriptions. Invoice automatically. Keep more of your money.</p>
-    <button class="cta-btn-section" onclick="window.location.href='login.html'">
-      Start Getting Paid Faster
-    </button>
-  </div>
+            <div class="section-content">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Quote in minutes, not hours.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Build accurate quotes on-site. Auto-calculate materials, labor, and tax—then send before you leave the driveway.
+                        </p>
+                        <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">See how quoting works</button>
+                    </div>
 
-  <div class="image-container">
-    <img src="Images/quotewithimage.png" alt="Payment and invoicing dashboard">
-  </div>
+                    <div style="width: 100%; max-width: 420px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid #f3f4f6;">
+                            <h3 style="color: #1B1B2F; font-weight: 600; font-size: 1.125rem; margin: 0;">Quote</h3>
+                            <button style="width: 2rem; height: 2rem; border-radius: 9999px; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">✕</button>
+                        </div>
+                        <div style="padding: 1.25rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span style="color: #7B2D8E; font-size: 0.875rem; font-weight: 500;">⏱️ Just now</span>
+                            </div>
+                            <h4 style="color: #1B1B2F; font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Lawn care</h4>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.75rem; color: #6E6E82;">
+                                <span>Service</span>
+                                <span style="color: #1B1B2F; font-weight: 500;">Lawn mowing</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.75rem; color: #6E6E82;">
+                                <span>Qty</span>
+                                <span style="color: #1B1B2F; font-weight: 500;">1</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 1rem; color: #6E6E82;">
+                                <span>Unit Price</span>
+                                <span style="color: #1B1B2F; font-weight: 500;">$85.00</span>
+                            </div>
+                            <div style="height: 1px; background: #f3f4f6; margin-bottom: 1rem;"></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                                <span style="color: #1B1B2F;">Total</span>
+                                <span style="color: #7B2D8E; font-size: 1.125rem;">$85.00</span>
+                            </div>
+                        </div>
+                        <div style="padding: 1.25rem; border-top: 1px solid #f3f4f6;">
+                            <button class="button-primary" style="width: 100%;">Send quote</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <div class="section-title">
-    Manage Everything from One Place
-    <p class="home-subheader">Customers, jobs, services, communications, SMS reminders, email follow-ups. Your entire workflow in one app.</p>
-    <button class="cta-btn-section" onclick="window.location.href='login.html'">
-      Explore the Full Platform
-    </button>
-  </div>
+        <!-- Accuracy Section -->
+        <section id="accuracy" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-accuracy flex items-center" style="padding: 4rem 0;">
+            <div class="hidden-mobile ring-decoration absolute" style="left: 50vw; top: 8vh; width: 30vw; height: 30vw; opacity: 0.65;"></div>
+            <div class="hidden-mobile ring-decoration absolute" style="left: 62vw; top: 22vh; width: 20vw; height: 20vw; opacity: 0.45;"></div>
 
-  <div class="image-container">
-    <img src="Images/Ipadpic2.png" alt="Full CRM dashboard">
-  </div>
+            <div class="section-content">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Measure with confidence.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Use built-in maps and property data to verify measurements. Reduce callbacks and protect your margins.
+                        </p>
+                        <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">Explore accuracy features</button>
+                    </div>
 
-  <div class="section-title">
-    Works Everywhere You Work
-    <p class="home-subheader">iPad, phone, desktop. Field or office. Your business doesn't stop, and neither should your tools.</p>
-    <button class="cta-btn-section" onclick="window.location.href='login.html'">
-      Access Anywhere
-    </button>
-  </div>
+                    <div style="width: 100%; max-width: 440px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                        <div style="position: relative; height: 220px; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="text-align: center; color: #6E6E82;">
+                                <div style="font-size: 2rem;">🗺️</div>
+                                <p style="font-size: 0.875rem;">Map preview</p>
+                            </div>
+                        </div>
+                        <div style="padding: 1.25rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span style="color: #1B1B2F; font-weight: 500; font-size: 0.875rem;">📏 Property measurements</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                                <div style="background: #f9fafb; border-radius: 0.75rem; padding: 0.75rem;">
+                                    <span style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Lot size</span>
+                                    <span style="color: #1B1B2F; font-weight: 600; font-size: 1rem;">0.25 ac</span>
+                                </div>
+                                <div style="background: #f9fafb; border-radius: 0.75rem; padding: 0.75rem;">
+                                    <span style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Lawn area</span>
+                                    <span style="color: #1B1B2F; font-weight: 600; font-size: 1rem;">8,500 ft²</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; color: #6E6E82; font-size: 0.75rem;">
+                                <span style="color: #10b981;">✓</span>
+                                <span>Verified with satellite data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <!-- Pricing Section -->
-  <div class="section-title">
-    Simple Pricing. No Hidden Fees.
-    <p class="home-subheader">Free account with unlimited jobs and quotes. Only pay when you get paid. That's it.</p>
-  </div>
+        <!-- Payments Section -->
+        <section id="payments" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-payments flex items-center" style="padding: 4rem 0;">
+            <div class="hidden-mobile ring-decoration absolute" style="left: 6vw; top: 12vh; width: 32vw; height: 32vw; opacity: 0.7;"></div>
+            <div class="hidden-mobile ring-decoration absolute" style="left: 16vw; top: 28vh; width: 20vw; height: 20vw; opacity: 0.5;"></div>
 
-  <!-- PRICING CAROUSEL (HTML CARDS) -->
-  <div class="pricing-carousel">
-    <div class="pricing-slide active">
-      <div class="plan-content">
-        <div class="plan-name">Starter</div>
-        <div class="plan-price">FREE</div>
-        <p class="plan-subtext">Forever free. Seriously.</p>
-        <ul class="features">
-          <li>✓ Unlimited Jobs</li>
-          <li>✓ Unlimited Quotes</li>
-          <li>✓ Unlimited Customers</li>
-          <li>✓ Payment Processing (5% total)</li>
-          <li>✓ Invoicing & Quoting</li>
-          <li>✓ Mobile & Desktop</li>
-          <li>✓ Free Onboarding & Customer Transfer</li>
-          <li>✓ Free Support</li>
-        </ul>
-      </div>
-      <button class="signup-btn">Start Now – No Card</button>
-    </div>
+            <div class="section-content">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Get paid faster.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Accept cards, bank transfers, and scheduled payments. Automatic receipts and reminders mean less chasing.
+                        </p>
+                        <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">Learn about payments</button>
+                    </div>
 
-    <div class="pricing-slide">
-      <div class="pricing-badge">Most Popular</div>
-      <div class="plan-content">
-        <div class="plan-name">Growth</div>
-        <div class="plan-price">Starter +</div>
-        <p class="plan-subtext">Everything you need to scale</p>
-        <ul class="features">
-          <li>✓ All Starter Features</li>
-          <li>✓ SMS Auto Reminders (15-20c)</li>
-          <li>✓ Email Marketing Campaigns</li>
-          <li>✓ Custom Service Packages</li>
-          <li>✓ Subscription Billing</li>
-          <li>✓ Customer Nurture Workflows</li>
-          <li>✓ Upsell Management</li>
-          <li>✓ Priority Support</li>
-        </ul>
-      </div>
-      <button class="signup-btn">Upgrade Anytime</button>
-    </div>
+                    <div style="width: 100%; max-width: 380px; position: relative; height: 320px;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 220px; background: white; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); transform: translateY(-20px) scale(0.96); opacity: 0.6;"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 220px; background: white; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); transform: translateY(-10px) scale(0.98); opacity: 0.8;"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 220px; background: white; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); padding: 1.5rem; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                                <h3 style="color: #1B1B2F; font-weight: 600; margin: 0;">Payment method</h3>
+                                <div style="display: flex; gap: 0.25rem;">
+                                    <div style="width: 2rem; height: 1rem; background: #1B1B2F; border-radius: 0.25rem; opacity: 0.8;"></div>
+                                    <div style="width: 2rem; height: 1rem; background: #7B2D8E; border-radius: 0.25rem; opacity: 0.8;"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div>
+                                    <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Card number</label>
+                                    <div style="background: #f9fafb; border-radius: 0.75rem; padding: 0.625rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="color: #1B1B2F; font-size: 0.875rem; letter-spacing: 0.1em;">•••• •••• •••• 4242</span>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                    <div>
+                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Expiry</label>
+                                        <div style="background: #f9fafb; border-radius: 0.75rem; padding: 0.625rem 1rem;">
+                                            <span style="color: #1B1B2F; font-size: 0.875rem;">12/26</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">CVC</label>
+                                        <div style="background: #f9fafb; border-radius: 0.75rem; padding: 0.625rem 1rem;">
+                                            <span style="color: #1B1B2F; font-size: 0.875rem;">•••</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <div class="pricing-slide">
-      <div class="plan-content">
-        <div class="plan-name">Full CRM</div>
-        <div class="plan-price">All-In-One</div>
-        <p class="plan-subtext">Complete business management</p>
-        <ul class="features">
-          <li>✓ All Growth Features</li>
-          <li>✓ Advanced Reporting</li>
-          <li>✓ Team Management</li>
-          <li>✓ Multi-Service Tracking</li>
-          <li>✓ Lead Scoring & Follow-ups</li>
-          <li>✓ Inventory Tracking</li>
-          <li>✓ API Access</li>
-          <li>✓ Dedicated Account Manager</li>
-        </ul>
-      </div>
-      <button class="signup-btn">Contact Sales</button>
-    </div>
+        <!-- Platform Section -->
+        <section id="platform" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-platform flex items-center" style="padding: 4rem 0;">
+            <div class="hidden-mobile ring-decoration absolute" style="right: 5vw; top: 10vh; width: 32vw; height: 32vw; opacity: 0.65;"></div>
 
-    <button class="prev" onclick="plusSlides(-1)">‹</button>
-    <button class="next" onclick="plusSlides(1)">›</button>
-  </div>
+            <div class="section-content">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Everything in one place.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Customers, jobs, schedules, and messages—organized so you're never searching through threads or notebooks.
+                        </p>
+                        <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">Explore the platform</button>
+                    </div>
 
-  <!-- Dots/indicators -->
-  <div class="carousel-indicators">
-    <span class="dot active" onclick="currentSlide(1)"></span>
-    <span class="dot" onclick="currentSlide(2)"></span>
-    <span class="dot" onclick="currentSlide(3)"></span>
-  </div>
+                    <div style="width: 100%; max-width: 480px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); display: flex; max-height: 420px;">
+                        <div style="width: 4rem; background: #f9fafb; border-right: 1px solid #f3f4f6; display: flex; flex-direction: column; align-items: center; padding: 1rem 0; gap: 0.5rem;">
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">📊</button>
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #7B2D8E; border: none; cursor: pointer; color: white; font-weight: 600;">👥</button>
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">📅</button>
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">📄</button>
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">💬</button>
+                            <button style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #f3f4f6; border: none; cursor: pointer; font-weight: 600;">⚙️</button>
+                        </div>
+                        <div style="flex: 1; display: flex; flex-direction: column;">
+                            <div style="padding: 1rem; border-bottom: 1px solid #f3f4f6;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                    <h3 style="color: #1B1B2F; font-weight: 600; font-size: 0.875rem; margin: 0;">Customers</h3>
+                                    <button style="width: 1.75rem; height: 1.75rem; border-radius: 9999px; background: #f3f4f6; border: none; cursor: pointer;">⋯</button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; background: #f9fafb; border-radius: 9999px; padding: 0.5rem 0.75rem;">
+                                    <span style="color: #6E6E82; font-size: 0.75rem;">🔍 Search...</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; overflow-y: auto; padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem; margin-bottom: 0.75rem; cursor: pointer;">
+                                    <div style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: linear-gradient(135deg, #7B2D8E, #9B4DAA); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.75rem;">SJ</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p style="color: #1B1B2F; font-weight: 500; font-size: 0.875rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sarah Johnson</p>
+                                        <p style="color: #6E6E82; font-size: 0.75rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">sarah@email.com</p>
+                                    </div>
+                                    <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px; white-space: nowrap;">Active</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.75rem; margin-bottom: 0.75rem; cursor: pointer;">
+                                    <div style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: linear-gradient(135deg, #7B2D8E, #9B4DAA); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.75rem;">MP</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p style="color: #1B1B2F; font-weight: 500; font-size: 0.875rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Mike Peters</p>
+                                        <p style="color: #6E6E82; font-size: 0.75rem; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">mike@email.com</p>
+                                    </div>
+                                    <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px;">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <!-- Lead Capture CTA -->
-  <div class="lead-capture-section">
-    <h3>The First Quote Wins the Job.</h3>
-    <p>Speed and accuracy separate winners from the rest. Get accurate quotes in the field faster than anyone else. Get paid immediately. Stop wasting time on spreadsheets and PDFs.</p>
-    <button class="cta-btn-hero" onclick="window.location.href='login.html'">
-      Create Your Free Account Now
-    </button>
-    <p style="font-size: 0.85rem; color: var(--muted); margin-top: 16px;">✓ Unlimited jobs & quotes forever  ✓ Free customer transfer (24hrs)  ✓ Free onboarding & support</p>
-  </div>
+        <!-- Access Section -->
+        <section id="access" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-access flex items-center" style="padding: 4rem 0;">
+            <div class="hidden-mobile ring-decoration absolute" style="left: 5vw; top: 15vh; width: 28vw; height: 28vw; opacity: 0.6;"></div>
 
-  <!-- Contact info -->
-  <div class="bottom-bar">
-    <div>+64 21 026 53330</div>
-    <div><a href="mailto:lawnlogic67@gmail.com">lawnlogic67@gmail.com</a></div>
-  </div>
+            <div class="section-content">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Works on any device.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Start a quote on your iPad, finish it on your phone, send it from the office. Your data stays in sync.
+                        </p>
+                        <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">Check device support</button>
+                    </div>
 
-</div>
+                    <div style="width: 100%; max-width: 420px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                        <div style="padding: 1rem; border-bottom: 1px solid #f3f4f6;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <button style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 9999px; background: #7B2D8E; color: white; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 500;">📱 iPad</button>
+                                <button style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 9999px; background: #f3f4f6; color: #6E6E82; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 500;">📞 Phone</button>
+                                <button style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 9999px; background: #f3f4f6; color: #6E6E82; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 500;">🖥️ Desktop</button>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 200px; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="text-align: center; color: #6E6E82;">
+                                <div style="font-size: 2rem;">📱</div>
+                                <p style="font-size: 0.875rem;">Device preview</p>
+                            </div>
+                            <div style="position: absolute; bottom: 0.75rem; left: 0.75rem; right: 0.75rem; background: rgba(255, 255, 255, 0.9); border-radius: 0.75rem; padding: 0.625rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; backdrop-filter: blur(4px);">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 2rem; height: 2rem; border-radius: 9999px; background: #7B2D8E; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">📱</div>
+                                    <div>
+                                        <p style="color: #1B1B2F; font-weight: 500; margin: 0; font-size: 0.75rem;">iPad Pro</p>
+                                        <p style="color: #6E6E82; margin: 0; font-size: 0.75rem;">Connected</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                    <div style="width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #10b981; animation: pulse 2s infinite;"></div>
+                                    <span style="color: #16a34a; font-weight: 500;">Live</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                                <span style="color: #6E6E82;">Last synced</span>
+                                <span style="color: #1B1B2F; font-weight: 500;">Just now</span>
+                            </div>
+                            <div style="height: 0.5rem; background: #f3f4f6; border-radius: 9999px; overflow: hidden; margin-bottom: 0.5rem;">
+                                <div style="height: 100%; width: 100%; background: linear-gradient(to right, #7B2D8E, #9B4DAA); border-radius: 9999px;"></div>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: #6E6E82;">3 devices</span>
+                                <span style="color: #16a34a; font-weight: 500;">100% synced</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<!-- Slideshow JavaScript -->
-<script>
+        <!-- Pricing Section -->
+        <section id="pricing" class="w-full relative gradient-bg tint-pricing" style="padding: 7rem 0;">
+            <div class="section-content">
+                <div class="section-container">
+                    <div style="margin-bottom: 4rem; text-align: center;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1rem; font-size: clamp(28px, 6vw, 48px);">Simple pricing.</h2>
+                        <p style="color: #6E6E82; max-width: 32rem; margin: 0 auto; font-size: 1rem; line-height: 1.6;">
+                            Start free. Upgrade when you need more team members and advanced features.
+                        </p>
+                    </div>
 
-// ===== Dynamic Stats Counter =====
-function animateStatCounter(element, finalValue, duration = 2000) {
-  const text = element.textContent;
-  let numericValue, suffix = '';
-  
-  // Parse the value: "100+", "50K+", "2.5 hrs"
-  if (text.includes('K+')) {
-    numericValue = 50;
-    suffix = 'K+';
-  } else if (text.includes('+')) {
-    numericValue = 100;
-    suffix = '+';
-  } else if (text.includes('hrs')) {
-    numericValue = 2.5;
-    suffix = ' hrs';
-  }
-  
-  if (!numericValue) return;
-  
-  const startTime = Date.now();
-  const startValue = 0;
-  
-  function update() {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    
-    // Easing function for smooth animation
-    const easeOut = 1 - Math.pow(1 - progress, 3);
-    const currentValue = startValue + (numericValue - startValue) * easeOut;
-    
-    let displayValue;
-    if (suffix === 'K+') {
-      displayValue = Math.round(currentValue) + suffix;
-    } else if (suffix === '+') {
-      displayValue = Math.round(currentValue) + suffix;
-    } else if (suffix === ' hrs') {
-      displayValue = (Math.round(currentValue * 10) / 10).toFixed(1) + suffix;
-    }
-    
-    element.textContent = displayValue;
-    element.classList.add('counting');
-    
-    if (progress < 1) {
-      requestAnimationFrame(update);
-    }
-  }
-  
-  update();
-}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <!-- Starter -->
+                        <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                            <h3 style="color: #1B1B2F; font-weight: 600; margin-bottom: 0.5rem; font-size: 1rem;">Starter</h3>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #1B1B2F; font-weight: 700; font-size: 2rem;">Free</span>
+                            </div>
+                            <p style="color: #6E6E82; font-size: 0.875rem; margin-bottom: 1.5rem;">For solo operators.</p>
+                            <div style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Unlimited quotes</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Unlimited customers</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">iOS & Android apps</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Email support</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Basic reporting</span>
+                                </div>
+                            </div>
+                            <button style="width: 100%; background: #f3f4f6; color: #1B1B2F; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.backgroundColor='#f3f4f6'">Start free</button>
+                        </div>
 
-// Intersection Observer to trigger animation when stats come into view
-const observerOptions = {
-  threshold: 0.3,
-  rootMargin: '0px'
-};
+                        <!-- Professional (Popular) -->
+                        <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); border: 2px solid #7B2D8E; position: relative; transform: scale(1.05);">
+                            <div style="position: absolute; top: -1rem; left: 50%; transform: translateX(-50%); background: #7B2D8E; color: white; font-size: 0.75rem; font-weight: 600; padding: 0.375rem 1rem; border-radius: 9999px;">Most popular</div>
+                            <h3 style="color: #1B1B2F; font-weight: 600; margin-bottom: 0.5rem; font-size: 1rem;">Professional</h3>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #1B1B2F; font-weight: 700; font-size: 2rem;">$29</span>
+                                <span style="color: #6E6E82; font-size: 0.875rem;">/mo</span>
+                            </div>
+                            <p style="color: #6E6E82; font-size: 0.875rem; margin-bottom: 1.5rem;">For growing teams.</p>
+                            <div style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Everything in Starter</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Team scheduling</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">SMS reminders</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Priority support</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Advanced reporting</span>
+                                </div>
+                            </div>
+                            <button class="button-primary" style="width: 100%; font-size: 0.875rem; padding: 0.75rem;">Start trial</button>
+                        </div>
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !entry.target.dataset.animated) {
-      entry.target.dataset.animated = 'true';
-      animateStatCounter(entry.target, null, 2500);
-    }
-  });
-}, observerOptions);
+                        <!-- Business -->
+                        <div style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                            <h3 style="color: #1B1B2F; font-weight: 600; margin-bottom: 0.5rem; font-size: 1rem;">Business</h3>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #1B1B2F; font-weight: 700; font-size: 2rem;">$79</span>
+                                <span style="color: #6E6E82; font-size: 0.875rem;">/mo</span>
+                            </div>
+                            <p style="color: #6E6E82; font-size: 0.875rem; margin-bottom: 1.5rem;">Multi-team operations.</p>
+                            <div style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Everything in Pro</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Multiple teams</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Advanced reporting</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">Dedicated onboarding</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: rgba(123, 45, 142, 0.1); display: flex; align-items: center; justify-content: center; color: #7B2D8E; font-weight: 600; font-size: 0.75rem;">✓</span>
+                                    <span style="color: #1B1B2F; font-size: 0.875rem;">API access</span>
+                                </div>
+                            </div>
+                            <button style="width: 100%; background: #f3f4f6; color: #1B1B2F; padding: 0.75rem; border-radius: 9999px; border: none; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.backgroundColor='#f3f4f6'">Contact sales</button>
+                        </div>
+                    </div>
 
-// Start observing when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.stat-number').forEach(stat => {
-    observer.observe(stat);
-  });
-});
+                    <div style="text-align: center;">
+                        <button style="background: none; border: none; color: #7B2D8E; font-weight: 600; cursor: pointer; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            Compare all features →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-document.querySelectorAll('.signup-btn').forEach(button => {
-  button.addEventListener('click', function(e) {
-    // Optional: prevent default if it's a link/button with href
-    e.preventDefault();
-    
-    // Redirect to index.html (same page in this case)
-    window.location.href = 'login.html';
-    
-    // Alternative: if you want to reload current page instead:
-    // window.location.reload();
-  });
-});
+        <!-- Final CTA Section -->
+        <section id="final-cta" class="w-full min-h-screen relative overflow-hidden gradient-bg tint-final flex items-center" style="padding: 4rem 0;">
+            <div class="section-content" style="flex: 1;">
+                <div class="section-container" style="display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div style="width: 100%; text-align: center; max-width: 500px;">
+                        <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Start today.</h2>
+                        <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
+                            Join hundreds of trade businesses moving faster with Deep Edge. No card required.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #16a34a; font-weight: 600;">✓</span>
+                                <span style="color: #1B1B2F; font-size: 0.875rem;">Free forever</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #16a34a; font-weight: 600;">✓</span>
+                                <span style="color: #1B1B2F; font-size: 0.875rem;">No credit card</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #16a34a; font-weight: 600;">✓</span>
+                                <span style="color: #1B1B2F; font-size: 0.875rem;">Cancel anytime</span>
+                            </div>
+                        </div>
+                    </div>
 
-let slideIndex = 1;
-showSlides(slideIndex);
+                    <div style="width: 100%; max-width: 420px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
+                        <div style="padding: 2rem;">
+                            <h3 style="color: #1B1B2F; font-weight: 600; font-size: 1.125rem; margin-bottom: 1.5rem; margin-top: 0;">Create your free account</h3>
+                            <form id="signupForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div id="formInputs">
+                                    <div>
+                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Full name</label>
+                                        <input type="text" placeholder="John Smith" style="border-radius: 0.75rem;" required>
+                                    </div>
+                                    <div>
+                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Email</label>
+                                        <input type="email" placeholder="john@company.com" style="border-radius: 0.75rem;" required>
+                                    </div>
+                                    <div>
+                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Password</label>
+                                        <input type="password" placeholder="••••••••" minlength="8" style="border-radius: 0.75rem;" required>
+                                    </div>
+                                    <button type="submit" class="button-primary" style="width: 100%; margin-top: 0.5rem; font-size: 1rem;">Get started</button>
+                                    <p style="color: #6E6E82; font-size: 0.75rem; text-align: center; margin-top: 1rem; margin-bottom: 0;">
+                                        By signing up, you agree to the <a href="#" style="color: #7B2D8E; text-decoration: none;">Terms of Service</a>.
+                                    </p>
+                                </div>
+                                <div id="successMessage" style="display: none; text-align: center; padding: 2rem 0;">
+                                    <div style="width: 3.5rem; height: 3.5rem; background: #dcfce7; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto; margin-bottom: 1rem; font-size: 1.5rem;">✓</div>
+                                    <h4 style="color: #1B1B2F; font-weight: 600; margin: 0; margin-bottom: 0.5rem;">You're all set!</h4>
+                                    <p style="color: #6E6E82; font-size: 0.875rem; margin: 0;">Check your email to get started.</p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-function plusSlides(n) {
-  showSlides(slideIndex += n);
-}
+            <div style="position: absolute; bottom: 1rem; left: 0; right: 0; text-align: center;">
+                <p style="color: #6E6E82; font-size: 0.75rem; margin: 0;">© 2026 Deep Edge. All rights reserved.</p>
+            </div>
+        </section>
+    </main>
 
-function currentSlide(n) {
-  showSlides(slideIndex = n);
-}
+    <script>
+        // Navigation scrolling
+        function smoothScroll(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
 
-function showSlides(n) {
-  let i;
-  let slides = document.getElementsByClassName("pricing-slide");
-  let dots = document.getElementsByClassName("dot");
-  
-  if (n > slides.length) {slideIndex = 1}    
-  if (n < 1) {slideIndex = slides.length}
-  
-  for (i = 0; i < slides.length; i++) {
-    slides[i].style.display = "none";  
-  }
-  
-  for (i = 0; i < dots.length; i++) {
-    dots[i].className = dots[i].className.replace(" active", "");
-  }
-  
-  slides[slideIndex-1].style.display = "flex";  
-  dots[slideIndex-1].className += " active";
-}
-</script>
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('open');
+        }
+
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.remove('open');
+        }
+
+        // Show mobile menu button on small screens
+        function updateMobileMenuButton() {
+            const btn = document.getElementById('mobileMenuBtn');
+            if (window.innerWidth < 1024) {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+                closeMobileMenu();
+            }
+        }
+
+        window.addEventListener('resize', updateMobileMenuButton);
+        updateMobileMenuButton();
+
+        // Navigation scroll effect
+        const nav = document.querySelector('nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                nav.classList.remove('not-scrolled');
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.add('not-scrolled');
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Form submission
+        const form = document.getElementById('signupForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Hide form inputs and show success message
+            document.getElementById('formInputs').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+
+            // Optional: Reset form after 2 seconds
+            setTimeout(() => {
+                form.reset();
+                document.getElementById('formInputs').style.display = 'flex';
+                document.getElementById('formInputs').style.flexDirection = 'column';
+                document.getElementById('formInputs').style.gap = '1rem';
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        });
+
+        // Smooth scroll behavior for all internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    smoothScroll(href.slice(1));
+                }
+            });
+        });
+    </script>
 </body>
 </html>
