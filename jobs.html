@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="sms.js" defer></script>
+  <link rel="stylesheet" href="./index-FsI4UGjo.css">
+  <script src="header.js" defer></script>
  
   <style>
     :root {
@@ -858,41 +860,6 @@
 <body>
   <div class="grain-overlay"></div>
 
-  <!-- Navigation -->
-  <nav class="not-scrolled" id="mainNav">
-    <div class="container">
-      <a href="index.html" class="nav-logo">
-        <div class="nav-logo-icon">DE</div>
-        <span class="nav-logo-text">Deep Edge</span>
-      </a>
-
-      <!-- Desktop Navigation -->
-      <div class="nav-menu-desktop">
-        <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
-        <button class="nav-link" onclick="window.location.href='dashboard.html'">Dashboard</button>
-        <button class="nav-link" onclick="window.location.href='jobs.html'" style="color: #1B1B2F; font-weight: 600;">Jobs</button>
-        <button class="nav-link" onclick="window.location.href='profile.html'">Profile</button>
-        <button class="nav-link" onclick="signOut()" style="color: #dc2626; border-left: 1px solid #e5e7eb; padding-left: 2rem;">Sign Out</button>
-      </div>
-
-      <!-- Mobile Menu Button -->
-      <button class="nav-menu-mobile" id="mobileMenuBtn" style="background: none; border: none; cursor: pointer; padding: 0.5rem; display: flex;" onclick="toggleMobileMenu()">
-        <span id="hamburger" style="font-size: 1.5rem; color: #1B1B2F;">☰</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Mobile Menu Overlay -->
-  <div class="mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
-    <div class="mobile-menu-panel" onclick="event.stopPropagation()">
-      <button onclick="window.location.href='index.html'; closeMobileMenu();">Home</button>
-      <button onclick="window.location.href='dashboard.html'; closeMobileMenu();">Dashboard</button>
-      <button onclick="window.location.href='jobs.html'; closeMobileMenu();" style="font-weight: 600; color: #7B2D8E;">Jobs</button>
-      <button onclick="window.location.href='profile.html'; closeMobileMenu();">Profile</button>
-      <button onclick="signOut(); closeMobileMenu();" style="color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">Sign Out</button>
-    </div>
-  </div>
-
   <!-- Loading Splash Screen -->
   <div id="loading-splash" style="display: none;">
     <div class="spinner"></div>
@@ -1222,7 +1189,7 @@ function showJobDetailsModal(job, jobId) {
               <div>
                 <strong>Invoice #${escapeHtml(i.number || '—')}</strong> – $${i.total?.toFixed(2) || '—'} (${i.date || '—'})
               </div>
-              <a href="invoice.html?invoice=${i.id}" target="_blank" style="background:#10b981; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
+              <a href="invoice.html?inv=${i.id}" target="_blank" style="background:#10b981; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
                 View
               </a>
             </div>

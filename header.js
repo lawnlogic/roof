@@ -1,173 +1,284 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Inject header styles - EXACT from index.html
+  // Inject header styles - EXACT SIZING IN PX FOR CONSISTENCY ACROSS ALL PAGES
   const headerStyles = document.createElement('style');
+  headerStyles.setAttribute('data-header-inject', 'true');
   headerStyles.textContent = `
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            transition: all 0.3s ease;
-            padding: 0 1.5rem;
-            height: 5rem;
+        /* === NAVIGATION - MAXIMUM OVERRIDE === */
+        nav#mainNav,
+        nav[id="mainNav"],
+        body > nav {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 100 !important;
+            transition: all 0.3s ease !important;
+            padding: 0 24px !important;
+            height: 80px !important;
+            margin: 0 !important;
+            border: none !important;
+            box-sizing: border-box !important;
         }
-        nav.scrolled {
-            background-color: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 1px 3px rgba(27, 27, 47, 0.1);
+        nav#mainNav.scrolled,
+        nav[id="mainNav"].scrolled,
+        body > nav.scrolled {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(16px) !important;
+            box-shadow: 0 1px 3px rgba(27, 27, 47, 0.1) !important;
         }
-        nav.not-scrolled {
-            background-color: transparent;
+        nav#mainNav.not-scrolled,
+        nav[id="mainNav"].not-scrolled,
+        body > nav.not-scrolled {
+            background-color: transparent !important;
         }
-        nav .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100%;
-            max-width: 1280px;
-            margin: 0 auto;
+        nav#mainNav > .container,
+        nav[id="mainNav"] > .container,
+        body > nav > .container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            height: 100% !important;
+            max-width: 1280px !important;
+            margin: 0 auto !important;
+            gap: 0 !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            padding: 0 !important;
         }
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            color: #1B1B2F;
+        nav#mainNav > div.container,
+        nav[id="mainNav"] > div.container,
+        body > nav > div.container {
+            max-width: 1280px !important;
+            padding: 0 !important;
+            width: 100% !important;
+            margin: 0 auto !important;
         }
-        .nav-logo-icon {
-            width: 1.75rem;
-            height: 1.75rem;
-            background-color: #7B2D8E;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.75rem;
+        a.h-nav-logo,
+        .h-nav-logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            text-decoration: none !important;
+            color: #1B1B2F !important;
+            flex-shrink: 0 !important;
         }
-        .nav-logo-text {
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: -0.025em;
+        .h-nav-logo-icon {
+            width: 28px !important;
+            height: 28px !important;
+            background-color: #7B2D8E !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 12px !important;
+            flex-shrink: 0 !important;
         }
-        .nav-menu-desktop {
-            display: none;
-            gap: 2rem;
-            align-items: center;
+        .h-nav-logo-text {
+            font-weight: 600 !important;
+            font-size: 16px !important;
+            letter-spacing: -0.025em !important;
+            white-space: nowrap !important;
         }
-        @media (min-width: 1024px) {
-            .nav-menu-desktop {
-                display: flex;
-            }
-            .nav-menu-mobile {
-                display: none;
-            }
-        }
-        .nav-link {
-            background: none;
-            border: none;
-            color: #6E6E82;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .nav-link:hover {
-            color: #1B1B2F;
-        }
-        .button-primary {
-            background-color: #7B2D8E;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .button-primary:hover {
-            background-color: #662375;
-            box-shadow: 0 8px 16px rgba(123, 45, 142, 0.3);
-        }
-        .nav-hamburger {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: auto;
-            flex: 0 0 auto;
-        }
-        .nav-hamburger svg {
-            width: 28px;
-            height: 24px;
-        }
-        .nav-hamburger-mobile {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: auto;
-            flex: 0 0 auto;
-        }
-        .nav-hamburger-mobile svg {
-            width: 28px;
-            height: 24px;
+        .h-nav-menu-desktop {
+            display: none !important;
+            gap: 32px !important;
+            align-items: center !important;
+            flex-direction: row !important;
+            margin-left: auto !important;
         }
         @media (min-width: 1024px) {
-            .nav-hamburger-mobile {
-                display: none;
+            .h-nav-menu-desktop {
+                display: flex !important;
+            }
+            .h-nav-menu-mobile {
+                display: none !important;
+            }
+        }
+        .h-nav-link,
+        .h-nav-link:link,
+        .h-nav-link:visited {
+            background: none !important;
+            border: none !important;
+            color: #6E6E82 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: color 0.3s ease !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            text-decoration: none !important;
+        }
+        .h-nav-link:hover,
+        .h-nav-link:focus {
+            color: #1B1B2F !important;
+        }
+        /* Override ALL button styles from external stylesheets */
+        nav button,
+        nav .h-nav-link,
+        nav .h-button-primary,
+        nav .h-nav-hamburger,
+        nav .h-nav-hamburger-mobile,
+        button.h-nav-link,
+        button.h-button-primary,
+        button.h-nav-hamburger,
+        button.h-nav-hamburger-mobile {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+            letter-spacing: inherit !important;
+            font-variant: normal !important;
+            text-transform: none !important;
+        }
+        button.h-nav-link,
+        .h-nav-link {
+            background: none !important;
+            border: none !important;
+            color: #6E6E82 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: color 0.3s ease !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            text-decoration: none !important;
+        }
+        button.h-nav-link:hover,
+        .h-nav-link:hover,
+        button.h-nav-link:focus,
+        .h-nav-link:focus {
+            color: #1B1B2F !important;
+        }
+        button.h-button-primary,
+        .h-button-primary {
+            background-color: #7B2D8E !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 9999px !important;
+            border: none !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            height: auto !important;
+            min-height: auto !important;
+            min-width: auto !important;
+        }
+        button.h-button-primary:hover,
+        .h-button-primary:hover {
+            background-color: #662375 !important;
+            box-shadow: 0 8px 16px rgba(123, 45, 142, 0.3) !important;
+        }
+        button.h-nav-hamburger,
+        .h-nav-hamburger {
+            background: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            padding: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            height: auto !important;
+            flex: 0 0 auto !important;
+            margin: 0 !important;
+            min-width: auto !important;
+            min-height: auto !important;
+        }
+        button.h-nav-hamburger-mobile,
+        .h-nav-hamburger-mobile {
+            background: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            padding: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            height: auto !important;
+            flex: 0 0 auto !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+            min-width: auto !important;
+            min-height: auto !important;
+        }
+        .h-nav-hamburger svg,
+        button.h-nav-hamburger svg,
+        .h-nav-hamburger-mobile svg,
+        button.h-nav-hamburger-mobile svg {
+            width: 28px !important;
+            height: 24px !important;
+            display: inline !important;
+        }
+        @media (max-width: 1023px) {
+            .h-nav-hamburger-mobile,
+            button.h-nav-hamburger-mobile {
+                display: flex !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            .h-nav-hamburger-mobile,
+            button.h-nav-hamburger-mobile {
+                display: none !important;
             }
         }
         /* Mobile menu */
-        .mobile-menu {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 99;
+        .h-mobile-menu {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            z-index: 99 !important;
         }
-        .mobile-menu.open {
-            display: block;
+        .h-mobile-menu.open {
+            display: block !important;
         }
-        .mobile-menu-panel {
-            position: absolute;
-            top: 5rem;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .h-mobile-menu-panel,
+        div.h-mobile-menu-panel {
+            position: absolute !important;
+            top: 80px !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: white !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
-        .mobile-menu-panel button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 1rem 1.5rem;
-            border: none;
-            background: none;
-            font-weight: 500;
-            color: #1B1B2F;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.2s ease;
+        .h-mobile-menu-panel button,
+        div.h-mobile-menu-panel button {
+            display: block !important;
+            width: 100% !important;
+            text-align: left !important;
+            padding: 16px 24px !important;
+            border: none !important;
+            background: none !important;
+            font-weight: 500 !important;
+            color: #1B1B2F !important;
+            cursor: pointer !important;
+            font-size: 16px !important;
+            transition: background-color 0.2s ease !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
-        .mobile-menu-panel button:hover {
-            background-color: #f3f4f6;
+        .h-mobile-menu-panel button:hover,
+        div.h-mobile-menu-panel button:hover {
+            background-color: #f3f4f6 !important;
         }
 
-        body {
-            padding-top: 5rem;
+        body,
+        body.scroll-smooth {
+            padding-top: 80px !important;
+            margin: 0 !important;
         }
   `;
   document.head.appendChild(headerStyles);
@@ -177,18 +288,18 @@ document.addEventListener("DOMContentLoaded", () => {
     <!-- Navigation -->
     <nav class="not-scrolled" id="mainNav">
         <div class="container">
-            <a href="index.html" class="nav-logo">
-                <div class="nav-logo-icon">DE</div>
-                <span class="nav-logo-text">Deep Edge</span>
+            <a href="index.html" class="h-nav-logo">
+                <div class="h-nav-logo-icon">DE</div>
+                <span class="h-nav-logo-text">Deep Edge</span>
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="nav-menu-desktop">
-                <button class="nav-link" onclick="window.location.href='dashboard.html'">Dashboard</button>
-                <button class="nav-link" onclick="window.location.href='jobs.html'">Jobs</button>
-                <button class="nav-link" onclick="window.location.href='profile.html'">Profile</button>
-                <button class="button-primary" onclick="window.location.href='index.html'" style="padding: 0.5rem 1.5rem; font-size: 0.875rem;">Home</button>
-                <button class="nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
+            <div class="h-nav-menu-desktop">
+                <button class="h-nav-link" onclick="window.location.href='dashboard.html'">Dashboard</button>
+                <button class="h-nav-link" onclick="window.location.href='jobs.html'">Jobs</button>
+                <button class="h-nav-link" onclick="window.location.href='profile.html'">Profile</button>
+                <button class="h-button-primary" onclick="window.location.href='index.html'">Home</button>
+                <button class="h-nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
                     <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect width="28" height="4" rx="2" fill="#1B1B2F"/>
                         <rect y="10" width="28" height="4" rx="2" fill="#1B1B2F"/>
@@ -198,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <!-- Mobile Hamburger (separate for mobile view) -->
-            <button class="nav-hamburger-mobile" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+            <button class="h-nav-hamburger-mobile" id="mobileMenuBtn" onclick="toggleMobileMenu()">
                 <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="28" height="4" rx="2" fill="#1B1B2F"/>
                     <rect y="10" width="28" height="4" rx="2" fill="#1B1B2F"/>
@@ -209,8 +320,8 @@ document.addEventListener("DOMContentLoaded", () => {
     </nav>
 
     <!-- Mobile Menu Overlay -->
-    <div class="mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
-        <div class="mobile-menu-panel" onclick="event.stopPropagation()">
+    <div class="h-mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
+        <div class="h-mobile-menu-panel" onclick="event.stopPropagation()">
             <button onclick="window.location.href='dashboard.html'; closeMobileMenu();">Dashboard</button>
             <button onclick="window.location.href='jobs.html'; closeMobileMenu();">Jobs</button>
             <button onclick="window.location.href='profile.html'; closeMobileMenu();">Profile</button>
