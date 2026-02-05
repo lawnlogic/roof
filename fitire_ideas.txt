@@ -1,2 +1,3 @@
 -add resources, and manage resources.
 -after a job is complete, it should neber cycle back to quote, (not sure if it does, but check this out.)
+-just connect all shapes

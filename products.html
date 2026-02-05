@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <title>Add-Ons & Products - Deep Edge</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="header.js" defer></script>
+
+</head>
+<body>
+
+<div class="container">
+
+  <div class="hero">
+    <h1>Unlock More Power with Add-Ons</h1>
+    <p>Enhance your Deep Edge experience with optional add-ons. Pay once, use forever.</p>
+  </div>
+
+  <!-- Add-Ons Grid -->
+  <div class="products-grid">
+
+    <!-- SMS Reminders -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>📱 SMS Auto Reminders</h3>
+        <div class="product-price">From <span class="price-amount">$0.15</span>/SMS</div>
+      </div>
+      
+      <div class="product-description">
+        <p>Set it and forget it. Automatically send SMS reminders to your customers at any stage of the job:</p>
+        <ul class="product-features">
+          <li>✓ Quote reminders</li>
+          <li>✓ Job start notifications</li>
+          <li>✓ Completion reminders</li>
+          <li>✓ Payment follow-ups</li>
+          <li>✓ Unlimited campaigns</li>
+          <li>✓ Custom scheduling</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">Pay as you send. No minimum.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('sms_reminders')">
+        Enable SMS Reminders
+      </button>
+    </div>
+
+    <!-- Email Marketing -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>✉️ Email Marketing</h3>
+        <div class="product-price">$25<span style="font-size: 0.85rem;">/month</span></div>
+      </div>
+      
+      <div class="product-description">
+        <p>Nurture your customer base and drive repeat business with email campaigns:</p>
+        <ul class="product-features">
+          <li>✓ Professional templates</li>
+          <li>✓ Unlimited recipients</li>
+          <li>✓ Segmentation & targeting</li>
+          <li>✓ Click & open tracking</li>
+          <li>✓ A/B testing</li>
+          <li>✓ Automation workflows</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">Charged monthly. Cancel anytime.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('email_marketing')">
+        Start Email Campaigns
+      </button>
+    </div>
+
+    <!-- Custom Service Packages -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>🛠️ Custom Service Packages</h3>
+        <div class="product-price">One-Time Setup</div>
+      </div>
+      
+      <div class="product-description">
+        <p>Create custom service packages tailored to your business:</p>
+        <ul class="product-features">
+          <li>✓ Hedge trimming packages</li>
+          <li>✓ Mulch & catchment</li>
+          <li>✓ Grass seeding options</li>
+          <li>✓ Seasonal services</li>
+          <li>✓ Bundled offers</li>
+          <li>✓ Dynamic pricing</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">Unlimited custom packages.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('custom_packages')">
+        Create Packages
+      </button>
+    </div>
+
+    <!-- Priority Support -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>⭐ Priority Support</h3>
+        <div class="product-price">$15<span style="font-size: 0.85rem;">/month</span></div>
+      </div>
+      
+      <div class="product-description">
+        <p>Get faster response times and dedicated support from our team:</p>
+        <ul class="product-features">
+          <li>✓ 1-hour response time</li>
+          <li>✓ Direct support channel</li>
+          <li>✓ Phone support</li>
+          <li>✓ Custom training</li>
+          <li>✓ Account optimization</li>
+          <li>✓ Early feature access</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">Includes all free support.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('priority_support')">
+        Get Priority Support
+      </button>
+    </div>
+
+    <!-- Multi-User Teams -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>👥 Team Collaboration</h3>
+        <div class="product-price">$10/user<span style="font-size: 0.85rem;">/month</span></div>
+      </div>
+      
+      <div class="product-description">
+        <p>Scale your team with advanced collaboration features:</p>
+        <ul class="product-features">
+          <li>✓ Additional user seats</li>
+          <li>✓ Role-based permissions</li>
+          <li>✓ Team activity logs</li>
+          <li>✓ Real-time collaboration</li>
+          <li>✓ Workload distribution</li>
+          <li>✓ Performance tracking</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">$10 per additional user/month.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('team_users')">
+        Add Team Members
+      </button>
+    </div>
+
+    <!-- Advanced Analytics -->
+    <div class="product-card">
+      <div class="product-header">
+        <h3>📊 Advanced Analytics</h3>
+        <div class="product-price">$20<span style="font-size: 0.85rem;">/month</span></div>
+      </div>
+      
+      <div class="product-description">
+        <p>Gain deep insights into your business performance:</p>
+        <ul class="product-features">
+          <li>✓ Custom dashboards</li>
+          <li>✓ Revenue forecasting</li>
+          <li>✓ Conversion analytics</li>
+          <li>✓ Customer lifetime value</li>
+          <li>✓ Predictive reports</li>
+          <li>✓ Export & scheduling</li>
+        </ul>
+      </div>
+
+      <div class="product-pricing-info">
+        <p style="font-size: 0.9rem; color: var(--muted); margin: 12px 0;">Make data-driven decisions.</p>
+      </div>
+
+      <button class="product-cta-btn" onclick="redirectToCheckout('advanced_analytics')">
+        Unlock Analytics
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Frequently Asked Questions -->
+  <div class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h4>Can I cancel add-ons anytime?</h4>
+        <p>Yes! Monthly add-ons can be cancelled anytime. SMS credits don't expire—use them whenever you need.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>Do I need a credit card to start?</h4>
+        <p>No. Your Deep Edge account is completely free. Add-ons are optional and billed separately through Stripe.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>How do SMS credits work?</h4>
+        <p>You purchase SMS credits at 15-20c per message depending on your plan. They never expire and are used when you send messages.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>Is there a minimum commitment?</h4>
+        <p>No minimum for anything. Pay as you go for SMS, monthly for subscriptions. Cancel anytime with no penalties.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="lead-capture-section">
+    <h3>Need Help Choosing?</h3>
+    <p>Our support team can help you figure out which add-ons will best benefit your business.</p>
+    <p><a href="mailto:lawnlogic67@gmail.com" style="color: var(--accent); text-decoration: none; font-weight: 600;">📧 Email us or call +64 21 026 53330</a></p>
+  </div>
+
+</div>
+
+<!-- Stripe Checkout Script -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  // Stripe Payment Links - these redirect directly to hosted checkout
+  const paymentLinks = {
+    'sms_reminders': 'https://buy.stripe.com/prod_Tu85jjDDkqDBhC', // Update with actual link from Stripe Dashboard
+    'email_marketing': 'https://pay.stripe.com/pay/cs_live_email_marketing',
+    'custom_packages': 'https://pay.stripe.com/pay/cs_live_custom_packages',
+    'priority_support': 'https://pay.stripe.com/pay/cs_live_priority_support',
+    'team_users': 'https://pay.stripe.com/pay/cs_live_team_users',
+    'advanced_analytics': 'https://pay.stripe.com/pay/cs_live_analytics'
+  };
+
+  function redirectToCheckout(productId) {
+    const paymentLink = paymentLinks[productId];
+
+    if (!paymentLink) {
+      console.error('Payment link not found for product:', productId);
+      alert('Payment link not configured. Please contact support.');
+      return;
+    }
+
+    // Redirect to Stripe hosted checkout
+    window.location.href = paymentLink;
+  }
+</script>
+
+<!-- Custom Styles for Products Page -->
+<style>
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 28px;
+    margin: 60px 0 40px;
+  }
+
+  .product-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.2);
+  }
+
+  .product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .product-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .product-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .price-amount {
+    font-weight: 800;
+  }
+
+  .product-description {
+    flex: 1;
+  }
+
+  .product-description p {
+    font-size: 0.95rem;
+    color: var(--text);
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+
+  .product-features {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .product-features li {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .product-pricing-info {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .product-cta-btn {
+    background: var(--accent);
+    color: var(--card);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+
+  .product-cta-btn:hover {
+    background: #6d28d9;
+    transform: translateY(-2px);
+  }
+
+  .faq-section {
+    margin: 80px 0 40px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.02) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(124, 58, 237, 0.1);
+  }
+
+  .faq-section h2 {
+    text-align: center;
+    margin-bottom: 32px;
+    color: var(--text);
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .faq-item {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .faq-item h4 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .faq-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .products-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .product-header {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>
+
+</body>
+</html>
