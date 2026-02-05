@@ -173,6 +173,41 @@
         .nav-link:hover {
             color: #1B1B2F;
         }
+        .nav-hamburger {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            flex: 0 0 auto;
+        }
+        .nav-hamburger svg {
+            width: 28px;
+            height: 24px;
+        }
+        .nav-hamburger-mobile {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            flex: 0 0 auto;
+        }
+        .nav-hamburger-mobile svg {
+            width: 28px;
+            height: 24px;
+        }
+        @media (min-width: 1024px) {
+            .nav-hamburger-mobile {
+                display: none;
+            }
+        }
         /* Mobile menu */
         .mobile-menu {
             display: none;
@@ -264,7 +299,7 @@
     <div class="grain-overlay"></div>
 
     <!-- Navigation -->
-    <nav class="not-scrolled">
+    <nav class="not-scrolled" id="mainNav">
         <div class="container">
             <a href="#" class="nav-logo" onclick="scrollToTop(); return false;">
                 <div class="nav-logo-icon">DE</div>
@@ -277,11 +312,24 @@
                 <button class="nav-link" onclick="smoothScroll('pricing')">Pricing</button>
                 <button class="nav-link" onclick="smoothScroll('final-cta')">Support</button>
                 <button class="button-primary" onclick="smoothScroll('final-cta')" style="padding: 0.5rem 1.5rem; font-size: 0.875rem;">Start free</button>
+                
+                <!-- Hamburger Menu Button -->
+                <button class="nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
+                    <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="28" height="4" rx="2" fill="#1B1B2F"/>
+                        <rect y="10" width="28" height="4" rx="2" fill="#1B1B2F"/>
+                        <rect y="20" width="28" height="4" rx="2" fill="#1B1B2F"/>
+                    </svg>
+                </button>
             </div>
 
-            <!-- Mobile Menu Button -->
-            <button class="nav-menu-mobile" id="mobileMenuBtn" style="background: none; border: none; cursor: pointer; padding: 0.5rem; display: none;" onclick="toggleMobileMenu()">
-                <span id="hamburger" style="font-size: 1.5rem; color: #1B1B2F;">☰</span>
+            <!-- Mobile Hamburger (separate for mobile view) -->
+            <button class="nav-hamburger-mobile" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+                <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="28" height="4" rx="2" fill="#1B1B2F"/>
+                    <rect y="10" width="28" height="4" rx="2" fill="#1B1B2F"/>
+                    <rect y="20" width="28" height="4" rx="2" fill="#1B1B2F"/>
+                </svg>
             </button>
         </div>
     </nav>
@@ -289,10 +337,10 @@
     <!-- Mobile Menu Overlay -->
     <div class="mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
         <div class="mobile-menu-panel" onclick="event.stopPropagation()">
-            <button onclick="smoothScroll('platform'); closeMobileMenu();">Features</button>
-            <button onclick="smoothScroll('pricing'); closeMobileMenu();">Pricing</button>
-            <button onclick="smoothScroll('final-cta'); closeMobileMenu();">Support</button>
-            <button class="button-primary" style="width: 100%; margin: 1rem 0; border-radius: 9999px;" onclick="smoothScroll('final-cta'); closeMobileMenu();">Start free</button>
+            <button onclick="window.location.href='dashboard.html'; closeMobileMenu();">Dashboard</button>
+            <button onclick="window.location.href='jobs.html'; closeMobileMenu();">Jobs</button>
+            <button onclick="window.location.href='profile.html'; closeMobileMenu();">Profile</button>
+            <button onclick="signOut(); closeMobileMenu();" style="color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">Sign Out</button>
         </div>
     </div>
 
@@ -870,6 +918,38 @@
                 }
             });
         });
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('open');
+        }
+
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.remove('open');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                closeMobileMenu();
+            }
+        });
+
+        // Sign out function
+        function signOut() {
+            if (confirm('Sign out of Deep Edge?')) {
+                // Clear any stored auth data
+                localStorage.clear();
+                sessionStorage.clear();
+                // Redirect to login
+                window.location.href = 'login.html';
+            }
+        }
     </script>
 </body>
 </html>
