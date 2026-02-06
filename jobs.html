@@ -124,6 +124,7 @@
     .status-completed { background: #f0fdf4; color: #059669; }
     .status-invoiced { background: #eff6ff; color: #2563eb; }
     .status-paid { background: #f0fdf4; color: #059669; }
+    .status-pending-service { background: #fef3c7; color: #d97706; }
     .last-activity {
       font-style: normal;
       color: hsl(var(--muted-foreground));
@@ -981,6 +982,85 @@ if (!document.getElementById('toast-styles')) {
   `;
   document.head.appendChild(style);
 }
+
+// ── STATUS UPDATE HELPER - Any change triggers full jobs reload ────────
+async function updateJobAndReload(jobId, updatePayload, card) {
+  // Show optimistic feedback immediately
+  if (updatePayload.status) {
+    card.dataset.stage = updatePayload.status;
+    updateCard(card);
+  }
+  showToast(`Updating...`);
+
+  try {
+    // Send update to backend
+    const token = await auth.currentUser.getIdToken();
+    const response = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (!response.ok) {
+      throw new Error('Server update failed');
+    }
+    
+    // CRUCIAL: After ANY change, reload ALL jobs and re-render
+    // This ensures all interdependencies and visuals are updated correctly
+    await loadAndRenderJobs();
+    showToast(`Updated successfully!`, 'success');
+    console.log(`✓ Job updated and all jobs reloaded: ${jobId}`);
+    
+  } catch (err) {
+    showToast(`Update failed: ${err.message}`, 'error');
+    console.error(`✗ Update failed for ${jobId}:`, err);
+    // Don't revert UI - just let user know it failed
+    // Next sync will pull fresh data from backend
+  }
+}
+
+// ── PERIODIC SYNC (Every 5 minutes) ────────────────────────────────────
+async function startPeriodicSync() {
+  setInterval(async () => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const jobs = document.querySelectorAll('[data-job-id]');
+      
+      for (const jobCard of jobs) {
+        const jobId = jobCard.dataset.jobId;
+        const response = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) continue;
+        
+        const data = await response.json();
+        const job = data.job || data;
+        
+        // Update if server status differs from local (or other critical fields)
+        if (job.status && job.status !== jobCard.dataset.stage) {
+          console.log(`🔄 Status drift detected for ${jobId}: local=${jobCard.dataset.stage} server=${job.status}`);
+          
+          // Update all card attributes with fresh server data to ensure consistency
+          jobCard.dataset.stage = job.status;
+          jobCard.dataset.isRecurring = job.isRecurring ? 'true' : 'false';
+          jobCard.dataset.recurrence = job.recurrence || '';
+          jobCard.dataset.nextServiceDate = job.nextServiceDate || '';
+          jobCard.dataset.quoteId = job.activeQuoteId || '';
+          
+          // Re-render card with all fresh data
+          updateCard(jobCard);
+          showToast(`${jobCard.dataset.jobName} status synced: ${job.status}`, 'info');
+        }
+      }
+    } catch (err) {
+      console.log('Periodic sync check completed (errors are OK)', err.message);
+    }
+  }, 5 * 60 * 1000); // Every 5 minutes
+}
 // ── STAGES config (kept as-is) ──────────────────────────────────────────
 const STAGES = [
   {
@@ -1017,7 +1097,6 @@ const STAGES = [
     lastActivity: 'Quote sent to client',
     menuItems: [
       { text: 'Resend Quote', action: 'resend-quote', danger: false },
-      { text: 'Send Reminder', action: 'send-reminder', danger: false },
       { text: 'Edit Quote', action: 'edit-quote', danger: false },
       { text: 'Change Price', action: 'change-price', danger: false },
       { text: 'View Details', action: 'view-details', danger: false },
@@ -1075,7 +1154,6 @@ const STAGES = [
     primary: 'Mark Paid',
     lastActivity: 'Invoice sent',
     menuItems: [
-      { text: 'Send Reminder', action: 'send-reminder', danger: false },
       { text: 'View Invoice', action: 'view-invoice', danger: false },
       { text: 'Edit Invoice', action: 'edit-invoice', danger: false },
       { text: 'View Details', action: 'view-details', danger: false },
@@ -1094,6 +1172,19 @@ const STAGES = [
       { text: 'View History', action: 'view-history', danger: false },
       { text: 'View Details', action: 'view-details', danger: false },
       { text: 'Archive Client', action: 'archive-client', danger: true }
+    ]
+  },
+  {
+    id: 'pendingService',
+    label: 'Pending Service',
+    color: 'status-pending-service',
+    progress: 42.86,
+    primary: 'Start Service',
+    lastActivity: 'Service pending',
+    menuItems: [
+      { text: 'Change Schedule', action: 'schedule-visit', danger: false },
+      { text: 'View Details', action: 'view-details', danger: false },
+      { text: 'Skip This Visit', action: 'skip-visit', danger: false }
     ]
   }
 ];
@@ -1126,6 +1217,12 @@ function updateCard(card) {
       btnColor = "var(--green-dark)"; // final / subdued
       isDisabled = true;
     }
+  }
+  
+  if (stage === 'pendingService') {
+    primaryText = "Start Service";
+    btnColor = "var(--green)";        // active / encouraging
+    isDisabled = false;
   }
 
   // Apply to button
@@ -1298,34 +1395,20 @@ function showJobDetailsModal(job, jobId) {
     </div>
   `);
   const modal = document.getElementById('modalContent');
-  // Manual status update — now uses passed jobId
+  // Manual status update — sends to backend and reloads all jobs
   modal.querySelector('#applyManualStatus').onclick = async () => {
     const newStatus = modal.querySelector('#manualStatus').value;
     if (!newStatus) return showToast('Select a status');
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          nextAction: `(Manual) Job set to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
-          updatedAt: new Date().toISOString()
-        })
-      });
-      if (!patchRes.ok) {
-        const err = await patchRes.json().catch(() => ({}));
-        throw new Error(err.error || "Status update failed");
-      }
-      closeModal();
-      loadAndRenderJobs(); // refresh full list
-      showToast(`Status updated to ${newStatus}!`);
-    } catch (err) {
-      showToast('Failed to update status:\n' + err.message, 'error');
-    }
+    
+    const card = document.querySelector(`[data-job-id="${jobId}"]`);
+    if (!card) return showToast('Card not found');
+    
+    closeModal();
+    await updateJobAndReload(jobId, {
+      status: newStatus,
+      nextAction: `(Manual) Job set to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+      updatedAt: new Date().toISOString()
+    }, card);
   };
   // Delete job — uses passed jobId
   modal.querySelector('#deleteJobBtn').onclick = async () => {
@@ -1402,10 +1485,16 @@ function renderCalendar(jobs, monthOffset = 0) {
   // Count ONLY on-site jobs due on each day (admin tasks don't add to count)
   const onSitePhases = ['won', 'progress'];
   const jobsByDay = {};
+  const jobsScheduledByDay = {}; // All jobs scheduled for each day (regardless of status)
+  const jobsWithServiceDateByDay = {}; // Jobs that have a nextServiceDate on each day (for completion checking)
   
   jobs.forEach(job => {
-    // Only count jobs that are in on-site phases
-    if (!onSitePhases.includes(job.status)) return;
+    // Count on-site jobs AND recurring admin jobs (including paid, to show future occurrences)
+    const adminPhases = ['created', 'lead', 'quoted', 'quoteSent', 'invoiced', 'paid'];
+    const isOnSiteJob = onSitePhases.includes(job.status);
+    const isRecurringAdminJob = adminPhases.includes(job.status) && job.isRecurring;
+    
+    if (!isOnSiteJob && !isRecurringAdminJob) return;
     
     const datesToAdd = [];
     
@@ -1414,9 +1503,11 @@ function renderCalendar(jobs, monthOffset = 0) {
       // If recurring, generate all occurrences in this month
       if (job.isRecurring && job.recurrence) {
         const startDate = new Date(job.nextServiceDate);
+        startDate.setHours(0, 0, 0, 0); // Normalize to local midnight
         let currentDate = new Date(startDate);
         const monthStart = new Date(year, month, 1);
         const monthEnd = new Date(year, month + 1, 0);
+        monthEnd.setHours(23, 59, 59, 999); // End of day for proper comparison
         
         // Determine interval in days
         let intervalDays = 0;
@@ -1458,6 +1549,14 @@ function renderCalendar(jobs, monthOffset = 0) {
       if (jobDate.getFullYear() === year && jobDate.getMonth() === month) {
         const day = jobDate.getDate();
         jobsByDay[day] = (jobsByDay[day] || 0) + 1;
+        
+        // Track scheduled jobs (for completion check)
+        if (!jobsScheduledByDay[day]) jobsScheduledByDay[day] = [];
+        jobsScheduledByDay[day].push(job);
+        
+        // Track jobs with nextServiceDate (for showing checkmark when completed)
+        if (!jobsWithServiceDateByDay[day]) jobsWithServiceDateByDay[day] = [];
+        jobsWithServiceDateByDay[day].push(job);
       }
     });
   });
@@ -1519,6 +1618,18 @@ function renderCalendar(jobs, monthOffset = 0) {
       counter.className = 'calendar-counter';
       counter.textContent = jobsByDay[day];
       dayCell.appendChild(counter);
+    } else if (jobsWithServiceDateByDay[day] && jobsWithServiceDateByDay[day].length > 0) {
+      // Jobs were scheduled but no longer in on-site/admin count
+      // Check if all jobs with a nextServiceDate for this day are completed
+      const allCompleted = jobsWithServiceDateByDay[day].every(job => job.status === 'completed');
+      if (allCompleted) {
+        const counter = document.createElement('div');
+        counter.className = 'calendar-counter';
+        counter.textContent = '✓';
+        counter.style.color = '#16a34a';
+        counter.style.fontWeight = 'bold';
+        dayCell.appendChild(counter);
+      }
     }
     
     // Add click handler to show jobs for that day (only for future dates)
@@ -1567,7 +1678,7 @@ function renderTodayJobs(jobs, selectedDate = null) {
   targetDate.setHours(0, 0, 0, 0);
   
   // Stages that should show in "Today" section
-  const actionStages = ['lead', 'created', 'quoted', 'won', 'progress'];
+  const actionStages = ['lead', 'created', 'quoted', 'won', 'progress', 'invoiced', 'paid', 'completed'];
   
   // Helper to get admin task's initial date (when it first becomes visible)
   const getAdminTaskInitialDate = (job) => {
@@ -1648,9 +1759,57 @@ function renderTodayJobs(jobs, selectedDate = null) {
       
       // 2. Admin tasks roll over: show if initial date <= targetDate and still in admin phase
       if (isAdminTask) {
+        // Check if recurring admin job is due on this date
+        if (job.isRecurring && job.recurrence && job.nextServiceDate) {
+          const startDate = new Date(job.nextServiceDate);
+          startDate.setHours(0, 0, 0, 0);
+          
+          let intervalDays = 0;
+          if (job.recurrence.toLowerCase() === 'weekly') {
+            intervalDays = 7;
+          } else if (job.recurrence.toLowerCase() === 'fortnightly') {
+            intervalDays = 14;
+          } else if (job.recurrence.toLowerCase() === 'monthly') {
+            intervalDays = -1; // Special flag for monthly
+          }
+          
+          if (intervalDays > 0) {
+            // Weekly or Fortnightly
+            const daysDiff = Math.floor((targetDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+            if (daysDiff >= 0 && daysDiff % intervalDays === 0) return true;
+          } else if (intervalDays === -1) {
+            // Monthly: check if same day of month
+            if (targetDate.getDate() === startDate.getDate() && targetDate >= startDate) return true;
+          }
+        }
+        
         const initialDate = getAdminTaskInitialDate(job);
         if (initialDate && initialDate.getTime() <= targetDate.getTime()) {
           return true;
+        }
+      }
+      
+      // 3. Check if it's a paid recurring job due for service on this date (shows as "pendingService")
+      if (job.status === 'paid' && job.isRecurring && job.nextServiceDate) {
+        const startDate = new Date(job.nextServiceDate);
+        startDate.setHours(0, 0, 0, 0);
+        
+        let intervalDays = 0;
+        if (job.recurrence.toLowerCase() === 'weekly') {
+          intervalDays = 7;
+        } else if (job.recurrence.toLowerCase() === 'fortnightly') {
+          intervalDays = 14;
+        } else if (job.recurrence.toLowerCase() === 'monthly') {
+          intervalDays = -1; // Special flag for monthly
+        }
+        
+        if (intervalDays > 0) {
+          // Weekly or Fortnightly
+          const daysDiff = Math.floor((targetDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+          if (daysDiff >= 0 && daysDiff % intervalDays === 0) return true;
+        } else if (intervalDays === -1) {
+          // Monthly: check if same day of month
+          if (targetDate.getDate() === startDate.getDate() && targetDate >= startDate) return true;
         }
       }
       
@@ -1658,8 +1817,11 @@ function renderTodayJobs(jobs, selectedDate = null) {
     }
     
     // Default behavior (for today): show new/quoted jobs, or any job with service date today
-    // For lead/created, only show if NOT created today (don't show on creation date)
-    if ((job.status === 'lead' || job.status === 'created') && job.createdAt) {
+    // For created and quoteSent, always show in admin (even on the day created/sent)
+    if (job.status === 'created' || job.status === 'quoteSent') return true;
+    
+    // For lead, only show if NOT created today (don't show on creation date)
+    if (job.status === 'lead' && job.createdAt) {
       const createdDate = new Date(job.createdAt);
       createdDate.setHours(0, 0, 0, 0);
       if (createdDate.getTime() < targetDate.getTime()) return true;
@@ -1675,17 +1837,8 @@ function renderTodayJobs(jobs, selectedDate = null) {
       if (actionDate.getTime() === targetDate.getTime()) return true;
     }
     
-    // For quoteSent, show if quote was sent before today
-    if (job.status === 'quoteSent' && job.activityLog && job.activityLog.length > 0) {
-      const quoteSentAction = job.activityLog.find(log => 
-        log.action && log.action.toLowerCase().includes('quote sent')
-      );
-      if (quoteSentAction && quoteSentAction.timestamp) {
-        const sentDate = new Date(quoteSentAction.timestamp);
-        sentDate.setHours(0, 0, 0, 0);
-        if (sentDate.getTime() < targetDate.getTime()) return true;
-      }
-    }
+    // Terminal states (invoiced, completed) appear in admin every day
+    if (['invoiced', 'completed'].includes(job.status)) return true;
     
     return false;
   });
@@ -1698,16 +1851,53 @@ function renderTodayJobs(jobs, selectedDate = null) {
   // Separate jobs into On-Site and Admin categories
   const onSitePhases = ['won', 'progress'];
   const rollingAdminPhases = ['created', 'lead', 'quoted', 'quoteSent'];
+  const terminalAdminPhases = ['invoiced', 'completed'];
   
-  const onSiteJobs = todayJobs.filter(job => onSitePhases.includes(job.status));
-  const adminJobs = todayJobs.filter(job => rollingAdminPhases.includes(job.status));
+  // Add displayStatus for paid recurring jobs due on target date (shows as pendingService)
+  todayJobs.forEach(job => {
+    if (job.status === 'paid' && job.isRecurring && job.nextServiceDate && selectedDate) {
+      const startDate = new Date(job.nextServiceDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      let intervalDays = 0;
+      if (job.recurrence.toLowerCase() === 'weekly') {
+        intervalDays = 7;
+      } else if (job.recurrence.toLowerCase() === 'fortnightly') {
+        intervalDays = 14;
+      } else if (job.recurrence.toLowerCase() === 'monthly') {
+        intervalDays = -1;
+      }
+      
+      let isDueOnDate = false;
+      if (intervalDays > 0) {
+        const daysDiff = Math.floor((targetDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+        isDueOnDate = daysDiff >= 0 && daysDiff % intervalDays === 0;
+      } else if (intervalDays === -1) {
+        isDueOnDate = targetDate.getDate() === startDate.getDate() && targetDate >= startDate;
+      }
+      
+      if (isDueOnDate) {
+        job.displayStatus = 'pendingService';
+        // Also set on original jobs array so expanded card can access it
+        const origJob = jobs.find(j => j.id === job.id);
+        if (origJob) origJob.displayStatus = 'pendingService';
+      }
+    }
+  });
+  
+  const onSiteJobs = todayJobs.filter(job => {
+    const actualStatus = job.displayStatus || job.status;
+    return onSitePhases.includes(actualStatus) || actualStatus === 'pendingService';
+  });
+  const adminJobs = todayJobs.filter(job => rollingAdminPhases.includes(job.status) || terminalAdminPhases.includes(job.status));
   
   todayContainer.innerHTML = '';
   
   // Helper function to render mini card HTML
   const renderMiniCard = (job) => {
-    const statusInfo = STAGES.find(s => s.id === job.status)
-                    || STAGES.find(s => s.id === job.status?.toLowerCase())
+    const displayStatusId = job.displayStatus || job.status;
+    const statusInfo = STAGES.find(s => s.id === displayStatusId)
+                    || STAGES.find(s => s.id === displayStatusId?.toLowerCase())
                     || STAGES[0];
     
     const actionDate = new Date(job.nextServiceDate);
@@ -1752,21 +1942,29 @@ function renderTodayJobs(jobs, selectedDate = null) {
     `;
   };
   
-  // Render On-Site section
-  if (onSiteJobs.length > 0) {
+  // Render On-Site section (non-collapsible container)
+  // Check if all on-site jobs are complete
+  const allOnSiteComplete = onSiteJobs.length > 0 && onSiteJobs.every(job => job.status === 'completed');
+  
+  if (allOnSiteComplete) {
+    // Show completion message
+    const completionHTML = `
+      <div class="jobs-section" style="background: #dcfce7; border-radius: 8px; padding: 16px; margin: 12px 0; text-align: center;">
+        <h3 style="color: #16a34a; margin: 0; font-size: 1.1rem;">✅ Jobs Complete</h3>
+      </div>
+    `;
+    todayContainer.insertAdjacentHTML('beforeend', completionHTML);
+  } else if (onSiteJobs.length > 0) {
+    // Show on-site jobs in non-collapsible container
     const onSiteHTML = `
       <div class="jobs-section">
-        <details open>
-          <summary>
-            <h3>On-Site <span class="jobs-section-badge">${onSiteJobs.length}</span></h3>
-          </summary>
-          <div class="jobs-section-content">
-            ${onSiteJobs.map(job => renderMiniCard(job)).join('')}
-            <button id="route-apple-maps-btn-today" style="padding: 10px 16px;background: var(--accent);color: white;border: none;border-radius: 8px;font-weight: 600;cursor: pointer;font-size: 0.9rem;transition: background 0.2s, transform 0.15s;display: flex;margin: 10px;/* justify-content: flex-end; */align-items: center;/* flex-direction: row; *//* justify-content: flex-start; */float: right;">
-              🗺️ Route in Apple Maps
-            </button>
-          </div>
-        </details>
+        <h3>On-Site <span class="jobs-section-badge">${onSiteJobs.length}</span></h3>
+        <div class="jobs-section-content">
+          ${onSiteJobs.map(job => renderMiniCard(job)).join('')}
+          <button id="route-apple-maps-btn-today" style="padding: 10px 16px;background: var(--accent);color: white;border: none;border-radius: 8px;font-weight: 600;cursor: pointer;font-size: 0.9rem;transition: background 0.2s, transform 0.15s;display: flex;margin: 10px;/* justify-content: flex-end; */align-items: center;/* flex-direction: row; *//* justify-content: flex-start; */float: right;">
+            🗺️ Route in Apple Maps
+          </button>
+        </div>
       </div>
     `;
     todayContainer.insertAdjacentHTML('beforeend', onSiteHTML);
@@ -1855,8 +2053,9 @@ function expandMiniCard(card, job, jobId, jobs) {
   }
   
   // Apply same mapping logic as loadAndRenderJobs
-  const statusInfo = STAGES.find(s => s.id === job.status)
-                  || STAGES.find(s => s.id === job.status?.toLowerCase())
+  const displayStatusId = job.displayStatus || job.status;
+  const statusInfo = STAGES.find(s => s.id === displayStatusId)
+                  || STAGES.find(s => s.id === displayStatusId?.toLowerCase())
                   || STAGES.find(s => s.id === 'quoted') // Default to 'quoted' for new jobs
                   || STAGES[0];
   
@@ -1878,6 +2077,7 @@ function expandMiniCard(card, job, jobId, jobs) {
     <div class="job-card job-card-expanded" 
          data-stage="${statusInfo.id || 'created'}"
          data-job-id="${job.id || 'MISSING-ID'}"
+         data-is-recurring="${job.isRecurring ? 'true' : 'false'}"
          style="margin-bottom: 32px; animation: slideDown 0.3s ease;">
       <div class="overflow">⋯</div>
       <div class="menu"></div>
@@ -2041,6 +2241,51 @@ function attachSingleCardEventListeners(card, jobs) {
         }
       }
       
+      // ── Handle pendingService stage (Start Service for recurring jobs) ───
+      if (stage === 'pendingService') {
+        showModal(`
+          <h2 class="modal-title">Start Service</h2>
+          <p style="margin-bottom:20px; color:#4b5563;">
+            Ready to start this service?
+          </p>
+          <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal btn-primary-modal confirm-start-service">Yes – Start Service</button>
+          </div>
+        `);
+        const modal = document.getElementById('modalContent');
+        modal.querySelector('.confirm-start-service').addEventListener('click', async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            if (!jobId) throw new Error("No job ID on card");
+            const patchBody = {
+              status: 'progress',
+              nextAction: 'Service started on site',
+              startedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(patchBody)
+            });
+            if (!patchRes.ok) throw new Error(`PATCH failed: ${patchRes.status}`);
+            closeModal();
+            showToast('✓ Service started', 'success');
+            await loadAndRenderJobs(jobs);
+          } catch (err) {
+            console.error('[Start service failed]', err);
+            showToast(`Failed to start service:\n${err.message}`, 'error');
+          }
+        });
+        return;
+      }
+      
       // ── Handle lead stage (Create Quote) ───────────────────────
       if (stage === 'lead') {
         if (!jobId) {
@@ -2167,9 +2412,8 @@ function attachSingleCardEventListeners(card, jobs) {
               }
               
               closeModal();
-              card.dataset.stage = 'quoteSent';
-              updateCard(card);
-              loadAndRenderJobs();
+              await loadAndRenderJobs();
+              showToast('Quote sent successfully!', 'success');
             } catch (err) {
               console.error('[Send quote failed]', err);
               showToast(`Failed to send quote:\n${err.message}`, 'error');
@@ -2223,10 +2467,8 @@ function attachSingleCardEventListeners(card, jobs) {
               throw new Error(errData.error || `Update failed (${patchRes.status})`);
             }
             closeModal();
-            card.dataset.stage = 'progress';
-            updateCard(card);
-            showToast('Service started on site!');
-            loadAndRenderJobs();
+            await loadAndRenderJobs();
+            showToast('Service started on site!', 'success');
           } catch (err) {
             console.error("Start job failed:", err);
             showToast('Failed to start job:\n' + err.message, 'error');
@@ -2274,10 +2516,8 @@ function attachSingleCardEventListeners(card, jobs) {
               throw new Error(errData.error || `Update failed (${patchRes.status})`);
             }
             closeModal();
-            card.dataset.stage = 'completed';
-            updateCard(card);
+            await loadAndRenderJobs();
             showToast('Job marked as completed!', 'success');
-            loadAndRenderJobs();
           } catch (err) {
             console.error("Complete job failed:", err);
             showToast('Failed to complete job:\n' + err.message, 'error');
@@ -2432,10 +2672,8 @@ function attachSingleCardEventListeners(card, jobs) {
               throw new Error(errData.error || `Update failed (${patchRes.status})`);
             }
             closeModal();
-            card.dataset.stage = 'paid';
-            updateCard(card);
-            showToast('Job marked as paid!');
-            loadAndRenderJobs();
+            await loadAndRenderJobs();
+            showToast('Job marked as paid!', 'success');
           } catch (err) {
             console.error("Mark as paid failed:", err);
             showToast('Failed to mark job as paid:\n' + err.message, 'error');
@@ -2511,11 +2749,9 @@ function attachSingleCardEventListeners(card, jobs) {
             const errBody = await res.json().catch(() => ({}));
             throw new Error(errBody.error || `Delete failed (${res.status})`);
           }
-          card.dataset.stage = 'lead';
-          updateCard(card);
           if (currentMenu) currentMenu.classList.remove('show');
+          await loadAndRenderJobs();
           showToast('Quote deleted successfully', 'success');
-          loadAndRenderJobs();
         } catch (err) {
           console.error("Delete quote failed:", err);
           showToast('Failed to delete quote:\n' + err.message, 'error');
@@ -2921,7 +3157,10 @@ let allJobs = []; // Store all jobs for search functionality
 
 async function loadAndRenderJobs(useMockData = false) {
   const container = document.getElementById("jobs-container");
-  if (!container) return;
+  if (!container) {
+    console.error('❌ jobs-container not found!');
+    return;
+  }
   container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">Loading jobs...</p>';
   try {
     let jobs;
@@ -2933,6 +3172,7 @@ async function loadAndRenderJobs(useMockData = false) {
       const user = auth.currentUser;
       if (!user) throw new Error("Not signed in. Please log in first.");
       const token = await user.getIdToken(true);
+      console.log('📡 Fetching jobs from API...');
       const res = await fetch(`${WORKER_URL}/api/jobs`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -2944,6 +3184,7 @@ async function loadAndRenderJobs(useMockData = false) {
       }
       const data = await res.json();
       jobs = data.jobs || [];
+      console.log(`✓ Loaded ${jobs.length} jobs from API`);
     }
     
     // Store all jobs for search functionality
@@ -2975,9 +3216,11 @@ async function loadAndRenderJobs(useMockData = false) {
     
     if (jobs.length === 0) {
       container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">No jobs yet.<br>Create your first job!</p>';
+      console.log('ℹ️ No jobs to display');
       return;
     }
     container.innerHTML = '';
+    console.log(`🎴 Rendering ${jobs.length} job cards...`);
     jobs.forEach(job => {
       const statusInfo = STAGES.find(s => s.id === job.status)
                       || STAGES.find(s => s.id === job.status?.toLowerCase())
@@ -3171,9 +3414,9 @@ function showScheduleModal(card) {
         const errData = await patchRes.json().catch(() => ({}));
         throw new Error(errData.error || `Save failed (${patchRes.status})`);
       }
+      
       closeModal();
-      card.dataset.stage = 'won'; // match backend status
-      updateCard(card);
+      await loadAndRenderJobs();
       showToast('Service scheduled successfully!', 'success');
     } catch (err) {
       console.error("Schedule save failed:", err);
@@ -3212,6 +3455,50 @@ function attachCardEventListeners() {
             // For now, do nothing since it's disabled in updateCard
             return;
           }
+        }
+        // ── NEW: Handle pendingService stage (Start Service for recurring jobs) ───
+        if (stage === 'pendingService') {
+          showModal(`
+            <h2 class="modal-title">Start Service</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+              Ready to start this service?
+            </p>
+            <div class="modal-buttons">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button class="btn-modal btn-primary-modal confirm-start-service">Yes – Start Service</button>
+            </div>
+          `);
+          const modal = document.getElementById('modalContent');
+          modal.querySelector('.confirm-start-service').addEventListener('click', async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              if (!jobId) throw new Error("No job ID on card");
+              const patchBody = {
+                status: 'progress',
+                nextAction: 'Service started on site',
+                startedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+              const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(patchBody)
+              });
+              if (!patchRes.ok) throw new Error(`PATCH failed: ${patchRes.status}`);
+              closeModal();
+              showToast('✓ Service started', 'success');
+              await loadAndRenderJobs();
+            } catch (err) {
+              console.error('[Start service failed]', err);
+              showToast(`Failed to start service:\n${err.message}`, 'error');
+            }
+          });
+          return;
         }
         // ── NEW: Handle lead stage (Create Quote) ───────────────────────
         if (stage === 'lead') {
@@ -3396,11 +3683,8 @@ function attachCardEventListeners() {
                 throw new Error(errData.error || `Update failed (${patchRes.status})`);
               }
               closeModal();
-              card.dataset.stage = 'progress'; // match backend
-              updateCard(card);
-              showToast('Service started on site!');
-              // Optional: refresh full list
-              loadAndRenderJobs();
+              await loadAndRenderJobs();
+              showToast('Service started on site!', 'success');
             } catch (err) {
               console.error("Start job failed:", err);
               showToast('Failed to start job:\n' + err.message, 'error');
@@ -3448,12 +3732,8 @@ function attachCardEventListeners() {
                 throw new Error(errData.error || `Update failed (${patchRes.status})`);
               }
               closeModal();
-              // Update local card immediately
-              card.dataset.stage = 'completed';
-              updateCard(card);
+              await loadAndRenderJobs();
               showToast('Job marked as completed!', 'success');
-              // Refresh full list to be safe (especially important if activity log is shown)
-              loadAndRenderJobs();
             } catch (err) {
               console.error("Complete job failed:", err);
               showToast('Failed to complete job:\n' + err.message, 'error');
@@ -3616,12 +3896,8 @@ function attachCardEventListeners() {
                 throw new Error(errData.error || `Update failed (${patchRes.status})`);
               }
               closeModal();
-              // Update local card immediately
-              card.dataset.stage = 'paid';
-              updateCard(card);
-              showToast('Job marked as paid!');
-              // Refresh full list to show updated status/activity log
-              loadAndRenderJobs();
+              await loadAndRenderJobs();
+              showToast('Job marked as paid!', 'success');
             } catch (err) {
               console.error("Mark as paid failed:", err);
               showToast('Failed to mark job as paid:\n' + err.message, 'error');
@@ -3696,11 +3972,9 @@ function attachCardEventListeners() {
               const errBody = await res.json().catch(() => ({}));
               throw new Error(errBody.error || `Delete failed (${res.status})`);
             }
-            card.dataset.stage = 'lead';
-            updateCard(card);
             if (currentMenu) currentMenu.classList.remove('show');
+            await loadAndRenderJobs();
             showToast('Quote deleted successfully', 'success');
-            loadAndRenderJobs(); // refresh to sync backend
           } catch (err) {
             console.error("Delete quote failed:", err);
             showToast('Failed to delete quote:\n' + err.message, 'error');
@@ -4086,6 +4360,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (user) {
       // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)
       await loadAndRenderJobs(); // ← add await if your function returns a Promise
+      
+      // Start periodic sync to catch any data drift
+      startPeriodicSync();
       
       // Hide loading splash screen
       const loadingSplash = document.getElementById('loading-splash');

@@ -194,6 +194,7 @@
 
     // Show loading splash initially
     const loadingSplash = document.getElementById('loading-splash');
+    let loadedJobData = null; // Store job data for client info in quotes
     
     if (jobId) {
       onAuthStateChanged(auth, async (user) => {
@@ -206,6 +207,7 @@
 
             if (res.ok) {
               const job = await res.json();
+              loadedJobData = job; // Store full job data
               if (job.address) {
                 document.getElementById('address').value = job.address;
                 // Auto-trigger search and hide splash when complete
@@ -1175,7 +1177,10 @@
         catchAndMulch: catchMulchCheckbox.checked,
         estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
         totalInclGst: totalInclGst,
-        client: {},
+        client: loadedJobData?.client ? {
+          firstName: loadedJobData.client.firstName || '',
+          lastName: loadedJobData.client.lastName || ''
+        } : {},
         company: companyProfile,
         mapState: {
           center: map.getCenter(),
