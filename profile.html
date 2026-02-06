@@ -13,11 +13,17 @@
   <script src="header.js" defer></script>
 </head>
 <body>
+  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: all 0.3s ease; padding: 0 1.5rem; height: 5rem; font-family: 'Inter', sans-serif;"></div>
+
   <div class="profile-container">
+    <div class="profile-header">
+      <h1>Company Settings</h1>
+      <p>Manage your company profile, pricing, and add-on services</p>
+    </div>
 
     <!-- Company Profile Section -->
     <details>
-      <summary><h2>Company Profile</h2></summary>
+      <summary><h2>👤 Company Profile</h2></summary>
       <div class="profile-pricing-box">
         <div class="profile-input-group">
           <label for="companyName">Company Name</label>
@@ -49,14 +55,14 @@
           <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
         </div>
 
-        <button id="profile-update-btn">Update Profile</button>
+        <button id="profile-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Profile</button>
         <div id="profile-message"></div>
       </div>
     </details>
 
     <!-- Company Pricing (Push + Ride-on) Section -->
     <details>
-      <summary><h2>Company Pricing</h2></summary>
+      <summary><h2>💰 Company Pricing</h2></summary>
       <div class="mower-pricing-container">
         <!-- Push Mower Pricing -->
         <div class="mower-section">
@@ -69,12 +75,15 @@
             </div>
             <div class="profile-input-group">
               <label for="pushChargeOutRate">Charge Out Rate Per Hour</label>
+              <small style="color: var(--text);">How much do you charge per hour?</small>
               <input type="number" id="pushChargeOutRate" min="0" step="0.01" placeholder="e.g. 85.00" />
             </div>
             <div class="profile-input-group">
               <label for="pushHourlyExpenses">Hourly Expenses</label>
+              <small style="color: var(--text);">Hourly expenses, petrol, staff etc.</small>
               <input type="number" id="pushHourlyExpenses" min="0" step="0.01" placeholder="e.g. 15.00" />
             </div>
+            <button id="pricing-update-push-btn" class="pricing-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Pricing</button>
           </div>
         </div>
         <!-- Ride-on Mower Pricing -->
@@ -88,31 +97,31 @@
             </div>
             <div class="profile-input-group">
               <label for="rideonChargeOutRate">Charge Out Rate Per Hour</label>
+              <small style="color: var(--text);">How much do you charge per hour?</small>
               <input type="number" id="rideonChargeOutRate" min="0" step="0.01" placeholder="e.g. 120.00" />
             </div>
             <div class="profile-input-group">
               <label for="rideonHourlyExpenses">Hourly Expenses</label>
+              <small style="color: var(--text);">Hourly expenses, petrol, staff etc.</small>
               <input type="number" id="rideonHourlyExpenses" min="0" step="0.01" placeholder="e.g. 35.00" />
             </div>
+            <button id="pricing-update-rideon-btn" class="pricing-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Pricing</button>
           </div>
         </div>
       </div>
-      <button id="pricing-update-btn" style="margin-top: 32px; background: #28a745; color: white; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
-        Update Company Pricing
-      </button>
       <div id="pricing-message" style="margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 16px; text-align: center;"></div>
     </details>
 
     <!-- Company Add-Ons Section -->
     <details>
-      <summary><h2>Company Add-Ons</h2></summary>
+      <summary><h2>⚙️ Company Add-Ons</h2></summary>
       <div class="profile-pricing-box">
         <p style="margin-bottom: 20px; color: var(--muted);">
           Define optional services (e.g. edge trimming, hedge clipping, fertiliser application, etc.) 
           that can be added to quotes.
         </p>
 
-        <button id="create-addon-btn" class="action-button">+ Create Add-On</button>
+        <button id="create-addon-btn" class="action-button" style="background: #10b981; color: white;">+ New Add-On</button>
 
         <!-- Form (hidden by default) -->
         <div id="addon-form" style="display: none; margin-top: 24px;">
@@ -154,8 +163,8 @@
           </div>
 
           <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <button id="save-addon-btn" class="action-button" style="background: #10b981;">Save Add-On</button>
-            <button id="cancel-addon-btn" class="action-button" style="background: #6b7280;">Cancel</button>
+            <button id="save-addon-btn" class="action-button" style="background: #10b981; color: white;">Save Add-On</button>
+            <button id="cancel-addon-btn" class="action-button" style="background: #9ca3af; color: white;">Cancel</button>
           </div>
 
           <div id="addon-message" style="margin-top: 16px;"></div>
@@ -244,31 +253,32 @@
         }
 
         const li = document.createElement('li');
-        li.style.padding = '16px';
-        li.style.borderBottom = '1px solid #444';
-        li.style.background = 'rgba(255,255,255,0.03)';
+        li.style.padding = '20px';
+        li.style.borderBottom = '1px solid #e5e7eb';
+        li.style.background = 'white';
         li.style.borderRadius = '8px';
         li.style.marginBottom = '12px';
         li.style.position = 'relative';
+        li.style.border = '1px solid #e5e7eb';
 
         li.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
-              <strong style="font-size: 1.1rem; color: #8B5CF6;">${addon.name}</strong><br>
-              <small style="color: #aaa;">${addon.description || 'No description'}</small><br>
-              <div style="margin-top: 8px;">
-                <span style="background: #333; padding: 4px 10px; border-radius: 12px; font-size: 0.9rem;">
+              <strong style="font-size: 1.1rem; color: #1f2937;">${addon.name}</strong><br>
+              <small style="color: #6b7280;">${addon.description || 'No description'}</small><br>
+              <div style="margin-top: 12px;">
+                <span style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500;">
                   ${addon.pricingType === 'm2' ? 'Per m²' : 'Per Hour'}: $${Number(addon.price || 0).toFixed(2)}
                 </span>
                 ${addon.requiresSiteQuote ? 
-                  '<span style="margin-left: 10px; background: #c2410c; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; color: white;">Must quote on site</span>' 
+                  '<span style="margin-left: 10px; background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;">Site quote required</span>' 
                   : ''}
               </div>
             </div>
             <button 
               class="delete-addon-btn" 
               data-id="${addon.id}"
-              style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"
+              style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;"
             >
               Delete
             </button>
@@ -401,8 +411,8 @@
       }
     });
 
-    // Pricing save (unchanged from previous working version)
-    document.getElementById('pricing-update-btn').addEventListener('click', async () => {
+    // Pricing save function for both buttons
+    const savePricing = async () => {
       if (!auth.currentUser) {
         showPricingMessage('Not logged in', 'error');
         return;
@@ -439,7 +449,11 @@
       } catch (e) {
         showPricingMessage('Failed to save pricing: ' + e.message, 'error');
       }
-    });
+    };
+
+    // Attach pricing save to both buttons
+    document.getElementById('pricing-update-push-btn').addEventListener('click', savePricing);
+    document.getElementById('pricing-update-rideon-btn').addEventListener('click', savePricing);
 
     // ── Add-Ons ────────────────────────────────────────────────────────────
     const createAddonBtn   = document.getElementById('create-addon-btn');
