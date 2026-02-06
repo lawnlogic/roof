@@ -27,19 +27,24 @@
     </div>
 
     <!-- Company Info Box -->
-    <div class="company-box" id="company-box">
-      <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
-      <div class="company-details">
-        <h3 id="company-name">Deep Edge</h3>
-        <p><strong>Phone:</strong> <span id="company-phone">-</span></p>
-        <p><strong>Email:</strong> <a id="company-email" href="mailto:" style="color:#8B5CF6;">-</a></p>
-        <p><strong>NZBN:</strong> <span id="company-nzbn">-</span></p>
-        <p><strong>GST Number:</strong> <span id="company-gst">-</span></p>
+    <div class="boxes-wrapper">
+      <div class="company-box" id="company-box">
+        <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
+        <div class="company-details">
+          <h3 id="company-name">Deep Edge</h3>
+          <p><strong>Phone:</strong> <span id="company-phone">-</span></p>
+          <p><strong>Email:</strong> <a id="company-email" href="mailto:" style="color:#8B5CF6;">-</a></p>
+          <p><strong>NZBN:</strong> <span id="company-nzbn">-</span></p>
+          <p><strong>GST Number:</strong> <span id="company-gst">-</span></p>
+        </div>
       </div>
-    </div>
 
-    <!-- Professional Job Summary Box -->
-    <div id="pricing-box" class="pricing-box">
+      <!-- Professional Job Summary Box -->
+      <div id="pricing-box" class="pricing-box">
+      <div class="pricing-row">
+        <span>Client:</span>
+        <strong id="client-display">TBD</strong>
+      </div>
       <div class="pricing-row">
         <span>Property Address:</span>
         <strong id="address-display"></strong>
@@ -64,6 +69,7 @@
         <span>TOTAL (incl GST):</span>
         <strong id="total-incl"></strong>
       </div>
+    </div>
     </div>
   </div>
 
@@ -107,6 +113,20 @@
 
           // === Quote Details ===
           document.getElementById('address-display').textContent = quoteData.address || 'Unknown Address';
+          
+          // Client display
+          const clientDisplay = document.getElementById('client-display');
+          if (quoteData.client?.firstName || quoteData.client?.lastName) {
+            let clientName = quoteData.client.firstName || '';
+            if (quoteData.client.lastName) {
+              const lastInitial = quoteData.client.lastName.charAt(0).toUpperCase();
+              clientName = clientName ? `${clientName} ${lastInitial}.` : lastInitial;
+            }
+            clientDisplay.textContent = clientName || 'Unknown';
+          } else {
+            clientDisplay.textContent = 'TBD';
+          }
+          
           document.getElementById('final-area').textContent = (quoteData.lawnAreaM2 || 0).toLocaleString() + ' m²';
 
           const mowingRevenue = quoteData.totalInclGst;
