@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
             right: 0 !important;
             bottom: 0 !important;
             background: rgba(0, 0, 0, 0.5) !important;
-            z-index: 99 !important;
+            z-index: 1000 !important;
         }
         .h-mobile-menu.open {
             display: block !important;
