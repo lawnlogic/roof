@@ -190,6 +190,9 @@ document.addEventListener("DOMContentLoaded", () => {
             margin: 0 !important;
             min-width: auto !important;
             min-height: auto !important;
+            z-index: 1001 !important;
+            position: relative !important;
+            pointer-events: auto !important;
         }
         button.h-nav-hamburger-mobile,
         .h-nav-hamburger-mobile {
@@ -207,6 +210,9 @@ document.addEventListener("DOMContentLoaded", () => {
             flex-shrink: 0 !important;
             min-width: auto !important;
             min-height: auto !important;
+            z-index: 1001 !important;
+            position: relative !important;
+            pointer-events: auto !important;
         }
         .h-nav-hamburger svg,
         button.h-nav-hamburger svg,
@@ -238,9 +244,11 @@ document.addEventListener("DOMContentLoaded", () => {
             bottom: 0 !important;
             background: rgba(0, 0, 0, 0.5) !important;
             z-index: 1000 !important;
+            pointer-events: auto !important;
         }
         .h-mobile-menu.open {
             display: block !important;
+            pointer-events: auto !important;
         }
         .h-mobile-menu-panel,
         div.h-mobile-menu-panel {
@@ -253,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
             border: none !important;
             margin: 0 !important;
             padding: 0 !important;
+            pointer-events: auto !important;
         }
         .h-mobile-menu-panel button,
         div.h-mobile-menu-panel button {

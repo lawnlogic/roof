@@ -3,82 +3,348 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Job • Deep Edge</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <title>Create New Job • Deep Edge</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="sms.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
   <script src="header.js" defer></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="sms.js" defer></script>
 
   <style>
-    .create-job-container { max-width: 480px; margin: 40px auto; padding: 0 20px; margin-top: 100px;}
-    .form-group { margin-bottom: 24px; position: relative; }
-    label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); font-size: 1rem; }
-    input, textarea, select { 
-      width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); 
-      border-radius: 8px; color: var(--text); font-size: 1rem; box-sizing: border-box; font-family: inherit;
+    /* Core custom styles - matching quote.html */
+    :root {
+      --background: 270 30% 97%;
+      --foreground: 245 35% 15%;
+      --card: 0 0% 100%;
+      --primary: 288 52% 36%;
+      --secondary: 270 20% 96%;
+      --accent: 288 52% 36%;
+      --border: 245 20% 88%;
+      --radius: 1.75rem;
     }
-    input:focus, textarea:focus, select:focus { 
-      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); 
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      color: hsl(var(--foreground));
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding: 5rem 20px 40px 20px;
+      line-height: 1.45;
     }
-    .success-message { padding: 16px; border-radius: 8px; margin: 20px 0; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-    .error-message { padding: 16px; border-radius: 8px; margin: 20px 0; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-    .btn-submit { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-submit:hover { background: #6d28d9; }
-    .btn-submit:disabled { background: var(--muted); cursor: not-allowed; }
-    .suggestions { position: absolute; top: 100%; left: 0; right: 0; border: 1px solid var(--border); border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 10; margin-top: 4px; box-shadow: var(--shadow); background: var(--card); }
-    .suggestions.hidden { display: none; }
-    .suggestion-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border); }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover { background: var(--bg); }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+      line-height: 0.98;
+    }
+
+    h1 { font-size: 2.25rem; font-weight: 800; color: #1B1B2F; letter-spacing: -0.5px; margin-bottom: 8px; }
+    h2 { font-size: 1.5rem; font-weight: 700; margin: 32px 0 16px; color: #1B1B2F; }
+    h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+
+    .container { 
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      margin-bottom: 12px;
+      font-size: clamp(28px, 6vw, 48px);
+    }
+
+    .page-header p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      margin: 0;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Cards Layout */
+    .boxes-wrapper {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    @media (min-width: 1024px) {
+      .boxes-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    .company-box, .form-box {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 20px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .company-box:hover, .form-box:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 32px 80px rgba(124, 58, 237, 0.15);
+    }
+
+    /* Form Box Specific */
+    .form-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 32px;
+    }
+
+    .form-box > h3 {
+      color: #1B1B2F;
+      margin-bottom: 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group:last-of-type {
+      margin-bottom: 28px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      transition: all 0.25s ease;
+    }
+
+    textarea {
+      border-radius: 12px;
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 12px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 10;
+      margin-top: 4px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+      background: white;
+    }
+
+    .suggestions.hidden {
+      display: none;
+    }
+
+    .suggestion-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.95rem;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+      background: #f9fafb;
+      color: #1B1B2F;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px 24px;
+      background: #7B2D8E;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25);
+    }
+
+    .btn-submit:hover {
+      background: #662375;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(123, 45, 142, 0.35);
+    }
+
+    .btn-submit:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .success-message, .error-message {
+      padding: 16px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-size: 0.95rem;
+      border-left: 4px solid;
+    }
+
+    .success-message {
+      background: #f0fdf4;
+      color: #166534;
+      border-left-color: #22c55e;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      color: #991b1b;
+      border-left-color: #ef4444;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 4.5rem 16px 24px 16px;
+      }
+
+      h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.25rem; margin: 24px 0 12px; }
+
+      .page-header {
+        margin-bottom: 32px;
+      }
+
+      .page-header p {
+        font-size: 0.95rem;
+      }
+
+      .boxes-wrapper {
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+
+      .form-box {
+        padding: 24px;
+      }
+
+      .form-box > h3 {
+        font-size: 1.15rem;
+        margin-bottom: 16px;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <div class="page-header">
+      <h1>Create New Job</h1>
+      <p>Enter details to create a new lawn care job and start a quote</p>
+    </div>
 
-  <div class="create-job-container">
-    <h1>Create New Job</h1>
-    <p style="color:#9ca3af; margin-bottom: 32px;">Enter the basic details for the new job.</p>
+    <!-- Job Form Card -->
+    <div class="boxes-wrapper">
+      <div class="form-box" id="form-box">
+        <h3>Job Details</h3>
+        <form id="createJobForm">
+          <div class="form-group">
+            <label for="address">Property Address *</label>
+            <input type="text" id="address" name="address" placeholder="Start typing an address..." autocomplete="off" required>
+            <div id="address-suggestions" class="suggestions hidden"></div>
+          </div>
 
-    <form id="createJobForm">
-      <div class="form-group">
-        <label for="address">Property Address *</label>
-        <input type="text" id="address" name="address" placeholder="Start typing an address..." autocomplete="off" required>
-        <div id="address-suggestions" class="suggestions hidden"></div>
+          <div class="form-group">
+            <label for="clientFirstName">Client First Name *</label>
+            <input type="text" id="clientFirstName" name="client.firstName" placeholder="e.g. John" required>
+          </div>
+
+          <div class="form-group">
+            <label for="clientLastName">Client Last Name</label>
+            <input type="text" id="clientLastName" name="client.lastName" placeholder="e.g. Smith">
+          </div>
+
+          <div class="form-group">
+            <label for="clientEmail">Client Email *</label>
+            <input type="email" id="clientEmail" name="client.email" placeholder="e.g. john@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="clientPhone">Client Phone</label>
+            <input type="tel" id="clientPhone" name="client.phone" placeholder="e.g. 021 123 4567">
+          </div>
+
+          <div class="form-group">
+            <label for="jobNotes">Job Notes / Special Instructions</label>
+            <textarea id="jobNotes" name="jobNotes" placeholder="Any special instructions or notes about the property..."></textarea>
+          </div>
+
+          <div id="formMessage" style="display:none; margin-bottom: 20px;"></div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">Create Job</button>
+        </form>
       </div>
-
-      <div class="form-group">
-        <label for="clientFirstName">Client First Name *</label>
-        <input type="text" id="clientFirstName" name="client.firstName" required>
-      </div>
-
-      <div class="form-group">
-        <label for="clientLastName">Client Last Name</label>
-        <input type="text" id="clientLastName" name="client.lastName">
-      </div>
-
-      <div class="form-group">
-        <label for="clientEmail">Client Email *</label>
-        <input type="email" id="clientEmail" name="client.email" placeholder="e.g. name@example.com" required>
-      </div>
-
-      <div class="form-group">
-        <label for="clientPhone">Client Phone</label>
-        <input type="tel" id="clientPhone" name="client.phone" placeholder="e.g. 021 123 4567">
-      </div>
-
-      <div class="form-group">
-        <label for="jobNotes">Job Notes / Special Instructions</label>
-        <textarea id="jobNotes" name="jobNotes" rows="4"></textarea>
-      </div>
-
-      <button type="submit" class="btn-submit" id="submitBtn">Create Job</button>
-    </form>
-
-    <div id="formMessage" style="display:none;"></div>
+    </div>
   </div>
+
+  <!-- Footer -->
+  <footer style="text-align: center; padding: 40px 20px; color: #6b7280; font-size: 0.9rem; margin-top: 48px; border-top: 1px solid rgba(229, 231, 235, 0.5);">
+    <p>© 2026 Deep Edge. All rights reserved.</p>
+  </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -185,7 +451,7 @@
         client: {
           firstName: document.getElementById('clientFirstName').value.trim(),
           lastName: document.getElementById('clientLastName').value.trim() || null,
-          email: document.getElementById('clientEmail').value.trim() || null,     // ← ADD THIS LINE
+          email: document.getElementById('clientEmail').value.trim() || null,
           phone: document.getElementById('clientPhone').value.trim() || null
         },
         jobNotes: document.getElementById('jobNotes').value.trim()

@@ -3,13 +3,391 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lawn Care Invoice</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="sms.js" defer></script>
+  <title>Invoice • Deep Edge</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
   <script src="header.js" defer></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="sms.js" defer></script>
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* Core custom styles - matching quote.html */
+    :root {
+      --background: 270 30% 97%;
+      --foreground: 245 35% 15%;
+      --card: 0 0% 100%;
+      --primary: 288 52% 36%;
+      --secondary: 270 20% 96%;
+      --accent: 288 52% 36%;
+      --border: 245 20% 88%;
+      --radius: 1.75rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      color: hsl(var(--foreground));
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding: 5rem 20px 40px 20px;
+      line-height: 1.45;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+      line-height: 0.98;
+    }
+
+    h1 { font-size: 2.25rem; font-weight: 800; color: #1B1B2F; letter-spacing: -0.5px; margin-bottom: 8px; }
+    h2 { font-size: 1.5rem; font-weight: 700; margin: 32px 0 16px; color: #1B1B2F; }
+    h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+
+    .container { 
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .invoice-header {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .invoice-header h1 {
+      margin-bottom: 12px;
+      font-size: clamp(28px, 6vw, 48px);
+    }
+
+    .invoice-header p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      margin: 0;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Map Container */
+    #aerial-container {
+      margin-bottom: 32px;
+    }
+
+    #aerial-map {
+      width: 100%;
+      height: 500px;
+      border-radius: 20px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      #aerial-map {
+        height: 600px;
+      }
+    }
+
+    /* Cards Layout */
+    .boxes-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 48px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .boxes-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .boxes-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .company-box, .pricing-box {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 20px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .company-box:hover, .pricing-box:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 32px 80px rgba(124, 58, 237, 0.15);
+    }
+
+    /* Company Box Specific */
+    .company-box {
+        display: flex;
+        gap: 0;
+        padding: 0;
+    }
+
+    .company-logo-section {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        flex: 0 0 50%;
+    }
+
+    .company-logo {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        border-radius: 16px;
+        object-fit: contain;
+    }
+
+    .company-details {
+      padding: 0;
+      flex: 0 0 50%;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 32px;
+    }
+
+    .company-details h3 {
+      color: #1B1B2F;
+      margin-bottom: 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .company-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+
+    .company-row:last-child {
+      border-bottom: none;
+      padding-top: 20px;
+      font-weight: 600;
+    }
+
+    .company-row span {
+      color: #6b7280;
+      font-size: 0.95rem;
+      flex: 0 0 auto;
+    }
+
+    .company-row strong {
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 1.05rem;
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .company-row:last-child strong {
+      color: #1B1B2F;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .company-row a {
+      color: #7B2D8E;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 1.05rem;
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .company-row a:hover {
+      color: #662375;
+      text-decoration: underline;
+    }
+
+    /* Pricing Box Specific */
+    .pricing-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 32px;
+    }
+
+    .pricing-box > h3 {
+      color: #1B1B2F;
+      margin-bottom: 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .pricing-row:last-child {
+      border-bottom: none;
+      padding-top: 20px;
+      border-top: 2px solid #e5e7eb;
+      font-weight: 600;
+    }
+
+    .pricing-row span {
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    .pricing-row strong {
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .pricing-row:last-child strong {
+      color: #7B2D8E;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .job-notes {
+      padding: 16px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.95rem;
+    }
+
+    .job-notes h4 {
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .job-notes p {
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Loading Splash */
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #loading-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #7B2D8E;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #loading-splash p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 4.5rem 16px 24px 16px;
+      }
+
+      h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.25rem; margin: 24px 0 12px; }
+
+      .invoice-header {
+        margin-bottom: 32px;
+      }
+
+      .invoice-header p {
+        font-size: 0.95rem;
+      }
+
+      #aerial-map {
+        height: 400px;
+      }
+
+      .boxes-wrapper {
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+
+      .pricing-box {
+        padding: 24px;
+      }
+
+      .company-details {
+        padding: 24px;
+      }
+
+      .company-logo-section {
+        flex: 0 0 50%;
+      }
+
+      .company-logo {
+        width: 100%;
+      }
+
+      .company-details h3 {
+        font-size: 1.15rem;
+        margin-bottom: 16px;
+        padding: 0;
+      }
+
+      .company-row {
+        padding: 12px 0;
+      }
+
+      .company-row:last-child {
+        padding: 12px 0 24px 0;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Loading Splash Screen -->
@@ -19,86 +397,106 @@
   </div>
 
   <div class="container">
-    <h2>Lawn Care Invoice</h2>
+    <div class="invoice-header">
+      <h1>Your Invoice</h1>
+      <p>Professional lawn care invoice with billing details and property information</p>
+    </div>
 
-    <!-- Invoice Specific Info -->
-    <div class="pricing-box">
+    <!-- Map Container -->
+    <div id="aerial-container">
+      <div id="aerial-map"></div>
+    </div>
+
+    <!-- Company & Invoice Details Cards -->
+    <div class="boxes-wrapper">
+      <!-- Company Info Card -->
+      <div class="company-box" id="company-box">
+        <div class="company-logo-section">
+          <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
+        </div>
+        <div class="company-details">
+          <h3 id="company-name">Deep Edge</h3>
+          <div class="company-row">
+            <span>Phone</span>
+            <strong id="company-phone">-</strong>
+          </div>
+          <div class="company-row">
+            <span>Email</span>
+            <a id="company-email" href="mailto:">-</a>
+          </div>
+          <div class="company-row">
+            <span>NZBN</span>
+            <strong id="company-nzbn">-</strong>
+          </div>
+          <div class="company-row">
+            <span>GST</span>
+            <strong id="company-gst">-</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job Summary Card -->
+      <div class="pricing-box" id="job-summary-box">
+        <h3>Job Summary</h3>
+        <div class="pricing-row">
+          <span>Client</span>
+          <strong id="client-display">TBD</strong>
+        </div>
+        <div class="pricing-row">
+          <span>Property Address</span>
+          <strong id="address-display" style="text-align: right; max-width: 50%;"></strong>
+        </div>
+        <div class="pricing-row">
+          <span>Lawn Area</span>
+          <strong id="final-area">-</strong>
+        </div>
+        <div class="pricing-row">
+          <span>Lawn Cost (ex GST)</span>
+          <strong id="mowing-revenue">-</strong>
+        </div>
+        <div class="pricing-row">
+          <span>Subtotal (ex GST)</span>
+          <strong id="total-revenue">-</strong>
+        </div>
+        <div class="pricing-row">
+          <span>GST (15%)</span>
+          <strong id="gst">-</strong>
+        </div>
+        <div class="pricing-row">
+          <span>Total (incl GST)</span>
+          <strong id="total-incl">-</strong>
+        </div>
+        <div class="job-notes">
+          <h4>Notes / Payment Instructions</h4>
+          <p id="invoice-notes">Example notes will appear here</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 40px 20px; color: #6b7280; font-size: 0.9rem; margin-top: 48px; border-top: 1px solid rgba(229, 231, 235, 0.5);">
+      <p>© 2026 Deep Edge. All rights reserved.</p>
+    </footer>
+
+    <!-- Invoice Details Card -->
+    <div class="pricing-box" id="invoice-info-box">
+      <h3>Invoice Details</h3>
       <div class="pricing-row">
-        <span>Invoice Number:</span>
+        <span>Invoice Number</span>
         <strong id="invoice-number">-</strong>
       </div>
       <div class="pricing-row">
-        <span>Issue Date:</span>
+        <span>Issue Date</span>
         <strong id="issue-date">-</strong>
       </div>
       <div class="pricing-row">
-        <span>Due Date:</span>
+        <span>Due Date</span>
         <strong id="due-date">-</strong>
       </div>
       <div class="pricing-row">
-        <span>Payment Terms:</span>
+        <span>Payment Terms</span>
         <strong id="payment-terms">-</strong>
       </div>
-    </div>
-
-    <!-- Map -->
-    <div id="aerial-container" style="margin-top: 0px;">
-      <div id="aerial-map" style="width:100%; height:500px; border:2px solid #444; border-radius:8px;"></div>
-    </div>
-
-    <!-- Company Info Box -->
-    <div class="company-box" id="company-box">
-      <img id="company-logo" class="company-logo" src="" alt="Company Logo" />
-      <div class="company-details">
-        <h3 id="company-name">Deep Edge</h3>
-        <p><strong>Phone:</strong> <span id="company-phone">-</span></p>
-        <p><strong>Email:</strong> <a id="company-email" href="mailto:" style="color:#8B5CF6;">-</a></p>
-        <p><strong>NZBN:</strong> <span id="company-nzbn">-</span></p>
-        <p><strong>GST Number:</strong> <span id="company-gst">-</span></p>
-      </div>
-    </div>
-
-    <!-- Job Summary -->
-    <div id="pricing-box" class="pricing-box">
-      <div class="pricing-row">
-        <span>Property Address:</span>
-        <strong id="address-display">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Lawn Area:</span>
-        <strong id="final-area">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Lawn Cost (ex GST):</span>
-        <strong id="mowing-revenue">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Total Cost (ex GST):</span>
-        <strong id="total-revenue">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>GST (15%):</span>
-        <strong id="gst">-</strong>
-      </div>
-      <div class="pricing-row total">
-        <span>TOTAL (incl GST):</span>
-        <strong id="total-incl">-</strong>
-      </div>
-    </div>
-
-    <!-- Client Info -->
-    <div class="pricing-box">
-      <h3 style="margin: 0 0 12px 0;">Client</h3>
-      <p id="client-name">-</p>
-      <p id="client-email">-</p>
-      <p id="client-phone">-</p>
-    </div>
-
-    <!-- Notes -->
-    <div class="pricing-box">
-      <h3 style="margin: 0 0 12px 0;">Notes / Payment Instructions</h3>
-      <p id="invoice-notes" style="white-space: pre-wrap; margin: 8px 0;">-</p>
-    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -118,9 +516,30 @@
         })
         .then(invoice => {
           const data = invoice;
-          const quoteSnap = data.quoteSnapshot?.data || {};
+          
+          // === Company Info (check quoteSnapshot first for backward compatibility, then top-level) ===
+          const company = (data.quoteSnapshot?.data?.company || data.company) || {};
+          document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
+          document.getElementById('company-phone').textContent = company.phone || 'Not provided';
+          const emailEl = document.getElementById('company-email');
+          if (company.email) {
+            emailEl.href = 'mailto:' + company.email;
+            emailEl.textContent = company.email;
+          } else {
+            emailEl.href = '#';
+            emailEl.textContent = 'Not provided';
+          }
+          document.getElementById('company-nzbn').textContent = company.nzbn || 'Not provided';
+          document.getElementById('company-gst').textContent = company.gstNumber || 'Not provided';
+          const logoEl = document.getElementById('company-logo');
+          if (company.logoUrl) {
+            logoEl.src = company.logoUrl;
+            logoEl.alt = (company.companyName || 'Company') + ' Logo';
+          } else {
+            logoEl.style.display = 'none';
+          }
 
-          // Invoice Details
+          // === Invoice Details ===
           document.getElementById('invoice-number').textContent = data.invoiceNumber || '—';
           document.getElementById('issue-date').textContent = data.issueDate || '—';
           document.getElementById('due-date').textContent = data.dueDate || '—';
@@ -130,94 +549,111 @@
             data.paymentTerms === '20th-next' ? '20th of following month' :
             data.paymentTerms || '—';
 
-          // Notes
-          document.getElementById('invoice-notes').textContent = data.notes?.trim() || 'No additional notes provided.';
-
-          // Client
-          const client = quoteSnap.client || {};
-          document.getElementById('client-name').textContent = 
-            client.firstName || client.lastName 
-              ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Client Name not provided' 
-              : 'Not provided';
-          document.getElementById('client-email').textContent = client.email || 'Client Email not provided';
-          document.getElementById('client-phone').textContent = client.phone || 'Client Phone not provided';
-
-          // Company (from quoteSnapshot)
-          const company = quoteSnap.company || {};
-          document.getElementById('company-name').textContent = company.companyName || 'Deep Edge';
-          document.getElementById('company-phone').textContent = company.phone || '-';
-          document.getElementById('company-email').href = `mailto:${company.email || ''}`;
-          document.getElementById('company-email').textContent = company.email || '-';
-          document.getElementById('company-nzbn').textContent = company.nzbn || '-';
-          document.getElementById('company-gst').textContent = company.gstNumber || '-';
-          if (company.logoUrl) {
-            document.getElementById('company-logo').src = company.logoUrl;
+          // === Quote Details (check quoteSnapshot first, then top-level) ===
+          const address = (data.quoteSnapshot?.data?.address || data.address) || 'Unknown Address';
+          document.getElementById('address-display').textContent = address;
+          
+          // Client display
+          const clientDisplay = document.getElementById('client-display');
+          const client = (data.quoteSnapshot?.data?.client || data.client) || {};
+          if (client.firstName || client.lastName) {
+            let clientName = client.firstName || '';
+            if (client.lastName) {
+              const lastInitial = client.lastName.charAt(0).toUpperCase();
+              clientName = clientName ? `${clientName} ${lastInitial}.` : lastInitial;
+            }
+            clientDisplay.textContent = clientName || 'Unknown';
+          } else {
+            clientDisplay.textContent = 'TBD';
           }
 
-          // Job Summary (from quoteSnapshot)
-          document.getElementById('address-display').textContent = quoteSnap.address || '—';
-          const area = quoteSnap.lawnAreaM2 || 0;
+          // Job Summary
+          const area = (data.quoteSnapshot?.data?.lawnAreaM2 || data.lawnAreaM2) || 0;
           document.getElementById('final-area').textContent = `${area} m²`;
 
-          const rate = quoteSnap.ratePerM2 || 0;
-          const multiplier = quoteSnap.difficultyMultiplier || 1;
-          const callout = quoteSnap.calloutFee || 0;
+          const rate = (data.quoteSnapshot?.data?.ratePerM2 || data.ratePerM2) || 0;
+          const multiplier = (data.quoteSnapshot?.data?.difficultyMultiplier || 1) || 1;
+          const callout = (data.quoteSnapshot?.data?.calloutFee || data.calloutFee) || 0;
           const mowingEx = area * rate * multiplier;
           const totalEx = mowingEx + callout;
-          const gst = totalEx * 0.15;
+          const gstAmount = totalEx * 0.15;
 
           document.getElementById('mowing-revenue').textContent = `$${mowingEx.toFixed(2)}`;
           document.getElementById('total-revenue').textContent = `$${totalEx.toFixed(2)}`;
-          document.getElementById('gst').textContent = `$${gst.toFixed(2)}`;
+          document.getElementById('gst').textContent = `$${gstAmount.toFixed(2)}`;
           document.getElementById('total-incl').textContent = 
-            `$${data.totalInclGst?.toFixed(2) || (totalEx + gst).toFixed(2)}`;
+            `$${data.totalInclGst?.toFixed(2) || (totalEx + gstAmount).toFixed(2)}`;
 
-          // Map (from quoteSnapshot.mapState)
-          const mapContainer = document.getElementById('aerial-map');
-          if (mapContainer && quoteSnap.mapState) {
-            const initialZoom = 20;
-            const map = L.map('aerial-map', {
-              maxZoom: 24,
-              zoomControl: true,
-              attributionControl: true
-            }).setView(
-              [quoteSnap.mapState.center?.lat || -36.8485, quoteSnap.mapState.center?.lng || 174.7633],
-              initialZoom
-            );
+          // === Notes ===
+          document.getElementById('invoice-notes').textContent = data.notes?.trim() || 'No additional notes provided.';
 
-            const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
-            L.tileLayer(LINZ_AERIAL_URL, {
-              attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
-              maxZoom: 24
+          // === Map (check quoteSnapshot first, then top-level) ===
+          const mapState = (data.quoteSnapshot?.data?.mapState || data.mapState) || {};
+          const initialZoom = mapState.zoom || 19;
+
+          const map = L.map('aerial-map', {
+            minZoom: initialZoom,
+            maxZoom: 24,
+            zoomControl: true,
+            attributionControl: true
+          }).setView(
+            [mapState.center?.lat || -36.8485, mapState.center?.lng || 174.7633],
+            initialZoom
+          );
+
+          const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+          L.tileLayer(LINZ_AERIAL_URL, {
+            attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+            maxZoom: 24,
+            tileSize: 256,
+            zoomOffset: 0,
+            noWrap: true
+          }).addTo(map);
+
+          if (mapState.parcelGeometry) {
+            L.geoJSON(mapState.parcelGeometry, {
+              style: { color: "#7B2D8E", weight: 3, fillOpacity: 0.08, fillColor: "#7B2D8E" }
             }).addTo(map);
-
-            if (quoteSnap.mapState.parcelGeometry) {
-              L.geoJSON(quoteSnap.mapState.parcelGeometry, { style: { color: "#0066ff", weight: 2, fillOpacity: 0 } }).addTo(map);
-            }
-            if (quoteSnap.mapState.buildingsGeoJSON) {
-              L.geoJSON(quoteSnap.mapState.buildingsGeoJSON, { style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 } }).addTo(map);
-            }
-            if (quoteSnap.mapState.negativeGeoJSON?.features?.length > 0) {
-              L.geoJSON(quoteSnap.mapState.negativeGeoJSON, { style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 } }).addTo(map);
-            }
-
-            if (quoteSnap.mapState.parcelGeometry) {
-              const bounds = L.geoJSON(quoteSnap.mapState.parcelGeometry).getBounds();
-              map.fitBounds(bounds, { padding: [40, 40], maxZoom: initialZoom + 2, animate: true });
-              if (map.getZoom() < initialZoom) map.setZoom(initialZoom);
-            }
           }
 
-          // Hide loading
-          const loadingSplash = document.getElementById('loading-splash');
-          loadingSplash.classList.add('fade-out');
-          setTimeout(() => loadingSplash.style.display = 'none', 500);
+          if (mapState.buildingsGeoJSON) {
+            L.geoJSON(mapState.buildingsGeoJSON, {
+              style: { color: "#e5566f", weight: 2, fillColor: "#e5566f", fillOpacity: 0.3 }
+            }).addTo(map);
+          }
+
+          if (mapState.negativeGeoJSON && mapState.negativeGeoJSON.features?.length > 0) {
+            L.geoJSON(mapState.negativeGeoJSON, {
+              style: { color: "#e5566f", weight: 2, fillColor: "#e5566f", fillOpacity: 0.4 }
+            }).addTo(map);
+          }
+
+          if (mapState.parcelGeometry) {
+            const bounds = L.geoJSON(mapState.parcelGeometry).getBounds();
+            map.fitBounds(bounds, {
+              padding: [40, 40],
+              maxZoom: initialZoom + 2,
+              animate: true
+            });
+
+            if (map.getZoom() < initialZoom) {
+              map.setZoom(initialZoom);
+            }
+          }
         })
         .catch(err => {
           document.body.innerHTML = `<div class="container"><h2>Error loading invoice</h2><p>${err.message}</p></div>`;
-          document.getElementById('loading-splash').style.display = 'none';
         });
-  }
+    }
+
+    // Safe hide loading splash
+    const splash = document.getElementById('loading-splash');
+    if (splash) {
+      splash.classList.add('fade-out');
+      setTimeout(() => {
+        if (splash) splash.style.display = 'none';
+      }, 500);
+    }
   </script>
 </body>
 </html>
