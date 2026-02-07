@@ -181,11 +181,7 @@
                             <span style="color: #6E6E82;">🔍</span>
                             <span style="color: #6E6E82; font-size: 0.875rem;">Search properties...</span>
                         </div>
-                        <div style="position: relative; height: 300px; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); display: flex; align-items: center; justify-content: center;">
-                            <div style="text-align: center; color: #6E6E82;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📍</div>
-                                <p style="font-size: 0.875rem;">Property preview</p>
-                            </div>
+                        <div style="position: relative; height: 300px; background: url('./Images/Hero.png') center/cover no-repeat; display: flex; align-items: center; justify-content: center;">
                         </div>
                         <div style="padding: 1.25rem; border-top: 1px solid #f3f4f6;">
                             <button class="button-primary" style="width: 100%; font-size: 1rem;">Create Quote</button>
@@ -660,17 +656,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.toggle('open');
-        }
-
-        function closeMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.remove('open');
-        }
-
         // Show mobile menu button on small screens
         function updateMobileMenuButton() {
             const btn = document.getElementById('mobileMenuBtn');
@@ -725,27 +710,6 @@
                     smoothScroll(href.slice(1));
                 }
             });
-        });
-
-        // Mobile menu functions
-        function toggleMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.toggle('open');
-        }
-
-        function closeMobileMenu() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.remove('open');
-        }
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', (e) => {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target) && !hamburgerBtn.contains(e.target)) {
-                closeMobileMenu();
-            }
         });
 
         // Sign out function

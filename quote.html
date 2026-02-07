@@ -286,6 +286,31 @@
       line-height: 1.5;
     }
 
+    .addon-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .addon-item:last-child {
+      border-bottom: none;
+    }
+
+    .addon-item span {
+      color: #6b7280;
+      flex: 1;
+    }
+
+    .addon-item strong {
+      color: #1B1B2F;
+      font-weight: 600;
+      text-align: right;
+    }
+
     /* Quote Link Button */
     .quote-link-button {
         /* display: inline-flex; */
@@ -357,6 +382,14 @@
       font-size: 1.1rem;
       color: #6E6E82;
       font-weight: 500;
+    }
+
+    .leaflet-top.leaflet-left {
+      display: none;
+    }
+
+    .leaflet-bottom.leaflet-right{
+      display: none;  
     }
 
     @media (max-width: 768px) {
@@ -473,26 +506,72 @@
           <span>Property Address</span>
           <strong id="address-display" style="text-align: right; max-width: 50%;"></strong>
         </div>
+
+        <!-- Time Since Last Cut Info -->
+        <div id="time-multiplier-info" class="pricing-row" style="display: none;">
+          <span>Time Since Last Cut</span>
+          <strong id="time-since-cut-display">-</strong>
+        </div>
+        
+        <!-- Pricing Summary Details (from pricingSummary object) -->
         <div class="pricing-row">
-          <span>Subtotal (ex GST)</span>
+          <span>Estimated Job Hours</span>
+          <strong id="estimated-hours-display">-</strong>
+        </div>
+
+        <div id="addon-services-section" style="display: none;">
+          <div class="job-notes">
+            <h4>Add-On Services</h4>
+          </div>
+          <div id="addon-services-display">
+            <div class="addon-item"><span>TBD</span></div>
+          </div>
+        </div>
+
+        <div class="pricing-row">
+          <span>Callout Fee (ex GST)</span>
+          <strong id="callout-fee-display">-</strong>
+        </div>
+
+        <div class="pricing-row">
+          <span>Total Price (ex GST)</span>
           <strong id="total-revenue">$0.00</strong>
         </div>
         <div class="pricing-row">
           <span>GST (15%)</span>
           <strong id="gst">$0.00</strong>
         </div>
-        <div class="pricing-row">
-          <span>Total (incl GST)</span>
-          <strong id="total-incl">$0.00</strong>
+
+        <!-- Adjustments Row -->
+        <div id="adjustments-row" class="pricing-row" style="display: none; color: #f59e0b; border-top: 1px solid rgba(245, 158, 11, 0.2); padding-top: 12px;">
+          <span>Adjustments</span>
+          <strong id="adjustments-display">-</strong>
         </div>
-        <div class="job-notes">
+
+        <div class="pricing-row">
+          <span>Total Price (incl GST)</span>
+          <strong id="final-price-display">-</strong>
+        </div>
+
+        <!-- Biweekly Estimate -->
+        <div id="biweekly-estimate-info" class="pricing-row" style="display: none; padding: 12px 0;">
+          <span style="font-size: 0.85rem; color: #9ca3af;">Biweekly Estimate</span>
+          <strong id="biweekly-estimate-display" style="font-size: 0.85rem; font-weight: 700;">-</strong>
+        </div>
+
+        <div id="notes-section" class="job-notes" style="display: none;">
           <h4>Notes</h4>
-          <p id="job-notes-display">Example job notes will appear here</p>
+          <p id="job-notes-display">No notes provided</p>
         </div>
         <button class="quote-link-button" id="copy-quote-link" onclick="copyQuoteLink()">📋 Copy Quote Link</button>
       </div>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer style="text-align: center; padding: 40px 20px; color: #6b7280; font-size: 0.9rem; margin-top: 48px; border-top: 1px solid rgba(229, 231, 235, 0.5);">
+    <p>© 2026 Deep Edge. All rights reserved.</p>
+  </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
@@ -565,13 +644,78 @@
             clientDisplay.textContent = 'TBD';
           }
 
-          const mowingRevenue = quoteData.totalInclGst;
+          // === Pricing Summary (from pricingSummary object) ===
+          const ps = quoteData.pricingSummary || {};
+          
+          // Populate pricing details
+          if (ps.estimatedHours !== undefined) {
+            document.getElementById('estimated-hours-display').textContent = ps.estimatedHours.toFixed(2) + ' hrs';
+          }
+          if (ps.calloutFee !== undefined) {
+            document.getElementById('callout-fee-display').textContent = '$' + ps.calloutFee.toFixed(2);
+          }
+          
+          // Time Since Last Cut - only show if present
+          if (quoteData.timeSinceCut) {
+            document.getElementById('time-multiplier-info').style.display = 'flex';
+            document.getElementById('time-since-cut-display').textContent = quoteData.timeSinceCut;
+          }
+          
+          // Use subtotalIncl if available from pricingSummary, otherwise calculate
+          const mowingRevenue = ps.subtotalIncl !== undefined ? ps.subtotalIncl : quoteData.totalInclGst;
           const gst = mowingRevenue * 0.15;
-          const totalEx = mowingRevenue - gst
+          const totalEx = ps.subtotalEx !== undefined ? ps.subtotalEx : (mowingRevenue - gst);
 
           document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
           document.getElementById('gst').textContent = '$' + gst.toFixed(2);
-          document.getElementById('total-incl').textContent = '$' + mowingRevenue.toFixed(2);
+          
+          // Final price (may be different from subtotal if manually adjusted)
+          if (ps.finalPrice !== undefined) {
+            document.getElementById('final-price-display').textContent = '$' + ps.finalPrice.toFixed(2);
+          } else {
+            document.getElementById('final-price-display').textContent = '$' + mowingRevenue.toFixed(2);
+          }
+          
+          // Adjustments - only show if present and not zero
+          if (ps.adjustmentAmount !== undefined && ps.adjustmentAmount !== '-$0.00' && ps.adjustmentAmount !== '$0.00') {
+            document.getElementById('adjustments-row').style.display = 'flex';
+            document.getElementById('adjustments-display').textContent = ps.adjustmentAmount;
+          }
+          
+          // Biweekly estimate - only show if present
+          if (ps.biweeklyEstimate !== undefined) {
+            document.getElementById('biweekly-estimate-info').style.display = 'flex';
+            document.getElementById('biweekly-estimate-display').textContent = ps.biweeklyEstimate;
+          }
+
+          // === Add-On Services ===
+          const hasAddons = quoteData.addonServices && quoteData.addonServices.length > 0;
+          const addonContainer = document.getElementById('addon-services-display');
+          const addonSection = document.getElementById('addon-services-section');
+          const notesSection = document.getElementById('notes-section');
+          const notesDisplay = document.getElementById('job-notes-display');
+
+          if (hasAddons) {
+            addonSection.style.display = 'block';
+            addonContainer.innerHTML = ''; // Clear TBD
+            quoteData.addonServices.forEach(addon => {
+              const addonItem = document.createElement('div');
+              addonItem.className = 'addon-item';
+              const price = addon.price ? '$' + addon.price.toFixed(2) : 'TBD';
+              addonItem.innerHTML = `<span>${addon.label}</span><strong>${price}</strong>`;
+              addonContainer.appendChild(addonItem);
+            });
+          }
+
+          // === Quote Notes ===
+          if (quoteData.quoteNotes) {
+            notesSection.style.display = 'block';
+            notesDisplay.textContent = quoteData.quoteNotes;
+          } else if (hasAddons) {
+            // Show special message if add-ons but no notes
+            notesSection.style.display = 'block';
+            notesDisplay.textContent = 'Add-ons to be priced on site, unless defined.';
+          }
 
           // === Map ===
           const initialZoom = quoteData.mapState?.zoom || 19;
@@ -611,6 +755,42 @@
             L.geoJSON(quoteData.mapState.negativeGeoJSON, {
               style: { color: "#e5566f", weight: 2, fillColor: "#e5566f", fillOpacity: 0.4 }
             }).addTo(map);
+          }
+
+          // === Address Label on Map ===
+          if (quoteData.mapState?.parcelGeometry && quoteData.address) {
+            // Calculate centroid of parcel geometry
+            let totalLat = 0, totalLng = 0, pointCount = 0;
+            const coordinates = quoteData.mapState.parcelGeometry.coordinates[0][0];
+            coordinates.forEach(coord => {
+              totalLng += coord[0];
+              totalLat += coord[1];
+              pointCount++;
+            });
+            const centerLat = totalLat / pointCount;
+            const centerLng = totalLng / pointCount;
+
+            // Create custom address label with house icon
+            const addressOnly = quoteData.address.split(',')[0];
+            // Dynamically calculate width based on text length
+            // Approximate: ~5px per character at 0.75rem, plus padding and icon
+            const estimatedWidth = Math.max(120, Math.min(320, addressOnly.length * 5 + 50));
+            
+            const addressLabel = L.divIcon({
+              className: 'address-label',
+              html: `<div style="background: rgba(123, 45, 142, 0.95); color: white; padding: 8px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: none; display: flex; align-items: center; gap: 6px; white-space: nowrap; width: fit-content;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                ${addressOnly}
+              </div>`,
+              iconSize: [estimatedWidth, 36],
+              iconAnchor: [estimatedWidth / 2, 18],
+              popupAnchor: [0, 0]
+            });
+
+            L.marker([centerLat, centerLng], { icon: addressLabel }).addTo(map);
           }
 
           if (quoteData.mapState?.parcelGeometry) {

@@ -519,10 +519,11 @@ input[type="range"]::-webkit-slider-thumb {
   background: #28a745;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 9999px;
   font-size: 18px;
   cursor: pointer;
   width: 100%;
+  max-width: 300px;
 }
 #generate-pdf-btn:hover {
   background: #218838;

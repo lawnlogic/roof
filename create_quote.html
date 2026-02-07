@@ -53,12 +53,12 @@
       line-height: 0.98;
     }
 
-    h1 { 
-      font-size: 2.25rem; 
-      font-weight: 800; 
-      color: #1B1B2F; 
-      letter-spacing: -0.5px; 
-      margin-bottom: 8px; 
+    h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #1B1B2F;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
     }
     h2 { 
       font-size: 1.5rem; 
@@ -73,6 +73,25 @@
       margin-bottom: 24px; 
       color: #1B1B2F;
       letter-spacing: -0.2px;
+    }
+
+    .create-quote-header {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .create-quote-header h1 {
+      margin-bottom: 12px;
+      font-size: clamp(28px, 6vw, 48px);
+    }
+
+    .create-quote-header p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      margin: 0;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .create-quote-container {
@@ -101,12 +120,154 @@
     select {
       padding: 14px 16px;
       border: 1px solid rgba(229, 231, 235, 0.5);
-      border-radius: 14px;
+      border-radius: 999px;
       font-family: 'Inter', sans-serif;
       font-size: 0.95rem;
       background: rgba(255, 255, 255, 0.8);
       color: #1B1B2F;
       transition: all 0.25s ease;
+    }
+
+    #addon-services {
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 120px;
+      background: white;
+      border: 1px solid rgba(123, 45, 142, 0.2);
+    }
+
+    #addon-services option {
+      padding: 8px;
+      background: white;
+      color: #1B1B2F;
+    }
+
+    #addon-services option:checked {
+      background: linear-gradient(#7B2D8E, #7B2D8E);
+      background-color: #7B2D8E;
+      color: white;
+    }
+
+    /* Add-on Services Custom Dropdown */
+    .addon-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .addon-toggle-btn:hover {
+      border-color: #7B2D8E;
+      background: white;
+    }
+
+    .addon-toggle-btn:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
+    }
+
+    #addon-arrow {
+      transition: transform 0.3s ease;
+    }
+
+    .addon-toggle-btn.active #addon-arrow {
+      transform: rotate(180deg);
+    }
+
+    .addon-services-dropdown {
+      margin-top: 12px;
+      border: 1px solid rgba(123, 45, 142, 0.2);
+      border-radius: 16px;
+      background: white;
+      padding: 16px;
+      max-height: 500px;
+      overflow-y: auto;
+      animation: slideDown 0.3s ease;
+    }
+
+    .addon-services-dropdown.hidden {
+      display: none;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .addon-items-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .addon-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border: 1.5px solid rgba(229, 231, 235, 0.6);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .addon-item:hover {
+      border-color: #7B2D8E;
+      background: rgba(123, 45, 142, 0.02);
+      transform: translateY(-2px);
+    }
+
+    .addon-item input[type="checkbox"] {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      cursor: pointer;
+      accent-color: #7B2D8E;
+      border-radius: 50%;
+    }
+
+    .addon-item-content {
+      flex: 1;
+    }
+
+    .addon-item-title {
+      display: block;
+      font-weight: 600;
+      color: #1B1B2F;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .addon-item-description {
+      display: block;
+      font-size: 0.85rem;
+      color: #6E6E82;
+      line-height: 1.4;
+    }
+
+    .addon-item input[type="checkbox"]:checked {
+      background-color: #7B2D8E;
+      border-color: #7B2D8E;
     }
 
     input[type="text"]:focus,
@@ -270,6 +431,8 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      max-width: 300px;
+      margin-left: auto;
     }
 
     .action-button:hover {
@@ -346,7 +509,6 @@
     }
 
     #aerial-container {
-      margin: 48px 0;
       background: white;
       border: 1px solid rgba(229, 231, 235, 0.6);
       border-radius: 20px;
@@ -390,13 +552,13 @@
       gap: 14px;
       padding: 24px;
       justify-content: center;
-      background: rgba(247, 242, 252, 0.4);
       border-radius: 14px;
       margin-top: 20px;
     }
 
     .map-controls .action-button {
       min-width: 120px;
+      margin-left: 0;
     }
 
     .pricing-box {
@@ -407,6 +569,21 @@
       box-shadow: 0 24px 70px rgba(27, 27, 47, 0.08);
       margin: 28px 0;
       transition: all 0.3s ease;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    .pricing-box-left {
+      grid-column: 1;
+    }
+
+    .pricing-box-right {
+      grid-column: 2;
+    }
+
+    .pricing-summary {
+      grid-column: 1 / -1;
     }
 
     .pricing-box:hover {
@@ -450,8 +627,9 @@
     }
 
     #generate-pdf-btn {
-      width: 100%;
+      display: block;
       margin-top: 32px;
+      margin-left: auto;
     }
 
     #quote-link-box {
@@ -587,6 +765,20 @@
 
       .pricing-box {
         padding: 24px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .pricing-box-left {
+        grid-column: 1;
+      }
+
+      .pricing-box-right {
+        grid-column: 1;
+      }
+
+      .pricing-summary {
+        grid-column: 1;
       }
 
       .result, .error {
@@ -607,6 +799,7 @@
         min-width: auto;
         padding: 11px 14px;
         font-size: 0.85rem;
+        margin-left: 0;
       }
 
       .action-button {
@@ -627,6 +820,23 @@
         padding: 16px;
         margin-bottom: 20px;
       }
+
+      .addon-services-dropdown {
+        max-height: 400px;
+      }
+
+      .addon-item {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .addon-item-title {
+        font-size: 0.9rem;
+      }
+
+      .addon-item-description {
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -639,10 +849,10 @@
   </div>
 
   <div class="create-quote-container">
-    <h1>Create Quote</h1>
-    <p style="margin: 16px 0 36px 0; color: #6b7280; font-size: 1.05rem; line-height: 1.6; max-width: 600px;">
-      Enter a property address to create a beautiful, professional quote. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.
-    </p>
+    <div class="create-quote-header">
+      <h1>Create Quote</h1>
+      <p>Enter a property address to create a beautiful, professional quote. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
+    </div>
 
     <!-- Address Input Section -->
     <div class="input-group">
@@ -680,92 +890,168 @@
 
     <!-- Quote Settings Card -->
     <div id="pricing-box" class="pricing-box hidden">
-      <h3>Quote Details</h3>
+      <div class="pricing-box-left">
+        <h3>Quote Details</h3>
 
-      <div class="input-group">
-        <label for="quote-number">Quote Number (optional)</label>
-        <input type="text" id="quote-number" placeholder="e.g. Q-042 or 2026-015" />
-      </div>
+        <div class="input-group">
+          <label for="quote-number">Quote Number (optional)</label>
+          <input type="text" id="quote-number" placeholder="e.g. Q-042 or 2026-015" />
+        </div>
 
-      <!-- Mower Type Selection -->
-      <div class="input-group">
-        <label>Mower Type</label>
-        <div class="mower-type-group">
-          <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
-            <input type="radio" name="mowerType" value="push" id="mower-push" checked />
-            Push Mower
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
-            <input type="radio" name="mowerType" value="rideon" id="mower-rideon" />
-            Ride-on Mower
-          </label>
+        <!-- Mower Type Selection -->
+        <div class="input-group">
+          <label>Mower Type</label>
+          <div class="mower-type-group">
+            <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              <input type="radio" name="mowerType" value="push" id="mower-push" checked />
+              Push Mower
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              <input type="radio" name="mowerType" value="rideon" id="mower-rideon" />
+              Ride-on Mower
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="estimated-job-time">Estimated Job Time (hours)</label>
+          <input type="number" id="estimated-job-time" value="0.0" step="0.25" min="0" readonly />
+        </div>
+
+        <div class="input-group">
+          <label for="callout-input">Call-out / Travel Fee (ex GST)</label>
+          <input type="number" id="callout-input" value="80" step="10" min="0" />
+        </div>
+
+        <!-- Difficulty Multiplier -->
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Job Difficulty Multiplier</span>
+            <span id="difficulty-value">1.0x</span>
+          </div>
+          <input type="range" id="difficulty-slider" min="1.0" max="2.0" step="0.1" value="1.0" />
+        </div>
+
+        <!-- Add-on Services -->
+        <div class="input-group">
+          <button type="button" id="addon-toggle-btn" class="addon-toggle-btn">
+            <span>Add-on Services</span>
+            <span id="addon-arrow" style="display: inline-block; transition: transform 0.3s ease;">▼</span>
+          </button>
+          <p style="font-size: 0.85rem; color: #7B2D8E; margin-top: 8px; font-weight: 500;">⚠️ Unless otherwise specified, on-site quote required</p>
+          <div id="addon-services-dropdown" class="addon-services-dropdown hidden">
+            <div id="addon-items-container" class="addon-items-container">
+              <!-- Addon items will be generated by JavaScript -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="input-group">
-        <label for="estimated-job-time">Estimated Job Time (hours)</label>
-        <input type="number" id="estimated-job-time" value="0.0" step="0.25" min="0" readonly />
-      </div>
-
-      <div class="input-group">
-        <label for="callout-input">Call-out / Travel Fee (ex GST)</label>
-        <input type="number" id="callout-input" value="80" step="10" min="0" />
-      </div>
-
-      <!-- Difficulty Multiplier -->
-      <div class="slider-container">
-        <div class="slider-label">
-          <span>Job Difficulty Multiplier</span>
-          <span id="difficulty-value">1.0x</span>
+      <div class="pricing-box-right">
+        <h3>Time Since Last Cut</h3>
+        <div class="input-group">
+          <label for="time-since-cut">How long since the lawn was last cut?</label>
+          <select id="time-since-cut">
+            <option value="">-- Select frequency --</option>
+            <option value="1 Week">1 Week</option>
+            <option value="2 Weeks">2 Weeks</option>
+            <option value="1 Month">1 Month</option>
+            <option value="2 Months">2 Months</option>
+            <option value="3 Months">3 Months</option>
+            <option value="6 Months">6 Months</option>
+          </select>
         </div>
-        <input type="range" id="difficulty-slider" min="1.0" max="2.0" step="0.1" value="1.0" />
-      </div>
-
-      <!-- Catch & Mulch -->
-      <div class="checkbox-group">
-        <label for="catch-mulch">Catch & Mulch Service</label>
-        <span style="color: #7B2D8E; font-weight: 600;">+$40 ex GST</span>
-        <input type="checkbox" id="catch-mulch" />
-      </div>
-
-      <!-- Pricing Summary -->
-      <div style="margin-top: 40px; padding-top: 32px; border-top: 2px solid rgba(229, 231, 235, 0.4);">
-        <h3 style="margin-bottom: 28px; font-size: 1.3rem;">Pricing Summary</h3>
-        
-        <div class="pricing-row">
-          <span>Lawn Area</span>
-          <strong id="final-area">0 m²</strong>
-        </div>
-        <div class="pricing-row">
-          <span>Callout Fee (ex GST)</span>
-          <strong style="color: #1B1B2F;" id="callout-display">$0.00</strong>
-        </div>
-        <div class="pricing-row">
-          <span>Catch & Mulch (ex GST)</span>
-          <strong style="color: #1B1B2F;" id="catch-mulch-display">$0.00</strong>
-        </div>
-        <div class="pricing-row">
-          <span>Subtotal (ex GST)</span>
-          <strong id="total-revenue">$0.00</strong>
-        </div>
-        <div class="pricing-row">
-          <span>GST (15%)</span>
-          <strong id="gst">$0.00</strong>
-        </div>
-        <div class="pricing-row">
-          <span>Total (incl GST)</span>
-          <strong id="total-incl">$0.00</strong>
+        <div id="time-cutoff-info" style="margin-top: 16px; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+          <p style="margin: 0; font-size: 0.9rem; color: #1B1B2F;"><strong>Estimation Hours:</strong> <span id="adjustment-factor-display">1.0x</span></p>
+          <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #6E6E82;" id="time-cutoff-notes"></p>
         </div>
       </div>
+    </div>
 
-      <button id="generate-pdf-btn" class="action-button">🔗 Generate Quote Link</button>
-      <div id="quote-link-box" class="hidden">
+    <!-- Pricing Summary Container (at the end) -->
+    <div class="pricing-box" style="margin-top: 40px;">
+      <h3 style="margin-bottom: 24px; font-size: 1.2rem; grid-column: 1 / -1;">Pricing Summary</h3>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Estimated Job Hours</span>
+        <strong id="estimated-hours-display">0.0 hrs</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Lawn Area</span>
+        <strong id="final-area">0 m²</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Callout Fee (ex GST)</span>
+        <strong style="color: #1B1B2F;" id="callout-display">$0.00</strong>
+      </div>
+
+      <!-- Selected Add-ons Display -->
+      <div id="selected-addons-display" style="grid-column: 1 / -1; margin: 20px 0; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #666;">Selected add-ons:</p>
+        <div id="selected-addons-list" style="font-size: 0.9rem; color: #1B1B2F;"></div>
+        <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: #7B2D8E; font-weight: 500;">⚠️ Pricing to be quoted on site</p>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Add-on Services (ex GST)</span>
+        <strong style="color: #7B2D8E;" id="addons-display">TBD</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Subtotal (ex GST)</span>
+        <strong id="total-revenue">$0.00</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>GST (15%)</span>
+        <strong id="gst">$0.00</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1; border-bottom: 2px solid rgba(229, 231, 235, 0.4); padding-bottom: 16px; margin-bottom: 16px;">
+        <span>Subtotal (incl GST)</span>
+        <strong id="total-incl-display">$0.00</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Final Quote Price (incl GST)</span>
+        <input type="number" id="final-price-input" value="0.00" step="0.01" min="0" style="width: 120px; padding: 8px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 6px; text-align: right; font-weight: bold; font-family: monospace;" />
+      </div>
+
+      <!-- Adjustments Row (hidden by default) -->
+      <div id="adjustments-row" class="pricing-row" style="grid-column: 1 / -1; display: none; color: #f59e0b; border-top: 1px solid rgba(245, 158, 11, 0.2); padding-top: 12px;">
+        <span>Adjustments</span>
+        <strong id="adjustments-amount">+$0.00</strong>
+      </div>
+
+      <!-- Biweekly Estimate (hidden by default) -->
+      <div id="biweekly-estimate-display" style="grid-column: 1 / -1; margin-top: 20px; padding: 16px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+        <p style="margin: 0; font-size: 0.9rem; color: #1B1B2F;"><strong>Biweekly Estimate:</strong></p>
+        <p style="margin: 8px 0 0 0; font-size: 0.95rem; color: #7B2D8E; font-weight: bold;" id="biweekly-estimate-text"></p>
+        <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #6E6E82;">This is the estimated cost if mowing occurs every 2 weeks</p>
+      </div>
+
+      <!-- Quote Notes -->
+      <div style="grid-column: 1 / -1; margin-top: 24px; padding-top: 24px; border-top: 2px solid rgba(229, 231, 235, 0.4);">
+        <div class="input-group">
+          <label for="quote-notes">Quote Notes (optional)</label>
+          <textarea id="quote-notes" placeholder="Enter any additional notes for this quote..." style="width: 100%; padding: 12px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px;"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="grid-column: 1 / -1; text-align: right; margin-top: 24px;">
+        <button id="generate-pdf-btn" class="action-button">🔗 Generate Quote Link</button>
+      </div>
+
+      <!-- Quote Link Box -->
+      <div id="quote-link-box" class="hidden" style="grid-column: 1 / -1; margin-top: 24px; padding: 20px; background: rgba(123, 45, 142, 0.05); border-radius: 8px;">
         <strong style="font-size: 0.95rem;">Share this quote with your client:</strong><br>
         <a id="quote-link" href="#" target="_blank" style="display: block; margin: 12px 0;"></a>
         <button onclick="copyQuoteLink()" class="action-button secondary" style="margin-top: 16px; width: auto; font-size: 0.9rem;">📋 Copy Link</button>
       </div>
     </div>
-  </div>
 
   <script type="module">
     // Copy quote link function
@@ -904,7 +1190,7 @@
     const calloutInput = document.getElementById('callout-input');
     const difficultySlider = document.getElementById('difficulty-slider');
     const difficultyValue = document.getElementById('difficulty-value');
-    const catchMulchCheckbox = document.getElementById('catch-mulch');
+    const quoteNotesInput = document.getElementById('quote-notes');
     const estimatedJobTimeInput = document.getElementById('estimated-job-time');
     const finalAreaDisplay = document.getElementById('final-area');
 
@@ -921,6 +1207,87 @@
     let profileMowingPricing = null;
 
     const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+
+    // Time Since Last Cut Data & Multipliers (New Zealand seasons)
+    const timeEstimates = {
+      '1 Week': { summer: 1.0, winter: 0.95 },
+      '2 Weeks': { summer: 1.2, winter: 1.1 },
+      '1 Month': { summer: 1.5, winter: 1.3 },
+      '2 Months': { summer: 2.0, winter: 1.6 },
+      '3 Months': { summer: 2.5, winter: 2.0 },
+      '6 Months': { summer: 3.5, winter: 2.5 }
+    };
+
+    // Determine current season (New Zealand)
+    // Summer (hot): Sep 1 - Feb 28
+    // Winter (cold): Mar 1 - Aug 30
+    function getCurrentSeason() {
+      const today = new Date();
+      const month = today.getMonth(); // 0=Jan, 8=Sep, 11=Dec
+      
+      // Summer: months 8 (Sep), 9 (Oct), 10 (Nov), 11 (Dec), 0 (Jan), 1 (Feb)
+      const isSummer = (month === 8) || (month >= 9) || (month <= 1);
+      const seasonName = isSummer ? 'summer' : 'winter';
+      
+      console.log(`Current date: ${today.toLocaleDateString('en-NZ')} | Season: ${seasonName} (New Zealand)`);
+      
+      return seasonName;
+    }
+
+    let currentTimeMultiplier = 1.0;
+    const timeSinceCutSelect = document.getElementById('time-since-cut');
+    const adjustmentFactorDisplay = document.getElementById('adjustment-factor-display');
+    const timeCutoffNotesDisplay = document.getElementById('time-cutoff-notes');
+    const timeCutoffInfo = document.getElementById('time-cutoff-info');
+    const finalPriceInput = document.getElementById('final-price-input');
+    const adjustmentsRow = document.getElementById('adjustments-row');
+    const adjustmentsAmount = document.getElementById('adjustments-amount');
+    const biweeklyEstimateDisplay = document.getElementById('biweekly-estimate-display');
+    const biweeklyEstimateText = document.getElementById('biweekly-estimate-text');
+    let originalTotalIncl = 0; // Track calculated price before user edits
+
+    timeSinceCutSelect.addEventListener('change', () => {
+      const frequency = timeSinceCutSelect.value;
+      if (!frequency) {
+        currentTimeMultiplier = 1.0;
+        timeCutoffInfo.style.display = 'none';
+        biweeklyEstimateDisplay.style.display = 'none';
+      } else {
+        const season = getCurrentSeason();
+        currentTimeMultiplier = timeEstimates[frequency][season];
+        adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
+        const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
+        timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
+        timeCutoffInfo.style.display = 'block';
+        
+        // Show biweekly estimate if frequency > 2 weeks
+        const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
+        const frequencyIndex = frequencies.indexOf(frequency);
+        if (frequencyIndex > 1) { // Index 1 is "2 Weeks", so > 1 means more than 2 weeks
+          biweeklyEstimateDisplay.style.display = 'block';
+          // Calculate biweekly price (will be updated in updateLawnArea)
+        } else {
+          biweeklyEstimateDisplay.style.display = 'none';
+        }
+      }
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
+
+    // Listen for final price edits
+    finalPriceInput.addEventListener('change', () => {
+      const finalPrice = parseFloat(finalPriceInput.value) || 0;
+      const difference = finalPrice - originalTotalIncl;
+      
+      if (Math.abs(difference) > 0.01) { // Only show if difference is more than 1 cent
+        adjustmentsRow.style.display = 'flex';
+        adjustmentsAmount.textContent = (difference > 0 ? '+$' : '-$') + Math.abs(difference).toFixed(2);
+      } else {
+        adjustmentsRow.style.display = 'none';
+      }
+    });
 
     // Mower type change listeners
     document.querySelectorAll('input[name="mowerType"]').forEach(radio => {
@@ -942,7 +1309,6 @@
             calloutInput.value = s.calloutFee || 80;
             difficultySlider.value = s.difficultyMultiplier || 1.0;
             difficultyValue.textContent = difficultySlider.value + 'x';
-            catchMulchCheckbox.checked = s.catchAndMulch || false;
           }
           if (profile.mowingPricing) {
             profileMowingPricing = profile.mowingPricing;
@@ -968,8 +1334,7 @@
 
         profile.quoteSettings = {
           calloutFee: parseFloat(calloutInput.value) || 80,
-          difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0,
-          catchAndMulch: catchMulchCheckbox.checked
+          difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0
         };
         profile.updatedAt = new Date().toISOString();
 
@@ -1009,12 +1374,85 @@
       }
     });
 
-    catchMulchCheckbox.addEventListener('change', () => {
-      updateLawnArea();
+    quoteNotesInput.addEventListener('change', () => {
       if (auth.currentUser) {
         auth.currentUser.getIdToken().then(scheduleSave);
       }
     });
+
+    // Add-on Services Data
+    const addonServicesData = [
+      { value: 'edging', title: 'Edging and trimming', description: 'Clean lines along sidewalks, driveways, and flower beds' },
+      { value: 'blowing', title: 'Blowing off hard surfaces', description: 'Clear clippings, leaves, and debris from patios, decks, walkways' },
+      { value: 'cleanup', title: 'Yard/leaf/debris cleanup', description: 'Seasonal removal of leaves, branches, pine needles, or general waste' },
+      { value: 'weed-beds', title: 'Weed control in beds', description: 'Hand-weeding or spot-spraying flower beds and mulch areas' },
+      { value: 'mulching', title: 'Mulching', description: 'Refreshing or installing mulch in garden beds' },
+      { value: 'shrub-trim', title: 'Shrub/hedge trimming & pruning', description: 'Basic shaping of bushes and small hedges' },
+      { value: 'fertilization', title: 'Lawn fertilization', description: 'Applying granular or liquid fertilizer for healthier, greener grass' },
+      { value: 'weed-control', title: 'Weed control', description: 'Broadleaf weed treatments, pre-emergent applications, or spot treatments' },
+      { value: 'aeration', title: 'Aeration & overseeding', description: 'Core aeration to improve soil health, plus seeding bare spots' },
+      { value: 'dethatching', title: 'Dethatching', description: 'Removing thatch buildup for better lawn health' },
+      { value: 'pest-control', title: 'Pest/grub control', description: 'Treating for insects, grubs, or moss' },
+      { value: 'pressure-wash', title: 'Power/pressure washing', description: 'Cleaning driveways, patios, fences, or house siding' },
+      { value: 'spring-fall', title: 'Spring/fall cleanups', description: 'Comprehensive yard tidy-ups (leaves, debris, bed prep)' },
+      { value: 'irrigation', title: 'Irrigation system tune-up/check', description: 'Spring startup, adjustments, winterization' },
+      { value: 'gutter-wash', title: 'Gutter cleaning or basic exterior house washing', description: 'Professional cleaning services' },
+      { value: 'holiday-lights', title: 'Holiday light installation/removal', description: 'Seasonal decoration services' }
+    ];
+
+    // Render addon items
+    const addonItemsContainer = document.getElementById('addon-items-container');
+    const addonToggleBtn = document.getElementById('addon-toggle-btn');
+    const addonServicesDropdown = document.getElementById('addon-services-dropdown');
+    const selectedAddonsDisplay = document.getElementById('selected-addons-display');
+    const selectedAddonsList = document.getElementById('selected-addons-list');
+
+    addonServicesData.forEach(addon => {
+      const item = document.createElement('label');
+      item.className = 'addon-item';
+      item.innerHTML = `
+        <input type="checkbox" value="${addon.value}" data-title="${addon.title}" />
+        <span class="addon-item-content">
+          <span class="addon-item-title">${addon.title}</span>
+          <span class="addon-item-description">${addon.description}</span>
+        </span>
+      `;
+      addonItemsContainer.appendChild(item);
+
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener('change', updateAddonSelection);
+    });
+
+    // Toggle dropdown visibility
+    addonToggleBtn.addEventListener('click', () => {
+      addonServicesDropdown.classList.toggle('hidden');
+      addonToggleBtn.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!addonToggleBtn.contains(e.target) && !addonServicesDropdown.contains(e.target)) {
+        addonServicesDropdown.classList.add('hidden');
+        addonToggleBtn.classList.remove('active');
+      }
+    });
+
+    function updateAddonSelection() {
+      const selectedCheckboxes = addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked');
+      const selectedServices = Array.from(selectedCheckboxes).map(cb => cb.dataset.title);
+
+      if (selectedServices.length === 0) {
+        selectedAddonsDisplay.style.display = 'none';
+        selectedAddonsList.innerHTML = '';
+      } else {
+        selectedAddonsDisplay.style.display = 'block';
+        selectedAddonsList.innerHTML = selectedServices.map(service => `<div style="margin-bottom: 6px;">✓ ${service}</div>`).join('');
+      }
+
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -1051,7 +1489,37 @@
           document.getElementById('callout-input').value = quote.calloutFee ?? 80;
           document.getElementById('difficulty-slider').value = quote.difficultyMultiplier ?? 1.0;
           document.getElementById('difficulty-value').textContent = `${quote.difficultyMultiplier ?? 1.0}x`;
-          document.getElementById('catch-mulch').checked = !!quote.catchAndMulch;
+          document.getElementById('quote-notes').value = quote.quoteNotes || '';
+
+          // Restore time since cut
+          if (quote.timeSinceCut) {
+            timeSinceCutSelect.value = quote.timeSinceCut;
+            currentTimeMultiplier = quote.timeMultiplier || 1.0;
+            const season = getCurrentSeason();
+            adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
+            const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
+            timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
+            timeCutoffInfo.style.display = 'block';
+            
+            // Show biweekly estimate if frequency > 2 weeks
+            const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
+            const frequencyIndex = frequencies.indexOf(quote.timeSinceCut);
+            if (frequencyIndex > 1) {
+              biweeklyEstimateDisplay.style.display = 'block';
+            } else {
+              biweeklyEstimateDisplay.style.display = 'none';
+            }
+          }
+
+          // Restore addon services
+          if (Array.isArray(quote.addonServices) && quote.addonServices.length > 0) {
+            const addonValues = quote.addonServices.map(a => a.value);
+            addonItemsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+              cb.checked = addonValues.includes(cb.value);
+            });
+            // Trigger the update to display selected addons
+            updateAddonSelection();
+          }
 
           const mowerRadio = document.getElementById(`mower-${quote.mowerType || 'push'}`);
           if (mowerRadio) mowerRadio.checked = true;
@@ -1161,15 +1629,14 @@
       const hourlyExpenses = settings.hourlyExpenses || 0;
 
       const rawHours = currentLawnArea / (settings.m2PerHour || 1);   // avoid div by zero
-      const billedHours = roundUpToQuarterHour(rawHours);
+      const billedHours = roundUpToQuarterHour(rawHours * currentTimeMultiplier);
 
       const mowingRevenue   = billedHours * chargeOutRate;
       const callout         = parseFloat(calloutInput.value) || 0;
-      const catchMulchFee   = catchMulchCheckbox.checked ? 40 : 0;
       const difficulty      = parseFloat(difficultySlider.value) || 1.0;
 
       const adjustedMowing  = mowingRevenue * difficulty;
-      const totalRevenueEx  = adjustedMowing + callout + catchMulchFee;
+      const totalRevenueEx  = adjustedMowing + callout;
 
       const gst             = totalRevenueEx * 0.15;
       const totalIncl       = totalRevenueEx + gst;
@@ -1178,12 +1645,35 @@
       const estProfit       = totalRevenueEx - estCost;
       const profitPerHour   = billedHours > 0 ? estProfit / billedHours : 0;
 
+      // Store original calculated price
+      originalTotalIncl = totalIncl;
+      
+      // Calculate biweekly estimate if applicable
+      const frequency = timeSinceCutSelect.value;
+      if (frequency) {
+        const biweeklyMultiplier = timeEstimates['2 Weeks'][getCurrentSeason()];
+        const biweeklyBilledHours = roundUpToQuarterHour(rawHours * biweeklyMultiplier);
+        const biweeklyMowingRevenue = biweeklyBilledHours * chargeOutRate;
+        const biweeklyAdjustedMowing = biweeklyMowingRevenue * difficulty;
+        const biweeklyTotalRevenueEx = biweeklyAdjustedMowing + callout;
+        const biweeklyGst = biweeklyTotalRevenueEx * 0.15;
+        const biweeklyTotalIncl = biweeklyTotalRevenueEx + biweeklyGst;
+        biweeklyEstimateText.textContent = 'Estimated cost if mowing every 2 weeks: $' + biweeklyTotalIncl.toFixed(2);
+      }
+
       // Update displays
       document.getElementById('callout-display').textContent = '$' + callout.toFixed(2);
-      document.getElementById('catch-mulch-display').textContent = '$' + catchMulchFee.toFixed(2);
       document.getElementById('total-revenue').textContent  = '$' + totalRevenueEx.toFixed(2);
       document.getElementById('gst').textContent            = '$' + gst.toFixed(2);
-      document.getElementById('total-incl').textContent     = '$' + totalIncl.toFixed(2);
+      document.getElementById('total-incl-display').textContent     = '$' + totalIncl.toFixed(2);
+      document.getElementById('estimated-hours-display').textContent = billedHours.toFixed(2) + ' hrs';
+      
+      // Set the editable final price to the calculated value
+      finalPriceInput.value = totalIncl.toFixed(2);
+      
+      // Reset adjustments display
+      adjustmentsRow.style.display = 'none';
+      
       // Only update if elements exist
       const estCostEl = document.getElementById('est-cost');
       const estProfitEl = document.getElementById('est-profit');
@@ -1802,8 +2292,8 @@
 
       const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
 
-      const totalInclText = document.getElementById('total-incl')?.textContent || '$0.00';
-      const totalInclGst = parseFloat(totalInclText.replace('$', '').replace(',', '')) || 0;
+      // Get final price from the editable input field
+      const finalPrice = parseFloat(finalPriceInput.value) || 0;
 
       let quoteNumber = document.getElementById('quote-number')?.value?.trim() || '';
       if (!quoteNumber) {
@@ -1818,9 +2308,20 @@
         lawnAreaM2: currentLawnArea,
         calloutFee: parseFloat(calloutInput.value) || 0,
         difficultyMultiplier: parseFloat(difficultySlider.value),
-        catchAndMulch: catchMulchCheckbox.checked,
         estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
-        totalInclGst: totalInclGst,
+        totalInclGst: finalPrice,
+        quoteNotes: quoteNotesInput.value.trim() || null,
+        pricingSummary: {
+          estimatedHours: parseFloat(document.getElementById('estimated-hours-display').textContent) || 0,
+          lawnAreaM2: currentLawnArea,
+          calloutFee: parseFloat(calloutInput.value) || 0,
+          subtotalEx: parseFloat(document.getElementById('total-revenue').textContent.replace('$', '').replace(',', '')) || 0,
+          gst: parseFloat(document.getElementById('gst').textContent.replace('$', '').replace(',', '')) || 0,
+          subtotalIncl: parseFloat(document.getElementById('total-incl-display').textContent.replace('$', '').replace(',', '')) || 0,
+          finalPrice: finalPrice,
+          adjustmentAmount: document.getElementById('adjustments-amount').textContent || '-$0.00',
+          biweeklyEstimate: document.getElementById('biweekly-estimate-text').textContent || null
+        },
         client: loadedJobData?.client ? {
           firstName: loadedJobData.client.firstName || '',
           lastName: loadedJobData.client.lastName || ''
@@ -1835,7 +2336,16 @@
         },
         generatedAt: new Date().toISOString(),
         jobId: jobId || null,
-        mowerType: getSelectedMowerType()
+        mowerType: getSelectedMowerType(),
+        timeSinceCut: timeSinceCutSelect.value || null,
+        timeMultiplier: currentTimeMultiplier,
+        addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
+          value: cb.value,
+          label: cb.dataset.title
+        })),
+        addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
+          ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
+          : null
       };
 
       try {
