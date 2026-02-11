@@ -868,15 +868,14 @@
   </div>
 
 <div class="container">
+  <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+
   <div class="header">
     <h1>Your Jobs</h1>
     <div style="display: flex; gap: 12px;">
       <a href="#" class="btn-new" onclick="window.location.href='create_job.html'; return false;">
         + New Job
       </a>
-      <button id="load-mock-data-btn" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.98rem; cursor: pointer; box-shadow: 0 2px 8px rgba(139,92,246,0.2);" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='#8b5cf6'">
-        📋 Load Mock Data (Test)
-      </button>
     </div>
   </div>
   <h2>Today</h2>
@@ -910,7 +909,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-let mockJobsData = {};
 const firebaseConfig = {
   apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
   authDomain: "deep-edge-cc5bd.firebaseapp.com",
@@ -3155,7 +3153,7 @@ function attachSingleCardEventListeners(card, jobs) {
 // ── Main render function ───────────────────────────────────────
 let allJobs = []; // Store all jobs for search functionality
 
-async function loadAndRenderJobs(useMockData = false) {
+async function loadAndRenderJobs() {
   const container = document.getElementById("jobs-container");
   if (!container) {
     console.error('❌ jobs-container not found!');
@@ -3163,17 +3161,12 @@ async function loadAndRenderJobs(useMockData = false) {
   }
   container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">Loading jobs...</p>';
   try {
-    let jobs;
-    if (useMockData) {
-      // Load from mock data
-      jobs = mockJobsData.jobs || [];
-    } else {
-      // Load from server (original behavior)
-      const user = auth.currentUser;
-      if (!user) throw new Error("Not signed in. Please log in first.");
-      const token = await user.getIdToken(true);
-      console.log('📡 Fetching jobs from API...');
-      const res = await fetch(`${WORKER_URL}/api/jobs`, {
+    // Load from server
+    const user = auth.currentUser;
+    if (!user) throw new Error("Not signed in. Please log in first.");
+    const token = await user.getIdToken(true);
+    console.log('📡 Fetching jobs from API...');
+    const res = await fetch(`${WORKER_URL}/api/jobs`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -3183,9 +3176,8 @@ async function loadAndRenderJobs(useMockData = false) {
         throw new Error(`Server error ${res.status} – ${errText}`);
       }
       const data = await res.json();
-      jobs = data.jobs || [];
+      const jobs = data.jobs || [];
       console.log(`✓ Loaded ${jobs.length} jobs from API`);
-    }
     
     // Store all jobs for search functionality
     allJobs = jobs;
@@ -4336,26 +4328,6 @@ function attachCardEventListeners() {
 }
 // ── Start ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load mock data on page load
-  try {
-    const response = await fetch('./mock_jobs.json');
-    mockJobsData = await response.json();
-  } catch (err) {
-    console.warn('Failed to load mock_jobs.json:', err);
-  }
-
-  // Mock data loading button handler
-  document.getElementById('load-mock-data-btn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await loadAndRenderJobs(true);
-    // Hide loading splash if visible
-    const loadingSplash = document.getElementById('loading-splash');
-    if (loadingSplash) {
-      loadingSplash.classList.add('fade-out');
-      setTimeout(() => loadingSplash.style.display = 'none', 500);
-    }
-  });
-
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)

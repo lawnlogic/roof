@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center • Deep Edge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./index-FsI4UGjo.css">
+    <script src="header.js" defer></script>
+    <style>
+        :root {
+            --background: 270 30% 97%;
+            --foreground: 245 35% 15%;
+            --card: 0 0% 100%;
+            --primary: 288 52% 36%;
+            --secondary: 270 20% 96%;
+            --accent: 288 52% 36%;
+            --border: 245 20% 88%;
+            --radius: 1.75rem;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            padding: 5rem 20px 40px 20px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #7B2D8E;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 0;
+            margin-bottom: 24px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .back-btn:hover { opacity: 0.7; }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .page-header h1 {
+            font-size: clamp(32px, 6vw, 48px);
+            color: #1B1B2F;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            font-size: 1.15rem;
+            color: #6E6E82;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .quick-link {
+            background: white;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #1B1B2F;
+        }
+
+        .quick-link:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(123, 45, 142, 0.12);
+            border-color: #7B2D8E;
+        }
+
+        .quick-link-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .quick-link-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Section Cards */
+        .help-section {
+            background: white;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            border-radius: 20px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(27, 27, 47, 0.08);
+        }
+
+        .section-header {
+            padding: 24px 28px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(123, 45, 142, 0.04) 0%, rgba(123, 45, 142, 0.08) 100%);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+            transition: background 0.2s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, rgba(123, 45, 142, 0.08) 0%, rgba(123, 45, 142, 0.12) 100%);
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            color: #1B1B2F;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-header .toggle-icon {
+            font-size: 1.25rem;
+            color: #7B2D8E;
+            transition: transform 0.3s ease;
+        }
+
+        .help-section.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: 28px;
+            display: none;
+        }
+
+        .help-section.open .section-content {
+            display: block;
+        }
+
+        /* Workflow Steps */
+        .workflow-container {
+            background: linear-gradient(135deg, rgba(123, 45, 142, 0.03) 0%, rgba(123, 45, 142, 0.06) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .workflow-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #7B2D8E;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 16px;
+            position: relative;
+        }
+
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 32px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: #7B2D8E;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .step-line {
+            width: 2px;
+            flex: 1;
+            background: linear-gradient(to bottom, #7B2D8E, rgba(123, 45, 142, 0.2));
+            min-height: 24px;
+        }
+
+        .workflow-step:last-child .step-line {
+            display: none;
+        }
+
+        .step-content {
+            padding-bottom: 24px;
+            flex: 1;
+        }
+
+        .workflow-step:last-child .step-content {
+            padding-bottom: 0;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #1B1B2F;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .step-description {
+            color: #6E6E82;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Instruction Steps */
+        .instruction-list {
+            list-style: none;
+            counter-reset: instruction;
+        }
+
+        .instruction-list li {
+            counter-increment: instruction;
+            padding: 16px 0;
+            padding-left: 48px;
+            position: relative;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .instruction-list li:last-child {
+            border-bottom: none;
+        }
+
+        .instruction-list li::before {
+            content: counter(instruction);
+            position: absolute;
+            left: 0;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #7B2D8E 0%, #9B4DB8 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .instruction-list li strong {
+            color: #1B1B2F;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Tip Box */
+        .tip-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid #10b981;
+            border-radius: 0 12px 12px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+
+        .tip-box-title {
+            font-weight: 700;
+            color: #047857;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-box p {
+            color: #065f46;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 12px 12px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+
+        .warning-box-title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-box p {
+            color: #78350f;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 4px solid #2563eb;
+            border-radius: 0 12px 12px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box p {
+            color: #1e3a8a;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Status Badges */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .status-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-lead { background: rgba(123, 45, 142, 0.1); color: #7B2D8E; }
+        .status-quoted { background: rgba(123, 45, 142, 0.15); color: #7B2D8E; }
+        .status-sent { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
+        .status-won { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        .status-progress { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .status-completed { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .status-invoiced { background: rgba(37, 99, 235, 0.15); color: #2563eb; }
+        .status-paid { background: rgba(16, 185, 129, 0.2); color: #047857; }
+
+        /* FAQ */
+        .faq-item {
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            padding: 20px 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #1B1B2F;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .faq-question:hover {
+            color: #7B2D8E;
+        }
+
+        .faq-answer {
+            color: #6E6E82;
+            margin-top: 12px;
+            padding-left: 0;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        .faq-toggle {
+            font-size: 1.25rem;
+            color: #7B2D8E;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.open .faq-toggle {
+            transform: rotate(45deg);
+        }
+
+        /* Support Section */
+        .support-card {
+            background: linear-gradient(135deg, #7B2D8E 0%, #9B4DB8 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            margin-top: 48px;
+        }
+
+        .support-card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 16px;
+        }
+
+        .support-card p {
+            opacity: 0.9;
+            margin-bottom: 24px;
+            font-size: 1.05rem;
+        }
+
+        .support-links {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .support-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .support-link:hover {
+            background: white;
+            color: #7B2D8E;
+        }
+
+        /* Subsection Headers */
+        .subsection {
+            margin: 28px 0;
+        }
+
+        .subsection h3 {
+            font-size: 1.1rem;
+            color: #7B2D8E;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(123, 45, 142, 0.2);
+        }
+
+        .subsection h4 {
+            font-size: 1rem;
+            color: #1B1B2F;
+            margin: 20px 0 12px;
+        }
+
+        .subsection p {
+            color: #6E6E82;
+            margin-bottom: 12px;
+        }
+
+        .subsection ul {
+            color: #6E6E82;
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        .subsection ul li {
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 4.5rem 16px 24px;
+            }
+
+            .quick-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .section-header {
+                padding: 20px;
+            }
+
+            .section-content {
+                padding: 20px;
+            }
+
+            .support-card {
+                padding: 28px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="window.history.back()">← Back</button>
+
+        <div class="page-header">
+            <h1>Help Center</h1>
+            <p>Everything you need to know about using Deep Edge to run your lawn care business more efficiently.</p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="#getting-started" class="quick-link">
+                <div class="quick-link-icon">🚀</div>
+                <div class="quick-link-title">Getting Started</div>
+            </a>
+            <a href="#job-workflow" class="quick-link">
+                <div class="quick-link-icon">📋</div>
+                <div class="quick-link-title">Job Workflow</div>
+            </a>
+            <a href="#creating-quotes" class="quick-link">
+                <div class="quick-link-icon">📝</div>
+                <div class="quick-link-title">Creating Quotes</div>
+            </a>
+            <a href="#invoicing" class="quick-link">
+                <div class="quick-link-icon">💰</div>
+                <div class="quick-link-title">Invoicing</div>
+            </a>
+            <a href="#settings" class="quick-link">
+                <div class="quick-link-icon">⚙️</div>
+                <div class="quick-link-title">Settings</div>
+            </a>
+            <a href="#troubleshooting" class="quick-link">
+                <div class="quick-link-icon">🔧</div>
+                <div class="quick-link-title">Troubleshooting</div>
+            </a>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="help-section" id="getting-started">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>🚀 Getting Started</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Welcome to Deep Edge! Here's how to get up and running in minutes.</p>
+
+                <div class="workflow-container">
+                    <div class="workflow-title">🗺️ Your First 10 Minutes</div>
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">1</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Create Your Account</div>
+                                <div class="step-description">Go to the <a href="login.html" style="color: #7B2D8E;">login page</a>, enter your email and password, then click "Create Account". Check your email for a verification link.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">2</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Your Email</div>
+                                <div class="step-description">Click the verification link in your email (check spam folder). Once verified, you'll be redirected to your Dashboard.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">3</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Set Up Your Company Profile</div>
+                                <div class="step-description">From Dashboard, click "Edit Profile" to add your company name, logo, contact details, and GST number.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">4</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Configure Your Pricing</div>
+                                <div class="step-description">In Profile settings, set your hourly rates and m² per hour for push mowers and ride-on mowers. This powers automatic quote calculations.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">5</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Create Your First Job</div>
+                                <div class="step-description">Go to Jobs and click "+ New Job" to add your first customer. You're ready to start quoting!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-box-title">💡 Pro Tip</div>
+                    <p>Set up your pricing before creating quotes. The AI measurement tool uses your rates to calculate prices automatically based on lawn area.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Understanding the Dashboard -->
+        <div class="help-section" id="dashboard">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>📊 Understanding the Dashboard</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Your Dashboard is your command center. Here's what each section shows:</p>
+
+                <div class="subsection">
+                    <h3>Dashboard Elements</h3>
+                    
+                    <h4>Jobs Today Button</h4>
+                    <p>Shows how many jobs are scheduled for today. Click it to go directly to your Jobs page.</p>
+
+                    <h4>All-time Revenue</h4>
+                    <p>Total amount from all paid invoices. This updates automatically when you mark invoices as paid.</p>
+
+                    <h4>SMS Usage</h4>
+                    <p>Shows your remaining SMS credits. SMS is used to send quotes, reminders, and notifications to customers.</p>
+
+                    <h4>Active Customers</h4>
+                    <p>Number of customers with ongoing jobs (not yet completed/paid).</p>
+
+                    <h4>New Customers</h4>
+                    <p>Customers added this month.</p>
+
+                    <h4>Company Profile Card</h4>
+                    <p>Quick view of your company details. Click "Edit Profile" to update your information.</p>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">ℹ️ Navigation</div>
+                    <p>Use the header menu to navigate between pages. On mobile, tap the menu icon (☰) to see all options.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Workflow -->
+        <div class="help-section" id="job-workflow">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>📋 The Jobs Page (Main Hub)</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p><strong>The Jobs page is where you'll spend most of your time.</strong> Everything in Deep Edge revolves around jobs - from initial quote to final payment.</p>
+
+                <div class="subsection">
+                    <h3>Jobs Page Layout</h3>
+                    
+                    <h4>Today Section</h4>
+                    <p>Shows jobs requiring action today. Split into:</p>
+                    <ul>
+                        <li><strong>On-Site:</strong> Jobs you need to physically attend (scheduled services)</li>
+                        <li><strong>Admin:</strong> Jobs needing office work (sending quotes, creating invoices, follow-ups)</li>
+                    </ul>
+
+                    <h4>Calendar</h4>
+                    <p>Visual overview of your scheduled jobs. Purple numbers show how many jobs are on each day. Click any date to see jobs scheduled for that day.</p>
+
+                    <h4>All Jobs</h4>
+                    <p>Complete list of all your jobs. Use the search bar to find jobs by address, client name, or phone number.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3>Job Statuses Explained</h3>
+                    <p>Each job progresses through these stages:</p>
+                    
+                    <div class="status-grid">
+                        <div class="status-item status-lead">Lead</div>
+                        <div class="status-item status-quoted">Quote Created</div>
+                        <div class="status-item status-sent">Quote Sent</div>
+                        <div class="status-item status-won">Job Won</div>
+                        <div class="status-item status-progress">In Progress</div>
+                        <div class="status-item status-completed">Completed</div>
+                        <div class="status-item status-invoiced">Invoiced</div>
+                        <div class="status-item status-paid">Paid ✓</div>
+                    </div>
+                </div>
+
+                <div class="workflow-container">
+                    <div class="workflow-title">🔄 Complete Job Lifecycle</div>
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">1</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Lead</div>
+                                <div class="step-description">New job created. Client info and address are saved. Next action: Create Quote.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">2</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Quote Created</div>
+                                <div class="step-description">You've created a quote using the aerial map tool. Next action: Send Quote to client.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">3</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Quote Sent</div>
+                                <div class="step-description">Quote sent to client via email, SMS, or copied link. Next action: Schedule Service (when client accepts).</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">4</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Job Won</div>
+                                <div class="step-description">Client has accepted! Job is scheduled. Next action: Start Job (on the scheduled day).</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">5</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">In Progress</div>
+                                <div class="step-description">You're on-site doing the work. Next action: Complete Job (when finished).</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">6</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Completed</div>
+                                <div class="step-description">Work is done. Next action: Create Invoice.</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">7</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Invoiced</div>
+                                <div class="step-description">Invoice sent to client. Next action: Mark Paid (when payment received).</div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-indicator">
+                                <div class="step-number">8</div>
+                                <div class="step-line"></div>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-title">Paid ✓</div>
+                                <div class="step-description">Payment received! For recurring jobs: Schedule Next Visit. For one-off jobs: Job complete!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-box-title">💡 Quick Actions</div>
+                    <p>Each job card has a big green button showing the next action. Just click it to move the job forward. Use the ⋯ menu for additional options like editing quotes, viewing details, or changing schedules.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creating Jobs -->
+        <div class="help-section" id="creating-jobs">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>➕ Creating a New Job</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Creating a job is quick and easy. Here's the step-by-step process:</p>
+
+                <ol class="instruction-list">
+                    <li>
+                        <strong>Go to Jobs Page</strong>
+                        From your Dashboard, click the "Jobs Today" button or use the navigation menu to go to Jobs.
+                    </li>
+                    <li>
+                        <strong>Click "+ New Job"</strong>
+                        Click the purple "+ New Job" button in the top right corner.
+                    </li>
+                    <li>
+                        <strong>Enter Property Address</strong>
+                        Start typing the address. Suggestions will appear - select the correct one. This is used for the aerial mapping feature.
+                    </li>
+                    <li>
+                        <strong>Add Client Details</strong>
+                        Enter the client's first name (required), last name, email, and phone number.
+                    </li>
+                    <li>
+                        <strong>Add Notes (Optional)</strong>
+                        Add any special instructions like "Use side gate" or "Dog on property".
+                    </li>
+                    <li>
+                        <strong>Click "Create Job"</strong>
+                        The job is created and you'll be taken to the quote creation page automatically.
+                    </li>
+                </ol>
+
+                <div class="info-box">
+                    <div class="info-box-title">ℹ️ What happens next?</div>
+                    <p>After creating a job, you're automatically taken to the quote creation page where you can measure the property and set pricing.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creating Quotes -->
+        <div class="help-section" id="creating-quotes">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>📝 Creating Quotes with AI Measurement</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Deep Edge uses aerial imagery to help you measure lawns accurately and create professional quotes.</p>
+
+                <div class="subsection">
+                    <h3>Using the Aerial Map</h3>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>View the Property</strong>
+                            The map shows an aerial view of the property address. Use the zoom controls or pinch to zoom on mobile.
+                        </li>
+                        <li>
+                            <strong>Draw the Lawn Area</strong>
+                            Click/tap to start drawing around the lawn area. Add points by clicking, and close the shape by clicking the first point or double-clicking.
+                        </li>
+                        <li>
+                            <strong>Check the Measurement</strong>
+                            The total area in m² appears automatically. Your pricing (from Profile settings) calculates the quote amount.
+                        </li>
+                        <li>
+                            <strong>Choose Mower Type</strong>
+                            Select Push Mower or Ride-on Mower. This affects the price based on your configured rates.
+                        </li>
+                        <li>
+                            <strong>Add Add-ons (Optional)</strong>
+                            Select any extra services like hedge trimming, weed spraying, or fertiliser application.
+                        </li>
+                        <li>
+                            <strong>Set Job Frequency</strong>
+                            Choose if this is a one-off job or recurring (weekly, fortnightly, monthly).
+                        </li>
+                        <li>
+                            <strong>Save Quote</strong>
+                            Click "Save Quote" to create the quote. You'll return to the Jobs page.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-box-title">💡 Drawing Tips</div>
+                    <p>Draw around the ENTIRE mowable area. Exclude garden beds, paths, and structures. The more accurate your drawing, the more accurate your quote. You can draw multiple zones if needed.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3>Sending Quotes to Clients</h3>
+                    <p>After creating a quote, the job status becomes "Quote Created". To send it:</p>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>Find the Job</strong>
+                            The job appears in your Jobs list with status "Quote Created".
+                        </li>
+                        <li>
+                            <strong>Click "Send Quote"</strong>
+                            Click the green "Send Quote" button on the job card.
+                        </li>
+                        <li>
+                            <strong>Choose Send Method</strong>
+                            Select from Email, SMS, or Copy to Clipboard. Email and SMS send automatically. Clipboard lets you paste the link wherever you want.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">ℹ️ Quote Links</div>
+                    <p>Clients receive a professional quote page showing the property map, itemized pricing, and an accept button. They can view and accept quotes on any device.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduling and Completing Jobs -->
+        <div class="help-section" id="scheduling">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>📅 Scheduling and Completing Jobs</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>When a Client Accepts</h3>
+                    <p>After sending a quote, wait for the client to accept. When they do:</p>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>Schedule the Service</strong>
+                            Click "Schedule Service" on the job card. Choose the date and any recurrence pattern.
+                        </li>
+                        <li>
+                            <strong>Job Appears in Calendar</strong>
+                            The scheduled job shows up on your calendar for the selected date.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="subsection">
+                    <h3>On the Day of Service</h3>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>Check Today's Jobs</strong>
+                            Open the Jobs page - your scheduled jobs appear in the "Today" section under "On-Site".
+                        </li>
+                        <li>
+                            <strong>Start the Job</strong>
+                            When you arrive at the property, click "Start Job". This logs the start time.
+                        </li>
+                        <li>
+                            <strong>Complete the Job</strong>
+                            When finished, click "Complete Job". The job moves to "Completed" status.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="subsection">
+                    <h3>Recurring Jobs</h3>
+                    <p>For weekly, fortnightly, or monthly clients:</p>
+                    <ul>
+                        <li>After marking a recurring job as Paid, click "Schedule Next Visit"</li>
+                        <li>The next service date is calculated automatically based on the recurrence</li>
+                        <li>The job reappears in your calendar for the next scheduled date</li>
+                    </ul>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-box-title">💡 Route Planning</div>
+                    <p>When you have multiple jobs today, click "Route in Apple Maps" to open directions to all locations in order.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoicing -->
+        <div class="help-section" id="invoicing">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>💰 Creating and Sending Invoices</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>After completing a job, you'll create an invoice based on the original quote.</p>
+
+                <div class="subsection">
+                    <h3>Creating an Invoice</h3>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>Complete the Job First</strong>
+                            Make sure the job status is "Completed" before creating an invoice.
+                        </li>
+                        <li>
+                            <strong>Click "Create Invoice"</strong>
+                            Click the green button on the completed job card.
+                        </li>
+                        <li>
+                            <strong>Select the Quote</strong>
+                            Choose which quote to base the invoice on (usually there's only one).
+                        </li>
+                        <li>
+                            <strong>Set Invoice Details</strong>
+                            <ul>
+                                <li><strong>Invoice Number:</strong> Auto-generated or enter custom</li>
+                                <li><strong>Issue Date:</strong> Today by default</li>
+                                <li><strong>Due Date:</strong> Based on payment terms</li>
+                                <li><strong>Payment Terms:</strong> 7 days, 14 days, 20th of next month, or custom</li>
+                                <li><strong>Notes:</strong> Add bank account details or payment instructions</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>Generate Invoice</strong>
+                            Click "Generate Invoice" to create and send.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="subsection">
+                    <h3>Marking as Paid</h3>
+                    <p>When the client pays:</p>
+                    
+                    <ol class="instruction-list">
+                        <li>
+                            <strong>Find the Invoiced Job</strong>
+                            Look for jobs with "Invoiced" status.
+                        </li>
+                        <li>
+                            <strong>Click "Mark Paid"</strong>
+                            Click the green button to confirm payment received.
+                        </li>
+                        <li>
+                            <strong>Job Complete!</strong>
+                            The job moves to "Paid" status. Revenue is added to your total.
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-box-title">⚠️ Important</div>
+                    <p>Always mark jobs as Paid when payment is received. This keeps your revenue tracking accurate and helps with end-of-year accounting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="help-section" id="settings">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>⚙️ Profile & Settings</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Your Profile page contains all your business settings. Access it from Dashboard → "Edit Profile".</p>
+
+                <div class="subsection">
+                    <h3>Company Profile</h3>
+                    <ul>
+                        <li><strong>Company Name:</strong> Appears on quotes and invoices</li>
+                        <li><strong>NZBN:</strong> Your NZ Business Number (optional)</li>
+                        <li><strong>Address:</strong> Your business address</li>
+                        <li><strong>Phone:</strong> Contact number for clients</li>
+                        <li><strong>GST Number:</strong> For GST-registered businesses</li>
+                        <li><strong>Logo:</strong> Upload your company logo - appears on all documents</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Company Pricing</h3>
+                    <p>Set your rates for automatic quote calculations:</p>
+                    
+                    <h4>Push Mower Pricing</h4>
+                    <ul>
+                        <li><strong>m² per hour:</strong> How many square meters you can mow per hour (e.g., 1000)</li>
+                        <li><strong>Charge Out Rate:</strong> Your hourly rate (e.g., $85/hour)</li>
+                        <li><strong>Hourly Expenses:</strong> Fuel, wear, etc. (e.g., $15/hour)</li>
+                    </ul>
+
+                    <h4>Ride-on Mower Pricing</h4>
+                    <ul>
+                        <li><strong>m² per hour:</strong> Higher for ride-on (e.g., 4000)</li>
+                        <li><strong>Charge Out Rate:</strong> Usually higher (e.g., $120/hour)</li>
+                        <li><strong>Hourly Expenses:</strong> Higher operating costs (e.g., $35/hour)</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Company Add-Ons</h3>
+                    <p>Create custom services that can be added to quotes:</p>
+                    <ul>
+                        <li><strong>Name:</strong> e.g., "Edge Trimming", "Hedge Clipping"</li>
+                        <li><strong>Description:</strong> What the service includes</li>
+                        <li><strong>Pricing Type:</strong> Per m² or Per Hour</li>
+                        <li><strong>Price:</strong> Your rate for this service</li>
+                        <li><strong>Site Quote Required:</strong> Check if pricing varies by property</li>
+                    </ul>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-box-title">💡 Setting Good Rates</div>
+                    <p>If you can mow 1000m² per hour with a push mower and charge $80/hour, a 500m² lawn takes 30 minutes = $40. The system calculates this automatically!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add-ons & Products -->
+        <div class="help-section" id="products">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>🛒 Platform Add-Ons</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <p>Deep Edge offers optional paid features to enhance your business. Visit the <a href="products.html" style="color: #7B2D8E;">Add-Ons page</a> for details.</p>
+
+                <div class="subsection">
+                    <h3>Available Add-Ons</h3>
+                    
+                    <h4>📱 SMS Reminders (From $0.15/SMS)</h4>
+                    <p>Automatically send reminders to customers at any stage - quote reminders, job notifications, payment follow-ups.</p>
+
+                    <h4>✉️ Email Marketing ($25/month)</h4>
+                    <p>Send professional email campaigns to nurture customers and drive repeat business.</p>
+
+                    <h4>🛠️ Custom Service Packages (One-time)</h4>
+                    <p>Create bundled service packages with dynamic pricing.</p>
+
+                    <h4>⭐ Priority Support ($15/month)</h4>
+                    <p>1-hour response time, phone support, and custom training.</p>
+
+                    <h4>👥 Team Collaboration ($10/user/month)</h4>
+                    <p>Add team members with role-based permissions.</p>
+
+                    <h4>📊 Advanced Analytics ($20/month)</h4>
+                    <p>Custom dashboards, revenue forecasting, and predictive reports.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="help-section" id="troubleshooting">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>🔧 Troubleshooting</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Common Issues</h3>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            I can't log in
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <ul>
+                                <li>Check that you've verified your email (look in spam folder)</li>
+                                <li>Make sure you're using the correct email address</li>
+                                <li>Password must have 6+ characters, uppercase, lowercase, and a number</li>
+                                <li>If you forgot your password, contact support for a reset</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            The aerial map isn't loading
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <ul>
+                                <li>Check your internet connection</li>
+                                <li>Try refreshing the page</li>
+                                <li>Make sure the address was entered correctly</li>
+                                <li>Some rural areas may have limited satellite imagery</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            My quote price seems wrong
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <ul>
+                                <li>Check your pricing is set correctly in Profile settings</li>
+                                <li>Verify you selected the correct mower type (push vs ride-on)</li>
+                                <li>Review the area measurement - redraw if needed</li>
+                                <li>Check if add-ons are included that you didn't intend</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            SMS or email isn't sending
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <ul>
+                                <li>Check that the client has a valid phone/email entered</li>
+                                <li>Verify you have SMS credits remaining</li>
+                                <li>Phone numbers must be in NZ format (021, 022, 027, etc.)</li>
+                                <li>Some email providers may delay delivery - wait a few minutes</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            Jobs aren't showing in the calendar
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <ul>
+                                <li>Jobs only show in calendar once scheduled with a date</li>
+                                <li>Check you're viewing the correct month</li>
+                                <li>Completed jobs may not show unless they're recurring</li>
+                                <li>Refresh the page to sync latest data</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            I accidentally deleted a job
+                            <span class="faq-toggle">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Unfortunately, deleted jobs cannot be recovered. Contact support if you need help recreating an important job's details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="help-section" id="faq">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2>❓ Frequently Asked Questions</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Is Deep Edge free to use?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! The core platform (jobs, quotes, invoices, scheduling) is completely free. Optional add-ons like SMS and analytics are available for purchase.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How accurate is the AI measurement?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        The aerial imagery is high-resolution and measurements are typically within 5% accuracy. For best results, draw carefully around lawn edges and exclude non-grass areas.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Can clients accept quotes online?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! When you send a quote link, clients can view the quote and accept it online. You'll see the job status change to "Job Won" when they accept.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How do recurring jobs work?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        When creating a quote, set the frequency to Weekly, Fortnightly, or Monthly. After completing and getting paid for each service, click "Schedule Next Visit" to set up the next occurrence.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Do I need to be GST registered?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        No. If you're not GST registered, simply leave the GST Number field blank. Quotes and invoices will show prices without GST breakdown.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Can I use Deep Edge on my phone?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Absolutely! Deep Edge is fully responsive and works great on phones and tablets. Many users do all their work from their phone while on the road.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How do I change a quote after sending it?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Click the ⋯ menu on the job card and select "Edit Quote". Make your changes and save. You can resend the updated quote to the client.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div class="support-card">
+            <h2>Still Need Help?</h2>
+            <p>Our support team is here to help you succeed. Reach out anytime!</p>
+            <div class="support-links">
+                <a href="mailto:support@deepedge.co.nz" class="support-link">📧 Email Support</a>
+                <a href="tel:+6421026533330" class="support-link">📞 Call Us</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(header) {
+            const section = header.closest('.help-section');
+            section.classList.toggle('open');
+        }
+
+        function toggleFaq(question) {
+            const faqItem = question.closest('.faq-item');
+            faqItem.classList.toggle('open');
+        }
+
+        // Handle anchor links
+        document.querySelectorAll('.quick-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('open');
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Open section if URL has hash
+        if (window.location.hash) {
+            const targetId = window.location.hash.substring(1);
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('open');
+            }
+        }
+    </script>
+</body>
+</html>
