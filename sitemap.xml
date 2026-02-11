@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage -->
   <url>
-    <loc>https://deepedge.nz/index.html</loc>
+    <loc>https://deepedge.co.nz/index.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -10,7 +10,7 @@
 
   <!-- About Page -->
   <url>
-    <loc>https://deepedge.nz/about.html</loc>
+    <loc>https://deepedge.co.nz/about.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -18,7 +18,7 @@
 
   <!-- Blog Listing -->
   <url>
-    <loc>https://deepedge.nz/blog.html</loc>
+    <loc>https://deepedge.co.nz/blog.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -26,7 +26,7 @@
 
   <!-- Blog Post: Best CRM for Tradies in NZ 2026 -->
   <url>
-    <loc>https://deepedge.nz/best-crm-for-tradies-new-zealand-2026.html</loc>
+    <loc>https://deepedge.co.nz/best-crm-for-tradies-new-zealand-2026.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -34,7 +34,7 @@
 
   <!-- Help/Documentation Hub -->
   <url>
-    <loc>https://deepedge.nz/help.html</loc>
+    <loc>https://deepedge.co.nz/help.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -42,7 +42,7 @@
 
   <!-- Login Page -->
   <url>
-    <loc>https://deepedge.nz/login.html</loc>
+    <loc>https://deepedge.co.nz/login.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
@@ -50,7 +50,7 @@
 
   <!-- Public Quote View (Template - Dynamic IDs) -->
   <url>
-    <loc>https://deepedge.nz/quote.html</loc>
+    <loc>https://deepedge.co.nz/quote.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>never</changefreq>
     <priority>0.5</priority>
@@ -58,7 +58,7 @@
 
   <!-- Public Invoice View (Template - Dynamic IDs) -->
   <url>
-    <loc>https://deepedge.nz/invoice.html</loc>
+    <loc>https://deepedge.co.nz/invoice.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>never</changefreq>
     <priority>0.5</priority>
@@ -66,7 +66,7 @@
 
   <!-- Products/Add-ons Page (Authenticated) -->
   <url>
-    <loc>https://deepedge.nz/products.html</loc>
+    <loc>https://deepedge.co.nz/products.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
