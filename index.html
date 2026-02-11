@@ -68,7 +68,7 @@
             pointer-events: none;
             opacity: 0.04;
             mix-blend-mode: multiply;
-            z-index: 9999;
+            z-index: 50;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
         .button-primary {
@@ -140,6 +140,16 @@
         .fade-in {
             animation: fadeIn 0.6s ease-out;
         }
+        /* Message styling */
+        #message {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .requirement.met {
+            color: #10b981 !important;
+        }
+        .requirement-icon {
+            font-size: 0.7rem;
+        }
         @media (max-width: 1023px) {
             .hidden-mobile { display: none; }
         }
@@ -147,7 +157,6 @@
             .hidden-sm { display: none; }
         }
     </style>
-    <script src="header.js" defer></script>
 </head>
 <body class="scroll-smooth">
     <div class="grain-overlay"></div>
@@ -610,22 +619,40 @@
                             <form id="signupForm" style="display: flex; flex-direction: column; gap: 1rem;">
                                 <div id="formInputs">
                                     <div>
-                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Full name</label>
-                                        <input type="text" placeholder="John Smith" style="border-radius: 0.75rem;" required>
-                                    </div>
-                                    <div>
                                         <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Email</label>
-                                        <input type="email" placeholder="john@company.com" style="border-radius: 0.75rem;" required>
+                                        <input type="email" id="email" placeholder="john@company.com" style="border-radius: 0.75rem;" required>
                                     </div>
                                     <div>
                                         <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Password</label>
-                                        <input type="password" placeholder="••••••••" minlength="8" style="border-radius: 0.75rem;" required>
+                                        <input type="password" id="password" placeholder="••••••••" style="border-radius: 0.75rem;" required>
+                                        <div class="password-requirements" id="passwordReqs" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; font-size: 0.75rem;">
+                                            <div class="requirement" id="reqLength" style="display: flex; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: #6E6E82; transition: color 0.2s;">
+                                                <span class="requirement-icon" style="font-size: 0.7rem;">○</span>
+                                                <span>At least 6 characters</span>
+                                            </div>
+                                            <div class="requirement" id="reqLower" style="display: flex; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: #6E6E82; transition: color 0.2s;">
+                                                <span class="requirement-icon" style="font-size: 0.7rem;">○</span>
+                                                <span>One lowercase letter</span>
+                                            </div>
+                                            <div class="requirement" id="reqUpper" style="display: flex; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: #6E6E82; transition: color 0.2s;">
+                                                <span class="requirement-icon" style="font-size: 0.7rem;">○</span>
+                                                <span>One uppercase letter</span>
+                                            </div>
+                                            <div class="requirement" id="reqNumber" style="display: flex; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: #6E6E82; transition: color 0.2s;">
+                                                <span class="requirement-icon" style="font-size: 0.7rem;">○</span>
+                                                <span>One number</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button type="submit" class="button-primary" style="width: 100%; margin-top: 0.5rem; font-size: 1rem;">Get started</button>
+                                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                                        <button type="button" id="btnSignUp" class="button-primary" style="flex: 1; width: 100%; font-size: 0.875rem;">Create Account</button>
+                                        <button type="button" id="btnSignIn" class="button-outline" style="flex: 1; width: 100%; font-size: 0.875rem;">Sign In</button>
+                                    </div>
                                     <p style="color: #6E6E82; font-size: 0.75rem; text-align: center; margin-top: 1rem; margin-bottom: 0;">
                                         By signing up, you agree to the <a href="#" style="color: #7B2D8E; text-decoration: none;">Terms of Service</a>.
                                     </p>
                                 </div>
+                                <div id="message" style="display: none; min-height: 1.4em; padding: 1rem; border-radius: 8px; font-size: 0.875rem; line-height: 1.5; border: 1px solid transparent; animation: fadeIn 0.3s ease-out;"></div>
                                 <div id="successMessage" style="display: none; text-align: center; padding: 2rem 0;">
                                     <div style="width: 3.5rem; height: 3.5rem; background: #dcfce7; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto; margin-bottom: 1rem; font-size: 1.5rem;">✓</div>
                                     <h4 style="color: #1B1B2F; font-weight: 600; margin: 0; margin-bottom: 0.5rem;">You're all set!</h4>
@@ -682,25 +709,6 @@
             }
         });
 
-        // Form submission
-        const form = document.getElementById('signupForm');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Hide form inputs and show success message
-            document.getElementById('formInputs').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
-
-            // Optional: Reset form after 2 seconds
-            setTimeout(() => {
-                form.reset();
-                document.getElementById('formInputs').style.display = 'flex';
-                document.getElementById('formInputs').style.flexDirection = 'column';
-                document.getElementById('formInputs').style.gap = '1rem';
-                document.getElementById('successMessage').style.display = 'none';
-            }, 3000);
-        });
-
         // Smooth scroll behavior for all internal links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
@@ -722,6 +730,270 @@
                 window.location.href = 'login.html';
             }
         }
+    </script>
+
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+            authDomain: "deep-edge-cc5bd.firebaseapp.com",
+            projectId: "deep-edge-cc5bd",
+            storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+            messagingSenderId: "23198790796",
+            appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+            measurementId: "G-GLYGPCHRXM"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            sendEmailVerification,
+            reload
+        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const emailEl = document.getElementById('email');
+        const passwordEl = document.getElementById('password');
+        const msgEl = document.getElementById('message');
+        const btnSignUp = document.getElementById('btnSignUp');
+        const btnSignIn = document.getElementById('btnSignIn');
+        const passwordReqs = document.getElementById('passwordReqs');
+
+        const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+        // Password validation helper
+        const validatePassword = (password) => {
+            return {
+                length: password.length >= 6,
+                lower: /[a-z]/.test(password),
+                upper: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+        };
+
+        const isPasswordValid = (password) => {
+            const rules = validatePassword(password);
+            return rules.length && rules.lower && rules.upper && rules.number;
+        };
+
+        // Update password requirements display
+        passwordEl.addEventListener('input', () => {
+            const password = passwordEl.value;
+            if (password.length > 0) {
+                passwordReqs.style.display = 'block';
+            } else {
+                passwordReqs.style.display = 'none';
+            }
+
+            const rules = validatePassword(password);
+
+            updateRequirement('reqLength', rules.length);
+            updateRequirement('reqLower', rules.lower);
+            updateRequirement('reqUpper', rules.upper);
+            updateRequirement('reqNumber', rules.number);
+        });
+
+        const updateRequirement = (id, met) => {
+            const el = document.getElementById(id);
+            if (met) {
+                el.classList.add('met');
+                el.querySelector('.requirement-icon').textContent = '✓';
+                el.style.color = '#10b981';
+            } else {
+                el.classList.remove('met');
+                el.querySelector('.requirement-icon').textContent = '○';
+                el.style.color = '#6E6E82';
+            }
+        };
+
+        function showMessage(text, type = 'info') {
+            msgEl.innerHTML = text;
+            msgEl.style.display = 'block';
+            
+            if (type === 'success') {
+                msgEl.style.background = '#ecfdf5';
+                msgEl.style.color = '#047857';
+                msgEl.style.borderColor = '#a7f3d0';
+            } else if (type === 'error') {
+                msgEl.style.background = '#fef2f2';
+                msgEl.style.color = '#b91c1c';
+                msgEl.style.borderColor = '#fecaca';
+            } else {
+                msgEl.style.background = '#eff6ff';
+                msgEl.style.color = '#1e40af';
+                msgEl.style.borderColor = '#bfdbfe';
+            }
+        }
+
+        // Improved error message parsing
+        const parseFirebaseError = (error) => {
+            const code = error.code;
+            const message = error.message;
+
+            const errorMap = {
+                'auth/email-already-in-use': 'This email is already registered. Please sign in instead.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/weak-password': 'Password must be at least 6 characters.',
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password. Please try again.',
+                'auth/too-many-requests': 'Too many login attempts. Please try again later.',
+                'auth/operation-not-allowed': 'Sign up is currently disabled.',
+                'auth/network-request-failed': 'Network error. Please check your connection.',
+            };
+
+            return errorMap[code] || message || 'An error occurred. Please try again.';
+        };
+
+        // Default profile created on sign-up
+        const defaultProfile = {
+            companyName: "My Lawn Business",
+            nzbn: "",
+            address: "",
+            phone: "",
+            email: "",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        // Create user profile in USERS_KV after sign-up
+        async function createUserProfile(user) {
+            const token = await user.getIdToken();
+            const profile = {
+                ...defaultProfile,
+                email: user.email || "",
+                uid: user.uid
+            };
+            try {
+                const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(profile)
+                });
+                if (res.ok) {
+                    console.log("User profile created in USERS_KV:", profile);
+                } else {
+                    const err = await res.json();
+                    console.warn(`Profile save failed: ${err.error || 'Unknown'}`);
+                }
+            } catch (e) {
+                console.error("Profile save error:", e);
+            }
+        }
+
+        // Sign Up
+        btnSignUp.addEventListener('click', async () => {
+            const email = emailEl.value.trim();
+            const pass = passwordEl.value;
+
+            if (!email) {
+                showMessage("Please enter your email address.", "error");
+                return;
+            }
+
+            if (!pass) {
+                showMessage("Please enter a password.", "error");
+                return;
+            }
+
+            if (!isPasswordValid(pass)) {
+                showMessage("Password must contain at least 6 characters, including uppercase, lowercase, and a number.", "error");
+                return;
+            }
+
+            btnSignUp.disabled = true;
+
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = cred.user;
+
+                await sendEmailVerification(user);
+                showMessage("✓ Account created! Please check your email to verify your address (check spam folder).", "success");
+
+                await createUserProfile(user);
+
+                emailEl.value = '';
+                passwordEl.value = '';
+                passwordReqs.style.display = 'none';
+
+            } catch (error) {
+                const friendlyError = parseFirebaseError(error);
+                showMessage(friendlyError, "error");
+            } finally {
+                btnSignUp.disabled = false;
+            }
+        });
+
+        // Sign In
+        btnSignIn.addEventListener('click', async () => {
+            const email = emailEl.value.trim();
+            const pass = passwordEl.value;
+
+            if (!email) {
+                showMessage("Please enter your email address.", "error");
+                return;
+            }
+
+            if (!pass) {
+                showMessage("Please enter your password.", "error");
+                return;
+            }
+
+            btnSignIn.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                // Set flag to indicate user just logged in
+                sessionStorage.setItem('justLoggedIn', 'true');
+            } catch (error) {
+                const friendlyError = parseFirebaseError(error);
+                showMessage(friendlyError, "error");
+                btnSignIn.disabled = false;
+            }
+        });
+
+        // Auth state observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await reload(user);
+                const verified = user.emailVerified;
+
+                btnSignIn.style.display = 'none';
+                btnSignUp.style.display = 'none';
+                emailEl.disabled = true;
+                passwordEl.disabled = true;
+
+                // Only redirect if user just logged in, not on page revisit
+                const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+                if (verified && justLoggedIn) {
+                    sessionStorage.removeItem('justLoggedIn');
+                    showMessage("✓ Email verified! Redirecting...", "success");
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 800);
+                } else if (!verified) {
+                    showMessage("⏳ Please verify your email first. Check your inbox (and spam folder).", "info");
+                } else {
+                    // User is logged in and verified, but didn't just log in
+                    msgEl.style.display = 'none';
+                }
+
+            } else {
+                msgEl.style.display = 'none';
+                btnSignIn.style.display = 'block';
+                btnSignUp.style.display = 'block';
+                emailEl.disabled = false;
+                passwordEl.disabled = false;
+                btnSignIn.disabled = false;
+                btnSignUp.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>

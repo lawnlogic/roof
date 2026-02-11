@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://deepedge.nz/index.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- About Page -->
+  <url>
+    <loc>https://deepedge.nz/about.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog Listing -->
+  <url>
+    <loc>https://deepedge.nz/blog.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog Post: Best CRM for Tradies in NZ 2026 -->
+  <url>
+    <loc>https://deepedge.nz/best-crm-for-tradies-new-zealand-2026.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Help/Documentation Hub -->
+  <url>
+    <loc>https://deepedge.nz/help.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Login Page -->
+  <url>
+    <loc>https://deepedge.nz/login.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Public Quote View (Template - Dynamic IDs) -->
+  <url>
+    <loc>https://deepedge.nz/quote.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Public Invoice View (Template - Dynamic IDs) -->
+  <url>
+    <loc>https://deepedge.nz/invoice.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Products/Add-ons Page (Authenticated) -->
+  <url>
+    <loc>https://deepedge.nz/products.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Notes:
+    - Dashboard, Jobs, Create Job, Create Quote, Create Invoice, Profile pages require authentication and should not be in sitemap
+    - Quote and Invoice pages are public but typically accessed via direct links with IDs
+    - Update lastmod dates and changefreq as content is updated
+    - Add dynamic blog posts as separate entries when published
+  -->
+</urlset>

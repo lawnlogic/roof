@@ -307,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <button class="h-nav-link" onclick="window.location.href='dashboard.html'">Dashboard</button>
                 <button class="h-nav-link" onclick="window.location.href='jobs.html'">Jobs</button>
                 <button class="h-nav-link" onclick="window.location.href='profile.html'">Profile</button>
+                <button class="h-nav-link" onclick="window.location.href='help.html'">Help</button>
                 <button class="h-button-primary" onclick="window.location.href='index.html'">Home</button>
                 <button class="h-nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
                     <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -334,6 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <button onclick="window.location.href='dashboard.html'; closeMobileMenu();">Dashboard</button>
             <button onclick="window.location.href='jobs.html'; closeMobileMenu();">Jobs</button>
             <button onclick="window.location.href='profile.html'; closeMobileMenu();">Profile</button>
+            <button onclick="window.location.href='help.html'; closeMobileMenu();">Help</button>
             <button onclick="signOut(); closeMobileMenu();" style="color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">Sign Out</button>
         </div>
     </div>
