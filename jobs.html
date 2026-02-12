@@ -320,32 +320,50 @@
       visibility: visible;
     }
     .modal-content {
-      background: hsl(var(--card));
-      border-radius: 16px;
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 20px;
       width: 90%;
-      max-width: 420px;
-      padding: 28px;
-      box-shadow: var(--shadow);
+      max-width: 720px;
+      padding: 32px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
       transform: translateY(30px);
-      transition: transform 0.3s;
+      transition: all 0.3s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-overlay.active .modal-content:hover {
+      box-shadow: 0 32px 80px rgba(124, 58, 237, 0.15);
+      transform: translateY(0px);
     }
     .modal-overlay.active .modal-content {
       transform: translateY(0);
     }
     .modal-title {
-      font-size: 1.4rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
       font-weight: 700;
-      margin-bottom: 20px;
-      color: hsl(var(--foreground));
+      margin-bottom: 28px;
+      color: #7B2D8E;
+      letter-spacing: -0.02em;
     }
     .modal-select, .modal-input {
       width: 100%;
-      padding: 12px 16px;
+      padding: 14px 16px;
       margin-bottom: 16px;
-      border: 1px solid hsl(var(--border));
-      border-radius: 10px;
-      font-size: 1rem;
-      background: hsl(var(--secondary));
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.25s ease;
+    }
+    .modal-select:focus, .modal-input:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
     }
     .modal-buttons {
       display: flex;
@@ -354,24 +372,46 @@
       margin-top: 20px;
     }
     .btn-modal {
-      padding: 12px 24px;
-      border-radius: 10px;
+      padding: 14px 24px;
+      border-radius: 9999px;
       font-weight: 600;
       cursor: pointer;
       border: none;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
     }
     .btn-cancel {
       background: hsl(var(--border));
       color: hsl(var(--foreground));
     }
+    .btn-cancel:hover {
+      background: #d1d5db;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
     .btn-primary-modal {
-      background: var(--green);
+      background: #7B2D8E;
       color: white;
+      box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25);
+    }
+    .btn-primary-modal:hover:not(:disabled) {
+      background: #662375;
+      box-shadow: 0 8px 20px rgba(123, 45, 142, 0.35);
+      transform: translateY(-2px);
+    }
+    .btn-primary-modal:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
     .btn-send {
       background: #7B2D8E;
       color: white;
       flex: 1;
+    }
+    .btn-send:hover {
+      background: #662375;
+      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.3);
     }
     .send-options {
       display: flex;
@@ -379,17 +419,244 @@
       gap: 12px;
       margin-top: 16px;
     }
+    /* Modern Detail Section Styles */
+    .detail-section {
+      margin-bottom: 20px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(123, 45, 142, 0.04);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(123, 45, 142, 0.1);
+    }
+    .section-header:hover {
+      background: rgba(123, 45, 142, 0.08);
+      border-color: rgba(123, 45, 142, 0.2);
+    }
+    .section-header h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #7B2D8E;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .toggle-icon {
+      font-size: 0.8rem;
+      color: #7B2D8E;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+    }
+    .section-header.open .toggle-icon {
+      transform: rotate(-180deg);
+    }
+    .section-content {
+      padding: 16px;
+      background: rgba(123, 45, 142, 0.02);
+      border-radius: 0 0 10px 10px;
+      border: 1px solid hsl(var(--border));
+      border-top: none;
+      display: none;
+    }
+    .section-content.open {
+      display: block;
+    }
+    .section-content p {
+      margin: 12px 0;
+      font-size: 0.9rem;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    .section-content p strong {
+      color: #1B1B2F;
+      font-weight: 600;
+    }
+    .section-content h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1B1B2F;
+      margin: 16px 0 12px;
+      letter-spacing: -0.02em;
+    }
+    .section-content h4:first-child {
+      margin-top: 0;
+    }
+    .quote-invoice-item {
+      margin: 12px 0;
+      padding: 14px;
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .quote-invoice-item:hover {
+      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.1);
+      border-color: #7B2D8E;
+    }
+    .quote-invoice-item div {
+      gap: 0px;
+    }
+    .quote-invoice-item strong {
+      display: block;
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .quote-invoice-item span {
+      display: block;
+      color: #4b5563;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+    .quote-invoice-item a {
+      background: #7B2D8E;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .quote-invoice-item a:hover {
+      background: #662375;
+      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.3);
+      transform: translateY(-1px);
+    }
+    .activity-log-item {
+      margin: 12px 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    .activity-log-item:last-child {
+      border-bottom: none;
+    }
+    .activity-log-item strong {
+      color: #7B2D8E;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .activity-log-item p {
+      color: #4b5563;
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+    }
+    .no-content-message {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      padding: 8px 0;
+      font-style: italic;
+    }
+    .status-update-section {
+      margin: 28px 0;
+      padding: 20px;
+      background: rgba(123, 45, 142, 0.04);
+      border-radius: 12px;
+      border: 1px solid rgba(123, 45, 142, 0.1);
+    }
+    .status-update-section label {
+      display: block;
+      margin-bottom: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      color: #1B1B2F;
+      font-size: 0.95rem;
+    }
+    .danger-zone {
+      margin-top: 28px;
+      padding-top: 28px;
+      border-top: 2px solid #fee2e2;
+      text-align: center;
+    }
+    .danger-zone p {
+      color: #dc2626;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+    .btn-danger:hover {
+      background: #991b1b;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      transform: translateY(-1px);
+    }
+    /* Profile Input Group Styles */
+    .profile-input-group {
+      margin-bottom: 16px;
+    }
+    .profile-input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #1B1B2F;
+      font-size: 0.9rem;
+    }
+    .profile-input-group input[type="text"],
+    .profile-input-group input[type="email"],
+    .profile-input-group input[type="tel"],
+    .profile-input-group select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.25s ease;
+    }
+    .profile-input-group input:focus,
+    .profile-input-group select:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
+    }
     @media (max-width: 500px) {
       .primary-action { font-size: 1.04rem; padding: 14px 18px; }
       .job-address { font-size: 1.32rem; }
-      .modal-content { padding: 24px; }
+      .modal-content { padding: 20px; max-width: calc(100vw - 20px); }
       .menu { min-width: 200px; right: 10px; }
+      .modal-title { font-size: 1.4rem; margin-bottom: 20px; }
+      .quote-invoice-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .quote-invoice-item a {
+        width: 100%;
+        justify-content: center;
+      }
     }
     /* New styles for added elements */
     h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 20px; color: hsl(var(--foreground)); }
     .today-previews {
-      display: flex;
-      flex-direction: column;
       gap: 16px;
     }
     .mini-card {
@@ -1304,94 +1571,333 @@ function closeModal() {
   document.getElementById('modalOverlay').classList.remove('active');
 }
 function showJobDetailsModal(job, jobId) {
+  const firstName = escapeHtml(job.client?.firstName || '');
+  const lastName = escapeHtml(job.client?.lastName || '');
+  const email = escapeHtml(job.client?.email || '');
+  const phone = escapeHtml(job.client?.phone || '');
+  
   showModal(`
-    <div style="max-width:700px; width:90%; max-height:90vh; overflow-y:auto; padding:24px;">
-      <h2 class="modal-title">Job Details • ${escapeHtml(job.address || 'No address')}</h2>
-      <!-- Client Information -->
-      <div class="detail-section">
-        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
-          <h3>Client Information</h3>
-          <span class="toggle-icon">▼</span>
+    <h2 class="modal-title">${escapeHtml(job.address || 'No address')}</h2>
+    
+    <!-- Top Action Buttons -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+      <button id="emailClientBtn" class="btn-modal btn-primary-modal" style="flex: 1; background: #3b82f6;">Email</button>
+      <button id="smsClientBtn" class="btn-modal btn-primary-modal" style="flex: 1; background: #10b981;">SMS</button>
+      <button id="callClientBtn" class="btn-modal btn-primary-modal" style="flex: 1;">Call</button>
+    </div>
+    
+    <!-- Client Information -->
+    <div class="detail-section">
+      <div class="section-header">
+        <h3>Client Information</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div id="clientViewMode">
+          <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+          <p><strong>Email:</strong> ${email || '—'}</p>
+          <p><strong>Phone:</strong> ${phone || '—'}</p>
+          <button id="editClientBtn" class="btn-modal btn-primary-modal" style="margin-top: 12px; width: 100%;">Edit Info</button>
         </div>
-        <div class="section-content" style="display:none;">
-          <p><strong>Name:</strong> ${escapeHtml(job.client?.firstName || '')} ${escapeHtml(job.client?.lastName || '')}</p>
-          <p><strong>Email:</strong> ${escapeHtml(job.client?.email || '—')}</p>
-          <p><strong>Phone:</strong> ${escapeHtml(job.client?.phone || '—')}</p>
+        <div id="clientEditMode" style="display: none;">
+          <div class="profile-input-group">
+            <label>First Name</label>
+            <input type="text" id="editFirstName" value="${firstName}" />
+          </div>
+          <div class="profile-input-group">
+            <label>Last Name</label>
+            <input type="text" id="editLastName" value="${lastName}" />
+          </div>
+          <div class="profile-input-group">
+            <label>Email</label>
+            <input type="email" id="editEmail" value="${email}" />
+          </div>
+          <div class="profile-input-group">
+            <label>Phone</label>
+            <input type="tel" id="editPhone" value="${phone}" />
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button id="saveClientBtn" class="btn-modal btn-primary-modal" style="flex: 1;">Save</button>
+            <button id="cancelClientBtn" class="btn-modal btn-cancel" style="flex: 1;">Cancel</button>
+          </div>
         </div>
       </div>
-      <!-- Financials -->
-      <div class="detail-section">
-        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
-          <h3>Financials</h3>
-          <span class="toggle-icon">▼</span>
-        </div>
-        <div class="section-content" style="display:none;">
-          <h4>Quotes (${job.quotes?.length || 0})</h4>
-          ${job.quotes?.length > 0 ? job.quotes.map(q => `
-            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <strong>${escapeHtml(q.number || 'Quote')}</strong> – $${q.total?.toFixed(2) || '—'} (${q.date || '—'})
+    </div>
+    
+    <!-- Financials -->
+    <div class="detail-section">
+      <div class="section-header">
+        <h3>Financials</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <h4 style="margin-bottom: 12px;">Quotes (${job.quotes?.length || 0})</h4>
+        ${job.quotes?.length > 0 ? job.quotes.map(q => `
+          <div class="quote-invoice-item">
+            <div style="flex: 1;">
+              <strong>${escapeHtml(q.number || 'Quote')}</strong>
+              <span>$${q.total?.toFixed(2) || '—'} • ${q.date || '—'}</span>
+            </div>
+            <div style="position: relative; margin-left: auto;">
+              <button class="quote-menu-btn" data-quote-id="${q.id}" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 4px 8px; color: #4b5563;">⋮</button>
+              <div class="quote-menu" data-quote-id="${q.id}" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; min-width: 120px;">
+                <a href="quote.html?quote=${q.id}" target="_blank" style="display: block; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #7B2D8E; text-decoration: none; font-size: 0.9rem; font-weight: 500;">View</a>
+                <button class="edit-quote-btn" data-quote-id="${q.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #7B2D8E; cursor: pointer; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #e5e7eb;">Edit</button>
+                <button class="delete-quote-btn" data-quote-id="${q.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #dc2626; cursor: pointer; font-size: 0.9rem; font-weight: 500;">Delete</button>
               </div>
-              <a href="quote.html?quote=${q.id}" target="_blank" style="background:#7c3aed; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
-                View
-              </a>
             </div>
-          `).join('') : '<p style="color:#6b7280;">No quotes yet</p>'}
-          <h4 style="margin-top:24px;">Invoices (${job.invoices?.length || 0})</h4>
-          ${job.invoices?.length > 0 ? job.invoices.map(i => `
-            <div style="margin:12px 0; padding:12px; background:#f8f9fc; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <strong>Invoice #${escapeHtml(i.number || '—')}</strong> – $${i.total?.toFixed(2) || '—'} (${i.date || '—'})
+          </div>
+        `).join('') : '<p class="no-content-message">No quotes yet</p>'}
+        
+        <h4 style="margin-top: 20px; margin-bottom: 12px;">Invoices (${job.invoices?.length || 0})</h4>
+        ${job.invoices?.length > 0 ? job.invoices.map(i => `
+          <div class="quote-invoice-item">
+            <div style="flex: 1;">
+              <strong>Invoice #${escapeHtml(i.number || '—')}</strong>
+              <span>$${i.total?.toFixed(2) || '—'} • ${i.date || '—'}</span>
+            </div>
+            <div style="position: relative; margin-left: auto;">
+              <button class="invoice-menu-btn" data-invoice-id="${i.id}" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 4px 8px; color: #4b5563;">⋮</button>
+              <div class="invoice-menu" data-invoice-id="${i.id}" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; min-width: 120px;">
+                <a href="invoice.html?inv=${i.id}" target="_blank" style="display: block; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #7B2D8E; text-decoration: none; font-size: 0.9rem; font-weight: 500;">View</a>
+                <button class="edit-invoice-btn" data-invoice-id="${i.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #7B2D8E; cursor: pointer; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #e5e7eb;">Edit</button>
+                <button class="delete-invoice-btn" data-invoice-id="${i.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #dc2626; cursor: pointer; font-size: 0.9rem; font-weight: 500;">Delete</button>
               </div>
-              <a href="invoice.html?inv=${i.id}" target="_blank" style="background:#10b981; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.9rem;">
-                View
-              </a>
             </div>
-          `).join('') : '<p style="color:#6b7280;">No invoices yet</p>'}
-        </div>
+          </div>
+        `).join('') : '<p class="no-content-message">No invoices yet</p>'}
       </div>
-      <!-- Activity Log -->
-      <div class="detail-section">
-        <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
-          <h3>Activity Log (${job.activityLog?.length || 0})</h3>
-          <span class="toggle-icon">▼</span>
-        </div>
-        <div class="section-content activity-log" style="display:none;">
-          ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => `
-            <div style="margin:12px 0; padding-bottom:12px; border-bottom:1px solid #eee;">
-              <strong>${formatTimestamp(log.timestamp)}</strong>
-              <p style="margin:4px 0 0;">${escapeHtml(log.action)}</p>
-            </div>
-          `).join('') : '<p>No activity logged yet.</p>'}
-        </div>
+    </div>
+    
+    <!-- Activity Log -->
+    <div class="detail-section">
+      <div class="section-header">
+        <h3>Activity Log (${job.activityLog?.length || 0})</h3>
+        <span class="toggle-icon">▼</span>
       </div>
-      <!-- Manual Status Update -->
-      <div style="margin:32px 0;">
-        <label style="display:block; margin-bottom:8px; font-weight:600;">Update job status (Manual)</label>
-        <select id="manualStatus" class="modal-select">
-          <option value="created">Created / Lead</option>
-          <option value="quoted">Quote Created</option>
-          <option value="quoteSent">Quote Sent</option>
-          <option value="won">Job Won</option>
-          <option value="progress">In Progress</option>
-          <option value="completed">Completed</option>
-          <option value="invoiced">Invoiced</option>
-          <option value="paid">Paid</option>
-        </select>
-        <button id="applyManualStatus" class="btn-modal btn-primary-modal" style="margin-top:12px; width:100%;">Apply Status</button>
+      <div class="section-content">
+        ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => `
+          <div class="activity-log-item">
+            <strong>${formatTimestamp(log.timestamp)}</strong>
+            <p>${escapeHtml(log.action)}</p>
+          </div>
+        `).join('') : '<p class="no-content-message">No activity logged yet</p>'}
       </div>
-      <!-- Delete Job -->
-      <div style="margin-top:32px; text-align:center;">
-        <button id="deleteJobBtn" class="btn-modal" style="background:#dc2626; color:white; padding:12px 24px; border:none; border-radius:8px; cursor:pointer;">
-          Delete Job
-        </button>
-      </div>
-      <div class="modal-buttons" style="margin-top:40px; justify-content:center;">
-        <button class="btn-modal btn-cancel" onclick="closeModal()">Close</button>
-      </div>
+    </div>
+    
+    <!-- Manual Status Update -->
+    <div class="status-update-section">
+      <label>Manually update Job Status</label>
+      <select id="manualStatus" class="modal-select">
+        <option value="created" ${job.status === 'created' ? 'selected' : ''}>Created / Lead</option>
+        <option value="quoted" ${job.status === 'quoted' ? 'selected' : ''}>Quote Created</option>
+        <option value="quoteSent" ${job.status === 'quoteSent' ? 'selected' : ''}>Quote Sent</option>
+        <option value="won" ${job.status === 'won' ? 'selected' : ''}>Job Won</option>
+        <option value="progress" ${job.status === 'progress' ? 'selected' : ''}>In Progress</option>
+        <option value="completed" ${job.status === 'completed' ? 'selected' : ''}>Completed</option>
+        <option value="invoiced" ${job.status === 'invoiced' ? 'selected' : ''}>Invoiced</option>
+        <option value="paid" ${job.status === 'paid' ? 'selected' : ''}>Paid</option>
+      </select>
+      <button id="applyManualStatus" class="btn-modal btn-primary-modal" style="margin-top:12px; width:100%;">Apply Status</button>
+    </div>
+    
+    <!-- Danger Zone -->
+    <div class="danger-zone">
+      <button id="deleteJobBtn" class="btn-danger">Delete Job</button>
+    </div>
+    
+    <!-- Actions Footer -->
+    <div class="modal-buttons" style="margin-top:32px; justify-content:center;">
+      <button class="btn-modal btn-cancel" onclick="closeModal()">Close</button>
     </div>
   `);
   const modal = document.getElementById('modalContent');
+  
+  // Setup collapsible sections
+  modal.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const content = header.nextElementSibling;
+      header.classList.toggle('open');
+      content.classList.toggle('open');
+    });
+  });
+  
+  // Top Action Buttons
+  modal.querySelector('#emailClientBtn').onclick = () => {
+    if (email) window.location.href = `mailto:${email}`;
+    else showToast('No email address on file');
+  };
+  
+  modal.querySelector('#smsClientBtn').onclick = () => {
+    if (phone) window.open(`sms:${phone.replace(/\D/g, '')}`);
+    else showToast('No phone number on file');
+  };
+  
+  modal.querySelector('#callClientBtn').onclick = () => {
+    if (phone) window.location.href = `tel:${phone.replace(/\D/g, '')}`;
+    else showToast('No phone number on file');
+  };
+  
+  // Client Edit Mode Toggle
+  const clientViewMode = modal.querySelector('#clientViewMode');
+  const clientEditMode = modal.querySelector('#clientEditMode');
+  const editClientBtn = modal.querySelector('#editClientBtn');
+  const saveClientBtn = modal.querySelector('#saveClientBtn');
+  const cancelClientBtn = modal.querySelector('#cancelClientBtn');
+  
+  editClientBtn.onclick = () => {
+    clientViewMode.style.display = 'none';
+    clientEditMode.style.display = 'block';
+  };
+  
+  cancelClientBtn.onclick = () => {
+    clientViewMode.style.display = 'block';
+    clientEditMode.style.display = 'none';
+  };
+  
+  saveClientBtn.onclick = async () => {
+    const newFirstName = modal.querySelector('#editFirstName').value.trim();
+    const newLastName = modal.querySelector('#editLastName').value.trim();
+    const newEmail = modal.querySelector('#editEmail').value.trim();
+    const newPhone = modal.querySelector('#editPhone').value.trim();
+    
+    try {
+      saveClientBtn.disabled = true;
+      saveClientBtn.textContent = 'Saving...';
+      
+      const token = await auth.currentUser.getIdToken();
+      const requestBody = {
+        client: {
+          firstName: newFirstName,
+          lastName: newLastName,
+          email: newEmail,
+          phone: newPhone
+        }
+      };
+      
+      console.log('Saving client info. JobId:', jobId, 'Body:', requestBody);
+      
+      const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      const responseData = await res.json().catch(() => ({}));
+      
+      if (!res.ok) {
+        console.error('API Error:', res.status, responseData);
+        throw new Error(responseData.error || `Failed to update client info (${res.status})`);
+      }
+      
+      showToast('Client info updated');
+      closeModal();
+      loadAndRenderJobs();
+    } catch (err) {
+      console.error('Save client error:', err);
+      showToast('Failed to update: ' + (err.message || 'Unknown error'), 'error');
+      saveClientBtn.disabled = false;
+      saveClientBtn.textContent = 'Save';
+    }
+  };
+  
+  // Quote/Invoice Menu Buttons
+  modal.querySelectorAll('.quote-menu-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const menu = btn.nextElementSibling;
+      modal.querySelectorAll('.quote-menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+      });
+      modal.querySelectorAll('.invoice-menu').forEach(m => m.style.display = 'none');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    };
+  });
+  
+  modal.querySelectorAll('.invoice-menu-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const menu = btn.nextElementSibling;
+      modal.querySelectorAll('.invoice-menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+      });
+      modal.querySelectorAll('.quote-menu').forEach(m => m.style.display = 'none');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    };
+  });
+  
+  // Edit Quote
+  modal.querySelectorAll('.edit-quote-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const quoteId = btn.dataset.quoteId;
+      window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+    };
+  });
+  
+  // Delete Quote
+  modal.querySelectorAll('.delete-quote-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      const quoteId = btn.dataset.quoteId;
+      if (!confirm('Delete this quote permanently?')) return;
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast('Quote deleted');
+        closeModal();
+        loadAndRenderJobs();
+      } catch (err) {
+        showToast('Failed to delete quote: ' + err.message, 'error');
+      }
+    };
+  });
+  
+  // Edit Invoice
+  modal.querySelectorAll('.edit-invoice-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const invoiceId = btn.dataset.invoiceId;
+      window.location.href = `invoice.html?inv=${invoiceId}&edit=true`;
+    };
+  });
+  
+  // Delete Invoice
+  modal.querySelectorAll('.delete-invoice-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      const invoiceId = btn.dataset.invoiceId;
+      if (!confirm('Delete this invoice permanently?')) return;
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast('Invoice deleted');
+        closeModal();
+        loadAndRenderJobs();
+      } catch (err) {
+        showToast('Failed to delete invoice: ' + err.message, 'error');
+      }
+    };
+  });
+  
+  // Close menus on outside click
+  document.addEventListener('click', (e) => {
+    if (!modal.contains(e.target)) {
+      modal.querySelectorAll('.quote-menu, .invoice-menu').forEach(m => m.style.display = 'none');
+    }
+  });
+  
   // Manual status update — sends to backend and reloads all jobs
   modal.querySelector('#applyManualStatus').onclick = async () => {
     const newStatus = modal.querySelector('#manualStatus').value;
@@ -2074,6 +2580,7 @@ function expandMiniCard(card, job, jobId, jobs) {
     <div class="job-card job-card-expanded" 
          data-stage="${statusInfo.id || 'created'}"
          data-job-id="${job.id || 'MISSING-ID'}"
+         data-quote-id="${latestQuoteExpanded?.id || ''}"
          data-is-recurring="${job.isRecurring ? 'true' : 'false'}"
          style="margin-bottom: 32px; animation: slideDown 0.3s ease;">
       <div class="overflow">⋯</div>
@@ -2726,7 +3233,27 @@ function attachSingleCardEventListeners(card, jobs) {
         });
       }
       else if (action === 'edit-quote') {
-        window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+        if (currentMenu) currentMenu.classList.remove('show');
+        
+        // Fetch the full quote data to prefill the form
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!res.ok) throw new Error(`Failed to load quote: ${res.status}`);
+          const quoteData = await res.json();
+          
+          // Store quote data in sessionStorage so create_quote.html can prefill the form
+          sessionStorage.setItem('editQuoteData', JSON.stringify(quoteData));
+          
+          // Navigate to edit page
+          window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+        } catch (err) {
+          console.error('Failed to load quote for editing:', err);
+          showToast('Could not load quote data: ' + err.message, 'error');
+        }
       }
       else if (action === 'delete-quote') {
         if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
@@ -3943,7 +4470,27 @@ function attachCardEventListeners() {
           });
         }
         else if (action === 'edit-quote') {
-          window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+          if (currentMenu) currentMenu.classList.remove('show');
+          
+          // Fetch the full quote data to prefill the form
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!res.ok) throw new Error(`Failed to load quote: ${res.status}`);
+            const quoteData = await res.json();
+            
+            // Store quote data in sessionStorage so create_quote.html can prefill the form
+            sessionStorage.setItem('editQuoteData', JSON.stringify(quoteData));
+            
+            // Navigate to edit page
+            window.location.href = `create_quote.html?jobId=${jobId}&quote=${quoteId}&edit=true`;
+          } catch (err) {
+            console.error('Failed to load quote for editing:', err);
+            showToast('Could not load quote data: ' + err.message, 'error');
+          }
         }
         else if (action === 'delete-quote') {
           if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;

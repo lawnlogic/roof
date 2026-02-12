@@ -1468,19 +1468,29 @@
       // ── Load quote if editing ─────────────────────────────────────
       if (isEditMode && quoteId) {
         try {
-          const token = await user.getIdToken();  // keep it anyway, in case backend logs it or something
+          const token = await user.getIdToken();
 
-          // Use the PUBLIC endpoint that we know works
-          const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }  // optional but harmless
-          });
+          let quote = null;
+          
+          // First, check if quote data was prefetched and stored in sessionStorage
+          const prefetchedData = sessionStorage.getItem('editQuoteData');
+          if (prefetchedData) {
+            quote = JSON.parse(prefetchedData);
+            sessionStorage.removeItem('editQuoteData'); // Clear it after using
+          } else {
+            // Fallback: fetch from API if not prefetched
+            const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-          if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(errText || `Quote not found (status ${res.status})`);
+            if (!res.ok) {
+              const errText = await res.text();
+              throw new Error(errText || `Quote not found (status ${res.status})`);
+            }
+
+            quote = await res.json();
           }
 
-          const quote = await res.json();
           editingQuoteData = quote;
           editingQuoteId   = quoteId;
 

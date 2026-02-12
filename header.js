@@ -1,4 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Inject favicon
+  const favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.type = 'image/png';
+  favicon.href = 'Images/logo.png';
+  document.head.appendChild(favicon);
+
   // Inject header styles - EXACT SIZING IN PX FOR CONSISTENCY ACROSS ALL PAGES
   const headerStyles = document.createElement('style');
   headerStyles.setAttribute('data-header-inject', 'true');
