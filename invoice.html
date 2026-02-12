@@ -397,7 +397,10 @@
   </div>
 
   <div class="container">
-    <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+      <div id="action-buttons" style="display: flex; gap: 12px;"></div>
+    </div>
     <div class="invoice-header">
       <h1>Your Invoice</h1>
       <p>Professional lawn care invoice with billing details and property information</p>
@@ -506,6 +509,21 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const invId = urlParams.get('inv');
+    const isEditMode = urlParams.get('edit') === 'true';
+
+    // Add edit button if in edit mode
+    if (isEditMode && invId) {
+      const actionButtonsDiv = document.getElementById('action-buttons');
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit Invoice';
+      editBtn.style.cssText = 'background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;';
+      editBtn.onmouseover = () => editBtn.style.background = '#662375';
+      editBtn.onmouseout = () => editBtn.style.background = '#7B2D8E';
+      editBtn.onclick = () => {
+        window.location.href = `create_invoice.html?invoice=${invId}&edit=true`;
+      };
+      actionButtonsDiv.appendChild(editBtn);
+    }
 
     if (!invId) {
       document.body.innerHTML = '<div class="container"><h2>Invalid or missing invoice ID</h2></div>';

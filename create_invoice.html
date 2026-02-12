@@ -3,94 +3,1130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
   <title>Create Invoice • Deep Edge</title>
   <link rel="stylesheet" href="styles.css">
   <script src="sms.js" defer></script>
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
   <script src="header.js" defer></script>
+
+  <!-- Leaflet + Draw -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <!-- Turf.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    /* Core custom styles - matching index.html and quote.html */
+    :root {
+      --background: 270 30% 97%;
+      --foreground: 245 35% 15%;
+      --card: 0 0% 100%;
+      --primary: 288 52% 36%;
+      --secondary: 270 20% 96%;
+      --accent: 288 52% 36%;
+      --border: 245 20% 88%;
+      --radius: 1.75rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      color: hsl(var(--foreground));
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding: 5rem 20px 40px 20px;
+      line-height: 1.45;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+      line-height: 0.98;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #1B1B2F;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+    }
+    h2 { 
+      font-size: 1.5rem; 
+      font-weight: 700; 
+      margin: 48px 0 28px; 
+      color: #1B1B2F;
+      letter-spacing: -0.3px;
+    }
+    h3 { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      margin-bottom: 24px; 
+      color: #1B1B2F;
+      letter-spacing: -0.2px;
+    }
+
+    .create-quote-header {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .create-quote-header h1 {
+      margin-bottom: 12px;
+      font-size: clamp(28px, 6vw, 48px);
+    }
+
+    .create-quote-header p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      margin: 0;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .create-quote-container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input-group label {
+      color: #1B1B2F;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.2px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="date"],
+    select {
+      padding: 14px 16px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      transition: all 0.25s ease;
+    }
+
+    #addon-services {
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 120px;
+      background: white;
+      border: 1px solid rgba(123, 45, 142, 0.2);
+    }
+
+    #addon-services option {
+      padding: 8px;
+      background: white;
+      color: #1B1B2F;
+    }
+
+    #addon-services option:checked {
+      background: linear-gradient(#7B2D8E, #7B2D8E);
+      background-color: #7B2D8E;
+      color: white;
+    }
+
+    /* Add-on Services Custom Dropdown */
+    .addon-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #1B1B2F;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .addon-toggle-btn:hover {
+      border-color: #7B2D8E;
+      background: white;
+    }
+
+    .addon-toggle-btn:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
+    }
+
+    #addon-arrow {
+      transition: transform 0.3s ease;
+    }
+
+    .addon-toggle-btn.active #addon-arrow {
+      transform: rotate(180deg);
+    }
+
+    .addon-services-dropdown {
+      margin-top: 12px;
+      border: 1px solid rgba(123, 45, 142, 0.2);
+      border-radius: 16px;
+      background: white;
+      padding: 16px;
+      max-height: 500px;
+      overflow-y: auto;
+      animation: slideDown 0.3s ease;
+    }
+
+    .addon-services-dropdown.hidden {
+      display: none;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .addon-items-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .addon-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border: 1.5px solid rgba(229, 231, 235, 0.6);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .addon-item:hover {
+      border-color: #7B2D8E;
+      background: rgba(123, 45, 142, 0.02);
+      transform: translateY(-2px);
+    }
+
+    .addon-item input[type="checkbox"] {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      cursor: pointer;
+      accent-color: #7B2D8E;
+      border-radius: 50%;
+    }
+
+    .addon-item-content {
+      flex: 1;
+    }
+
+    .addon-item-title {
+      display: block;
+      font-weight: 600;
+      color: #1B1B2F;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .addon-item-description {
+      display: block;
+      font-size: 0.85rem;
+      color: #6E6E82;
+      line-height: 1.4;
+    }
+
+    .addon-item input[type="checkbox"]:checked {
+      background-color: #7B2D8E;
+      border-color: #7B2D8E;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="email"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      background: white;
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="number"]::placeholder,
+    input[type="email"]::placeholder {
+      color: #b4b7c3;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #e5e7eb 0%, #f3f4f6 100%);
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #7B2D8E;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(123, 45, 142, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 16px rgba(123, 45, 142, 0.35);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #7B2D8E;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 3px 12px rgba(123, 45, 142, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 16px rgba(123, 45, 142, 0.35);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      background: rgba(247, 242, 252, 0.6);
+      border: 1px solid rgba(229, 231, 235, 0.4);
+      border-radius: 14px;
+      margin-bottom: 24px;
+      transition: all 0.25s ease;
+    }
+
+    .checkbox-group:hover {
+      background: rgba(247, 242, 252, 0.9);
+      border-color: rgba(123, 45, 142, 0.2);
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+      color: #1B1B2F;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #7B2D8E;
+    }
+
+    input[readonly] {
+      background: rgba(249, 250, 251, 0.7);
+      color: #6b7280;
+    }
+
+    .slider-container {
+      margin-bottom: 32px;
+      background: rgba(247, 242, 252, 0.4);
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(229, 231, 235, 0.3);
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      color: #1B1B2F;
+      font-weight: 600;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 14px;
+      box-shadow: 0 10px 32px rgba(27, 27, 47, 0.12);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 100;
+      margin-top: 8px;
+    }
+
+    .suggestion-item {
+      padding: 14px 16px;
+      cursor: pointer;
+      color: #1B1B2F;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+      background: rgba(247, 242, 252, 0.6);
+      color: #7B2D8E;
+      padding-left: 20px;
+    }
+
+    .action-button {
+      background: #7B2D8E;
+      color: white;
+      padding: 13px 28px;
+      border: none;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(123, 45, 142, 0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      max-width: 300px;
+      margin-left: auto;
+    }
+
+    .action-button:hover {
+      background: #662375;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(123, 45, 142, 0.3);
+    }
+
+    .action-button:active {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(123, 45, 142, 0.2);
+    }
+
+    .action-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .action-button.secondary {
+      background: rgba(229, 231, 235, 0.8);
+      color: #1B1B2F;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .action-button.secondary:hover {
+      background: #e5e7eb;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .result,
+    .error {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 18px;
+      padding: 28px;
+      margin: 28px 0;
+      box-shadow: 0 8px 28px rgba(27, 27, 47, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .result:hover {
+      box-shadow: 0 12px 36px rgba(27, 27, 47, 0.12);
+    }
+
+    .error {
+      border-color: rgba(254, 202, 202, 0.6);
+      background: rgba(254, 242, 242, 0.8);
+      color: #dc2626;
+    }
+
+    #address-display {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1B1B2F;
+      margin-bottom: 16px;
+      letter-spacing: -0.2px;
+    }
+
+    #area, #time {
+      color: #6b7280;
+      margin: 10px 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    #area strong, #time strong {
+      color: #7B2D8E;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #aerial-container {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    #aerial-container:hover {
+      box-shadow: 0 32px 80px rgba(27, 27, 47, 0.12);
+    }
+
+    #aerial-container h2 {
+      margin: 0 0 12px 0;
+    }
+
+    #aerial-container p {
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    #aerial-map {
+      width: 100%;
+      height: 500px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+      #aerial-map {
+        height: 600px;
+      }
+    }
+
+    .map-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 24px;
+      justify-content: center;
+      border-radius: 14px;
+      margin-top: 20px;
+    }
+
+    .map-controls .action-button {
+      min-width: 120px;
+      margin-left: 0;
+    }
+
+    .pricing-box {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.08);
+      margin: 28px 0;
+      transition: all 0.3s ease;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    .pricing-box-left {
+      grid-column: 1;
+    }
+
+    .pricing-box-right {
+      grid-column: 2;
+    }
+
+    .pricing-summary {
+      grid-column: 1 / -1;
+    }
+
+    .pricing-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 32px 90px rgba(123, 45, 142, 0.12);
+    }
+
+    .pricing-box h3 {
+      margin-bottom: 28px;
+    }
+
+    .pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      font-size: 0.95rem;
+    }
+
+    .pricing-row span {
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .pricing-row strong {
+      color: #1B1B2F;
+      font-weight: 600;
+    }
+
+    .pricing-row:last-of-type {
+      border-bottom: 2px solid rgba(229, 231, 235, 0.6);
+      padding: 22px 0;
+      margin-top: 8px;
+    }
+
+    .pricing-row:last-of-type strong {
+      color: #7B2D8E;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    #generate-pdf-btn {
+      display: block;
+      margin-top: 32px;
+      margin-left: auto;
+    }
+
+    #quote-link-box {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(240, 249, 255, 0.6);
+      border: 1px solid rgba(191, 219, 254, 0.5);
+      border-radius: 14px;
+      color: #1e40af;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    #quote-link-box a {
+      color: #7B2D8E;
+      word-break: break-all;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    #quote-link-box a:hover {
+      color: #662375;
+      text-decoration: underline;
+    }
+
+    #address-suggestions {
+      position: relative;
+      z-index: 100;
+    }
+
+    #result, #error {
+      position: relative;
+    }
+
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #loading-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #7B2D8E;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #loading-splash p {
+      font-size: 1.1rem;
+      color: #6E6E82;
+      font-weight: 500;
+    }
+
+    .mower-type-group {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0 24px;
+      flex-wrap: wrap;
+    }
+
+    .mower-type-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 13px 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 2px solid rgba(229, 231, 235, 0.6);
+      border-radius: 12px;
+      font-weight: 500;
+      color: #1B1B2F;
+      transition: all 0.25s ease;
+    }
+
+    .mower-type-group label:hover {
+      border-color: #7B2D8E;
+      background: rgba(247, 242, 252, 0.9);
+    }
+
+    .mower-type-group input[type="radio"] {
+      margin: 0;
+      cursor: pointer;
+      accent-color: #7B2D8E;
+    }
+
+    .mower-type-group input[type="radio"]:checked + label,
+    .mower-type-group label input[type="radio"]:checked {
+      border-color: #7B2D8E;
+      background: rgba(247, 242, 252, 0.95);
+      box-shadow: 0 0 0 3px rgba(123, 45, 142, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 4.5rem 16px 24px 16px;
+      }
+
+      h1 { 
+        font-size: 1.75rem; 
+      }
+      h2 { 
+        font-size: 1.25rem; 
+        margin: 28px 0 20px; 
+      }
+
+      .create-quote-container {
+        max-width: 100%;
+      }
+
+      .pricing-box {
+        padding: 24px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .pricing-box-left {
+        grid-column: 1;
+      }
+
+      .pricing-box-right {
+        grid-column: 1;
+      }
+
+      .pricing-summary {
+        grid-column: 1;
+      }
+
+      .result, .error {
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      #aerial-map {
+        height: 400px;
+      }
+
+      .map-controls {
+        padding: 16px;
+        gap: 10px;
+      }
+
+      .map-controls .action-button {
+        min-width: auto;
+        padding: 11px 14px;
+        font-size: 0.85rem;
+        margin-left: 0;
+      }
+
+      .action-button {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .slider-container {
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+
+      .checkbox-group {
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+
+      .addon-services-dropdown {
+        max-height: 400px;
+      }
+
+      .addon-item {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .addon-item-title {
+        font-size: 0.9rem;
+      }
+
+      .addon-item-description {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container" style="max-width: 640px;">
-    <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
-
-    <h2>Create Invoice</h2>
-    <p style="color:#aaa; margin: -8px 0 24px 0;">
-      Create invoice from existing quote
-    </p>
-
-    <!-- Quote Selection -->
-    <div class="input-group">
-      <label for="quote-select">Select Quote to Invoice</label>
-      <select id="quote-select">
-        <option value="">-- Choose a quote without invoice --</option>
-      </select>
-    </div>
-
-    <!-- Invoice Details Form (hidden until quote selected) -->
-    <div id="invoice-form" class="hidden">
-      <div class="pricing-box" style="margin: 24px 0;">
-        <div class="pricing-row">
-          <span>Job Address:</span>
-          <strong id="inv-address"></strong>
-        </div>
-        <div class="pricing-row">
-          <span>Client:</span>
-          <strong id="inv-client"></strong>
-        </div>
-        <div class="pricing-row">
-          <span>Quote Amount (incl GST):</span>
-          <strong id="inv-total"></strong>
-        </div>
-      </div>
-
-      <!-- Invoice Specific Fields -->
-      <div class="input-group">
-        <label for="inv-number">Invoice Number</label>
-        <input type="text" id="inv-number" placeholder="INV-2025-001" />
-      </div>
-
-      <div class="input-group">
-        <label for="issue-date">Issue Date</label>
-        <input type="date" id="issue-date" value="" />
-      </div>
-
-      <div class="input-group">
-        <label for="due-date">Due Date</label>
-        <input type="date" id="due-date" value="" />
-      </div>
-
-      <div class="input-group">
-        <label for="payment-terms">Payment Terms</label>
-        <select id="payment-terms">
-          <option value="7">7 Days</option>
-          <option value="14" selected>14 Days</option>
-          <option value="20th-next">20th of following month</option>
-          <option value="custom">Custom</option>
-        </select>
-      </div>
-
-      <div class="input-group">
-        <label for="inv-notes">Notes / Payment Instructions</label>
-        <textarea id="inv-notes" rows="4" placeholder="Bank account: 02-1234-5678901-00&#10;Please pay by internet banking. Thank you!"></textarea>
-      </div>
-
-      <button id="generate-invoice-btn" class="action-button" style="margin-top: 24px; width:100%;">
-        Generate Invoice
-      </button>
-    </div>
-
-    <div id="success-message" class="hidden" style="margin-top:32px; padding:20px; background:#1e3a2e; border-radius:12px; text-align:center;">
-      <h3 style="margin:0 0 12px 0; color:#8B5CF6;">Invoice Created!</h3>
-      <p id="invoice-link-text"></p>
-      <a id="view-invoice-btn" class="quote-link-btn" style="display:inline-block; margin-top:16px;" target="_blank">View Invoice</a>
-    </div>
-
-    <div id="error-message" class="error hidden" style="margin-top:24px;"></div>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="spinner"></div>
+    <p>Loading property data...</p>
   </div>
 
+  <div class="create-quote-container">
+    <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+    <div class="create-quote-header">
+      <h1>Create Invoice</h1>
+      <p>Enter a property address to create a professional invoice. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
+    </div>
+
+    <!-- Address Input Section -->
+    <div class="input-group">
+      <label for="address">Property Address</label>
+      <div style="position: relative;">
+        <input type="text" id="address" placeholder="E.g., 123 Main Street, Auckland..." autocomplete="off" />
+        <div id="address-suggestions" class="suggestions hidden"></div>
+      </div>
+    </div>
+
+    <button id="lookup-btn" class="action-button">🔍 Calculate Lawn Area</button>
+
+    <div id="result" class="result hidden">
+      <div id="address-display"></div>
+      <div id="area"></div>
+      <div id="time"></div>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+
+    <!-- Aerial Map Section -->
+    <div id="aerial-container" class="hidden">
+      <h2>Aerial View & Lawn Measurement</h2>
+      <p>Edit the map to exclude everything that won't be mowed (buildings, driveways, gardens, etc.)</p>
+
+      <div id="aerial-map"></div>
+      
+      <!-- Control buttons -->
+      <div class="map-controls">
+        <button id="btn-new-shape" class="action-button">➕ New Area</button>
+        <button id="btn-edit-shapes" class="action-button secondary">✏️ Edit Areas</button>
+        <button id="btn-finish-editing" class="action-button" style="display: none;">✓ Finish Editing</button>
+      </div>
+    </div>
+
+    <!-- Invoice Settings Card -->
+    <div id="pricing-box" class="pricing-box hidden">
+      <div class="pricing-box-left">
+        <h3>Invoice Details</h3>
+
+        <div class="input-group">
+          <label for="invoice-number">Invoice Number</label>
+          <input type="text" id="invoice-number" placeholder="e.g. INV-042 or 2026-015" />
+        </div>
+
+        <div class="input-group">
+          <label for="invoice-date">Invoice Date</label>
+          <input type="date" id="invoice-date" />
+        </div>
+
+        <div class="input-group">
+          <label for="due-date">Due Date</label>
+          <input type="date" id="due-date" />
+        </div>
+
+        <!-- Mower Type Selection -->
+        <div class="input-group">
+          <label>Mower Type</label>
+          <div class="mower-type-group">
+            <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              <input type="radio" name="mowerType" value="push" id="mower-push" checked />
+              Push Mower
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+              <input type="radio" name="mowerType" value="rideon" id="mower-rideon" />
+              Ride-on Mower
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="estimated-job-time">Estimated Job Time (hours)</label>
+          <input type="number" id="estimated-job-time" value="0.0" step="0.25" min="0" readonly />
+        </div>
+
+        <div class="input-group">
+          <label for="callout-input">Call-out / Travel Fee (ex GST)</label>
+          <input type="number" id="callout-input" value="80" step="10" min="0" />
+        </div>
+
+        <!-- Difficulty Multiplier -->
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Job Difficulty Multiplier</span>
+            <span id="difficulty-value">1.0x</span>
+          </div>
+          <input type="range" id="difficulty-slider" min="1.0" max="2.0" step="0.1" value="1.0" />
+        </div>
+
+        <!-- Add-on Services -->
+        <div class="input-group">
+          <button type="button" id="addon-toggle-btn" class="addon-toggle-btn">
+            <span>Add-on Services</span>
+            <span id="addon-arrow" style="display: inline-block; transition: transform 0.3s ease;">▼</span>
+          </button>
+          <p style="font-size: 0.85rem; color: #7B2D8E; margin-top: 8px; font-weight: 500;">⚠️ Unless otherwise specified, on-site quote required</p>
+          <div id="addon-services-dropdown" class="addon-services-dropdown hidden">
+            <div id="addon-items-container" class="addon-items-container">
+              <!-- Addon items will be generated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pricing-box-right">
+        <h3>Time Since Last Cut</h3>
+        <div class="input-group">
+          <label for="time-since-cut">How long since the lawn was last cut?</label>
+          <select id="time-since-cut">
+            <option value="">-- Select frequency --</option>
+            <option value="1 Week">1 Week</option>
+            <option value="2 Weeks">2 Weeks</option>
+            <option value="1 Month">1 Month</option>
+            <option value="2 Months">2 Months</option>
+            <option value="3 Months">3 Months</option>
+            <option value="6 Months">6 Months</option>
+          </select>
+        </div>
+        <div id="time-cutoff-info" style="margin-top: 16px; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+          <p style="margin: 0; font-size: 0.9rem; color: #1B1B2F;"><strong>Estimation Hours:</strong> <span id="adjustment-factor-display">1.0x</span></p>
+          <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #6E6E82;" id="time-cutoff-notes"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing Summary Container (at the end) -->
+    <div class="pricing-box" style="margin-top: 40px;">
+      <h3 style="margin-bottom: 24px; font-size: 1.2rem; grid-column: 1 / -1;">Pricing Summary</h3>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Invoice Number</span>
+        <strong id="invoice-number-display">-</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Invoice Date</span>
+        <strong id="invoice-date-display">-</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Due Date</span>
+        <strong id="due-date-display">-</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Estimated Job Hours</span>
+        <strong id="estimated-hours-display">0.0 hrs</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Lawn Area</span>
+        <strong id="final-area">0 m²</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Callout Fee (ex GST)</span>
+        <strong style="color: #1B1B2F;" id="callout-display">$0.00</strong>
+      </div>
+
+      <!-- Selected Add-ons Display -->
+      <div id="selected-addons-display" style="grid-column: 1 / -1; margin: 20px 0; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #666;">Selected add-ons:</p>
+        <div id="selected-addons-list" style="font-size: 0.9rem; color: #1B1B2F;"></div>
+        <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: #7B2D8E; font-weight: 500;">⚠️ Pricing to be quoted on site</p>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Add-on Services (ex GST)</span>
+        <strong style="color: #7B2D8E;" id="addons-display">TBD</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Subtotal (ex GST)</span>
+        <strong id="total-revenue">$0.00</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>GST (15%)</span>
+        <strong id="gst">$0.00</strong>
+      </div>
+      
+      <div class="pricing-row" style="grid-column: 1 / -1; border-bottom: 2px solid rgba(229, 231, 235, 0.4); padding-bottom: 16px; margin-bottom: 16px;">
+        <span>Subtotal (incl GST)</span>
+        <strong id="total-incl-display">$0.00</strong>
+      </div>
+
+      <div class="pricing-row" style="grid-column: 1 / -1;">
+        <span>Final Invoice Amount (incl GST)</span>
+        <input type="number" id="final-price-input" value="0.00" step="0.01" min="0" style="width: 120px; padding: 8px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 6px; text-align: right; font-weight: bold; font-family: monospace;" />
+      </div>
+
+      <!-- Adjustments Row (hidden by default) -->
+      <div id="adjustments-row" class="pricing-row" style="grid-column: 1 / -1; display: none; color: #f59e0b; border-top: 1px solid rgba(245, 158, 11, 0.2); padding-top: 12px;">
+        <span>Adjustments</span>
+        <strong id="adjustments-amount">+$0.00</strong>
+      </div>
+
+      <!-- Biweekly Estimate (hidden by default) -->
+      <div id="biweekly-estimate-display" style="grid-column: 1 / -1; margin-top: 20px; padding: 16px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+        <p style="margin: 0; font-size: 0.9rem; color: #1B1B2F;"><strong>Biweekly Estimate:</strong></p>
+        <p style="margin: 8px 0 0 0; font-size: 0.95rem; color: #7B2D8E; font-weight: bold;" id="biweekly-estimate-text"></p>
+        <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #6E6E82;">This is the estimated cost if mowing occurs every 2 weeks</p>
+      </div>
+
+      <!-- Quote Notes -->
+      <div style="grid-column: 1 / -1; margin-top: 24px; padding-top: 24px; border-top: 2px solid rgba(229, 231, 235, 0.4);">
+        <div class="input-group">
+          <label for="quote-notes">Invoice Notes (optional)</label>
+          <textarea id="quote-notes" placeholder="Enter any additional notes for this invoice..." style="width: 100%; padding: 12px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px;"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="grid-column: 1 / -1; text-align: right; margin-top: 24px;">
+        <button id="generate-pdf-btn" class="action-button">Generate Invoice</button>
+      </div>
+
+      <!-- Invoice Link Box -->
+      <div id="quote-link-box" class="hidden" style="grid-column: 1 / -1; margin-top: 24px; padding: 20px; background: rgba(123, 45, 142, 0.05); border-radius: 8px;">
+        <strong style="font-size: 0.95rem;">Invoice created successfully:</strong><br>
+        <a id="quote-link" href="#" target="_blank" style="display: block; margin: 12px 0;"></a>
+        <button onclick="copyQuoteLink()" class="action-button secondary" style="margin-top: 16px; width: auto; font-size: 0.9rem;">📋 Copy Link</button>
+      </div>
+    </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    // Copy invoice link function
+    window.copyQuoteLink = function() {
+      const quoteLink = document.getElementById('quote-link').href;
+      navigator.clipboard.writeText(quoteLink).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        const originalClass = btn.className;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.remove('secondary');
+        btn.style.background = '#10b981';
+        btn.style.color = 'white';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.className = originalClass;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+      }).catch(() => {
+        alert('Failed to copy link');
+      });
+    };
+
+    // Prevent adding vertex on touchstart → drag (common mobile bug)
+    if (L.Draw && L.Draw.Polyline) {
+        L.Draw.Polyline.include({
+            _onTouch: function (e) {
+                if (e.type === 'touchstart') {
+                    this._touchStartTime = Date.now();
+                    return;
+                }
+                
+                if (e.type === 'touchend' || e.type === 'touchcancel') {
+                    const duration = Date.now() - (this._touchStartTime || 0);
+                    if (duration < 250) {  // short tap → accept as click
+                        L.Draw.Polyline.prototype._onTouchOriginal.call(this, e);
+                    }
+                    this._touchStartTime = null;
+                }
+            }
+        });
+
+        if (!L.Draw.Polyline.prototype._onTouchOriginal) {
+            L.Draw.Polyline.prototype._onTouchOriginal = L.Draw.Polyline.prototype._onTouch;
+            L.Draw.Polyline.prototype._onTouch = L.Draw.Polyline.prototype._onTouch;
+        }
+    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
@@ -98,267 +1134,1607 @@
       projectId: "deep-edge-cc5bd",
       storageBucket: "deep-edge-cc5bd.firebasestorage.app",
       messagingSenderId: "23198790796",
-      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9"
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
     };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
-    // ── Declare urlParams ONLY ONCE here ────────────────────────────────
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
-    // We can access quoteId later inside the callback
-    const preselectedQuoteId = urlParams.get('quoteId');  // safe to declare here
+    const quoteId = urlParams.get('quote') || urlParams.get('quoteId');
+    const invoiceId = urlParams.get('invoice');
+    const isEditMode = urlParams.get('edit') === 'true' && invoiceId;
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
-    const quoteSelect = document.getElementById('quote-select');
-    const invoiceForm = document.getElementById('invoice-form');
-    const generateBtn = document.getElementById('generate-invoice-btn');
+    // Show loading splash initially
+    const loadingSplash = document.getElementById('loading-splash');
+    let loadedJobData = null; // Store job data for client info in quotes
+    let editingInvoiceId = null;
+    let editingInvoiceData = null;
 
-    // Pre-fill dates
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('issue-date').value = today;
-    const due = new Date();
-    due.setDate(due.getDate() + 14);
-    document.getElementById('due-date').value = due.toISOString().split('T')[0];
+    // Update button text for edit mode
+    if (isEditMode) {
+      const btn = document.getElementById('generate-pdf-btn');
+      if (btn) btn.textContent = "Update Invoice";
+    }
+    
+    if (jobId) {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-    let currentUser = null;
-    let selectedQuoteFull = null;
+            if (res.ok) {
+              const job = await res.json();
+              loadedJobData = job; // Store full job data
+              if (job.address) {
+                document.getElementById('address').value = job.address;
+                // Auto-trigger search and hide splash when complete
+                setTimeout(() => {
+                  document.getElementById('lookup-btn').click();
+                }, 300);
+              }
+            }
+          } catch (err) {
+            console.warn("Failed to pre-fill job address:", err);
+            if (loadingSplash) {
+              loadingSplash.classList.add('fade-out');
+              setTimeout(() => loadingSplash.style.display = 'none', 500);
+            }
+          }
+        }
+      });
+    } else {
+      // No jobId → hide splash immediately
+      if (loadingSplash) {
+        loadingSplash.classList.add('fade-out');
+        setTimeout(() => loadingSplash.style.display = 'none', 500);
+      }
+    }
 
     onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
       if (!user) {
         window.location.href = 'login.html';
         return;
       }
+    });
 
-      if (!jobId) {
-        document.getElementById('error-message').textContent = 'No job selected. Please come from a job card.';
-        document.getElementById('error-message').classList.remove('hidden');
-        return;
+    //Detect if prefilling from a job or quote
+    let prefillData = null;
+
+    if (jobId || quoteId) {
+      // Hide lookup button when prefilling - we're loading from saved data
+      document.getElementById('lookup-btn').style.display = 'none';
+      // Make address field readonly when prefilling
+      document.getElementById('address').readOnly = true;
+    }
+
+    // Pre-fill invoice dates
+    const invoiceDateInput = document.getElementById('invoice-date');
+    const dueDateInput = document.getElementById('due-date');
+    if (invoiceDateInput) {
+      invoiceDateInput.valueAsDate = new Date();
+    }
+    if (dueDateInput) {
+      const due = new Date();
+      due.setDate(due.getDate() + 14);
+      dueDateInput.valueAsDate = due;
+    }
+
+    const btn = document.getElementById('lookup-btn');
+    const addressInput = document.getElementById('address');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const addressDisplay = document.getElementById('address-display');
+    const areaDisplay = document.getElementById('area');
+    const timeDisplay = document.getElementById('time');
+    const aerialContainer = document.getElementById('aerial-container');
+    const pricingBox = document.getElementById('pricing-box');
+    const calloutInput = document.getElementById('callout-input');
+    const difficultySlider = document.getElementById('difficulty-slider');
+    const difficultyValue = document.getElementById('difficulty-value');
+    const quoteNotesInput = document.getElementById('quote-notes');
+    const estimatedJobTimeInput = document.getElementById('estimated-job-time');
+    const finalAreaDisplay = document.getElementById('final-area');
+
+    let map = null;
+    let parcelLayer = null;
+    let clippedBuildingsLayer = null;
+    let clippedBuildingsGeoJSON = null;
+    let negativeLayer = null;
+    let areaOverlay = null;
+    let parcelAreaM2 = 0;
+    let currentLawnArea = 0;
+    let currentData = null;
+    let buildingsTransferredToExclusions = false;
+    let profileMowingPricing = null;
+
+    const LINZ_AERIAL_URL = 'https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01ke53n73k729x0esp5je1k67a';
+
+    // Time Since Last Cut Data & Multipliers (New Zealand seasons)
+    const timeEstimates = {
+      '1 Week': { summer: 1.0, winter: 0.95 },
+      '2 Weeks': { summer: 1.2, winter: 1.1 },
+      '1 Month': { summer: 1.5, winter: 1.3 },
+      '2 Months': { summer: 2.0, winter: 1.6 },
+      '3 Months': { summer: 2.5, winter: 2.0 },
+      '6 Months': { summer: 3.5, winter: 2.5 }
+    };
+
+    // Determine current season (New Zealand)
+    // Summer (hot): Sep 1 - Feb 28
+    // Winter (cold): Mar 1 - Aug 30
+    function getCurrentSeason() {
+      const today = new Date();
+      const month = today.getMonth(); // 0=Jan, 8=Sep, 11=Dec
+      
+      // Summer: months 8 (Sep), 9 (Oct), 10 (Nov), 11 (Dec), 0 (Jan), 1 (Feb)
+      const isSummer = (month === 8) || (month >= 9) || (month <= 1);
+      const seasonName = isSummer ? 'summer' : 'winter';
+      
+      console.log(`Current date: ${today.toLocaleDateString('en-NZ')} | Season: ${seasonName} (New Zealand)`);
+      
+      return seasonName;
+    }
+
+    let currentTimeMultiplier = 1.0;
+    const timeSinceCutSelect = document.getElementById('time-since-cut');
+    const adjustmentFactorDisplay = document.getElementById('adjustment-factor-display');
+    const timeCutoffNotesDisplay = document.getElementById('time-cutoff-notes');
+    const timeCutoffInfo = document.getElementById('time-cutoff-info');
+    const finalPriceInput = document.getElementById('final-price-input');
+    const adjustmentsRow = document.getElementById('adjustments-row');
+    const adjustmentsAmount = document.getElementById('adjustments-amount');
+    const biweeklyEstimateDisplay = document.getElementById('biweekly-estimate-display');
+    const biweeklyEstimateText = document.getElementById('biweekly-estimate-text');
+    let originalTotalIncl = 0; // Track calculated price before user edits
+
+    timeSinceCutSelect.addEventListener('change', () => {
+      const frequency = timeSinceCutSelect.value;
+      if (!frequency) {
+        currentTimeMultiplier = 1.0;
+        timeCutoffInfo.style.display = 'none';
+        biweeklyEstimateDisplay.style.display = 'none';
+      } else {
+        const season = getCurrentSeason();
+        currentTimeMultiplier = timeEstimates[frequency][season];
+        adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
+        const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
+        timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
+        timeCutoffInfo.style.display = 'block';
+        
+        // Show biweekly estimate if frequency > 2 weeks
+        const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
+        const frequencyIndex = frequencies.indexOf(frequency);
+        if (frequencyIndex > 1) { // Index 1 is "2 Weeks", so > 1 means more than 2 weeks
+          biweeklyEstimateDisplay.style.display = 'block';
+          // Calculate biweekly price (will be updated in updateLawnArea)
+        } else {
+          biweeklyEstimateDisplay.style.display = 'none';
+        }
       }
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
 
-      const token = await user.getIdToken();
+    // Listen for final price edits
+    finalPriceInput.addEventListener('change', () => {
+      const finalPrice = parseFloat(finalPriceInput.value) || 0;
+      const difference = finalPrice - originalTotalIncl;
+      
+      if (Math.abs(difference) > 0.01) { // Only show if difference is more than 1 cent
+        adjustmentsRow.style.display = 'flex';
+        adjustmentsAmount.textContent = (difference > 0 ? '+$' : '-$') + Math.abs(difference).toFixed(2);
+      } else {
+        adjustmentsRow.style.display = 'none';
+      }
+    });
 
+    // Mower type change listeners
+    document.querySelectorAll('input[name="mowerType"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        updateEstimatedJobTime();
+        updateLawnArea();
+      });
+    });
+
+    async function loadQuoteSettingsAndPricing(token) {
       try {
-        const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!jobRes.ok) throw new Error('Failed to load job details');
-
-        const job = await jobRes.json();
-        const quotes = job.quotes || [];
-
-        if (quotes.length === 0) {
-          document.getElementById('error-message').textContent = 'No quotes found for this job yet.';
-          document.getElementById('error-message').classList.remove('hidden');
-          return;
-        }
-
-        // Clear any old options
-        quoteSelect.innerHTML = '<option value="">-- Choose a quote without invoice --</option>';
-
-        quotes.forEach(q => {
-          const option = document.createElement('option');
-          option.value = q.id;
-          const dateStr = new Date(q.date || q.createdAt || Date.now()).toLocaleDateString('en-NZ', {
-            day: 'numeric', month: 'short', year: 'numeric'
-          });
-          const amount = (q.totalInclGst || q.total || 0).toFixed(2);
-          option.textContent = `${q.number || 'Quote'} – $${amount} (${dateStr})`;
-          option.dataset.address = job.address || '';
-          option.dataset.client = job.client 
-            ? `${job.client.firstName || ''} ${job.client.lastName || ''}`.trim()
-            : '';
-          option.dataset.total = amount;
-          option.dataset.fullQuote = JSON.stringify(q);
-          quoteSelect.appendChild(option);
-        });
-
-        // ── Now pre-select the quote if ?quoteId=... was in the URL ────────
-        if (preselectedQuoteId) {
-          const matchingOption = Array.from(quoteSelect.options).find(
-            opt => opt.value === preselectedQuoteId
-          );
-          if (matchingOption) {
-            quoteSelect.value = preselectedQuoteId;
-            quoteSelect.dispatchEvent(new Event('change'));  // trigger the form to show
-          } else {
-            console.warn(`Quote ID ${preselectedQuoteId} not found among available quotes`);
+        if (res.ok) {
+          const { profile } = await res.json();
+          if (profile.quoteSettings) {
+            const s = profile.quoteSettings;
+            calloutInput.value = s.calloutFee || 80;
+            difficultySlider.value = s.difficultyMultiplier || 1.0;
+            difficultyValue.textContent = difficultySlider.value + 'x';
           }
+          if (profile.mowingPricing) {
+            profileMowingPricing = profile.mowingPricing;
+            if (!document.querySelector('input[name="mowerType"]:checked')) {
+              document.getElementById('mower-push').checked = true;
+            }
+          }
+          updateEstimatedJobTime();
+          updateLawnArea();
         }
-
-      } catch (err) {
-        document.getElementById('error-message').textContent = 'Error loading job quotes: ' + err.message;
-        document.getElementById('error-message').classList.remove('hidden');
+      } catch (e) {
+        console.warn('Could not load profile settings', e);
       }
-    });
+    }
 
-    quoteSelect.addEventListener('change', () => {
-      const opt = quoteSelect.options[quoteSelect.selectedIndex];
-      if (!opt.value) {
-        invoiceForm.classList.add('hidden');
-        selectedQuoteFull = null;
-        return;
-      }
-
-      document.getElementById('inv-address').textContent = opt.dataset.address || '—';
-      document.getElementById('inv-client').textContent = opt.dataset.client || '—';
-      document.getElementById('inv-total').textContent = '$' + (opt.dataset.total || '0.00');
-
+    async function saveQuoteSettings(token) {
       try {
-        selectedQuoteFull = JSON.parse(opt.dataset.fullQuote || '{}');
-      } catch {
-        selectedQuoteFull = { id: opt.value };
-      }
+        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const { profile } = await res.json();
 
-      invoiceForm.classList.remove('hidden');
-    });
+        profile.quoteSettings = {
+          calloutFee: parseFloat(calloutInput.value) || 80,
+          difficultyMultiplier: parseFloat(difficultySlider.value) || 1.0
+        };
+        profile.updatedAt = new Date().toISOString();
 
-    generateBtn.addEventListener('click', async () => {
-      if (!currentUser) {
-        alert('You must be signed in to create an invoice.');
-        window.location.href = 'login.html';
-        return;
-      }
-
-      const quoteId = quoteSelect.value;
-      if (!quoteId) return alert('Please select a quote first');
-
-      if (!selectedQuoteFull) {
-        return alert('Selected quote data not loaded. Please try again.');
-      }
-
-      const invoiceData = {
-        quoteId,
-        jobId: jobId,
-        invoiceNumber: document.getElementById('inv-number').value.trim() || undefined,
-        issueDate: document.getElementById('issue-date').value,
-        dueDate: document.getElementById('due-date').value,
-        paymentTerms: document.getElementById('payment-terms').value,
-        notes: document.getElementById('inv-notes').value.trim(),
-        totalInclGst: parseFloat(document.getElementById('inv-total').textContent.replace(/[$,]/g, '')) || 0,
-        quoteSnapshot: selectedQuoteFull
-      };
-
-      try {
-        const token = await currentUser.getIdToken();
-
-        const res = await fetch(`${WORKER_URL}/api/invoices`, {
+        await fetch(`${WORKER_URL}/api/user/profile`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(invoiceData)
+          body: JSON.stringify(profile)
         });
+      } catch (e) {
+        console.warn('Could not save quote settings', e);
+      }
+    }
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(err.error || 'Failed to create invoice');
+    let saveTimeout;
+    function scheduleSave(token) {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => saveQuoteSettings(token), 1000);
+    }
+
+    [calloutInput].forEach(input => {
+      input.addEventListener('input', () => {
+        updateLawnArea();
+        if (auth.currentUser) {
+          auth.currentUser.getIdToken().then(scheduleSave);
         }
+      });
+    });
 
-        const responseData = await res.json();
-        const invoiceId = responseData.invoiceId; // assuming backend returns this
+    difficultySlider.addEventListener('input', () => {
+      difficultyValue.textContent = difficultySlider.value + 'x';
+      updateLawnArea();
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
 
-        // Show success UI instead of immediate redirect (better UX)
-        document.getElementById('invoice-link-text').textContent = 
-          `Invoice created! View it here: ${window.location.origin}/invoice.html?inv=${invoiceId}`;
+    quoteNotesInput.addEventListener('change', () => {
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    });
 
-        document.getElementById('view-invoice-btn').href = 
-          `invoice.html?inv=${invoiceId}`;
+    // Update invoice details display in pricing summary
+    const invoiceNumberInput = document.getElementById('invoice-number');
+    const invoiceNumberDisplay = document.getElementById('invoice-number-display');
+    const invoiceDateDisplay = document.getElementById('invoice-date-display');
+    const dueDateDisplay = document.getElementById('due-date-display');
 
-        document.getElementById('success-message').classList.remove('hidden');
-        document.getElementById('invoice-form').classList.add('hidden');
+    function updateInvoiceDetailsDisplay() {
+      const invNum = invoiceNumberInput.value.trim() || '-';
+      invoiceNumberDisplay.textContent = invNum;
 
-        alert(`Invoice created successfully!`);
+      const invDate = invoiceDateInput.value;
+      if (invDate) {
+        const dateObj = new Date(invDate + 'T00:00:00');
+        invoiceDateDisplay.textContent = dateObj.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+      } else {
+        invoiceDateDisplay.textContent = '-';
+      }
 
-        // After creation: check localStorage for pending send preference
+      const dueDate = dueDateInput.value;
+      if (dueDate) {
+        const dateObj = new Date(dueDate + 'T00:00:00');
+        dueDateDisplay.textContent = dateObj.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+      } else {
+        dueDateDisplay.textContent = '-';
+      }
+    }
+
+    invoiceNumberInput.addEventListener('change', updateInvoiceDetailsDisplay);
+    invoiceDateInput.addEventListener('change', updateInvoiceDetailsDisplay);
+    dueDateInput.addEventListener('change', updateInvoiceDetailsDisplay);
+
+    // Initial update
+    updateInvoiceDetailsDisplay();
+
+    // Add-on Services Data
+    const addonServicesData = [
+      { value: 'edging', title: 'Edging and trimming', description: 'Clean lines along sidewalks, driveways, and flower beds' },
+      { value: 'blowing', title: 'Blowing off hard surfaces', description: 'Clear clippings, leaves, and debris from patios, decks, walkways' },
+      { value: 'cleanup', title: 'Yard/leaf/debris cleanup', description: 'Seasonal removal of leaves, branches, pine needles, or general waste' },
+      { value: 'weed-beds', title: 'Weed control in beds', description: 'Hand-weeding or spot-spraying flower beds and mulch areas' },
+      { value: 'mulching', title: 'Mulching', description: 'Refreshing or installing mulch in garden beds' },
+      { value: 'shrub-trim', title: 'Shrub/hedge trimming & pruning', description: 'Basic shaping of bushes and small hedges' },
+      { value: 'fertilization', title: 'Lawn fertilization', description: 'Applying granular or liquid fertilizer for healthier, greener grass' },
+      { value: 'weed-control', title: 'Weed control', description: 'Broadleaf weed treatments, pre-emergent applications, or spot treatments' },
+      { value: 'aeration', title: 'Aeration & overseeding', description: 'Core aeration to improve soil health, plus seeding bare spots' },
+      { value: 'dethatching', title: 'Dethatching', description: 'Removing thatch buildup for better lawn health' },
+      { value: 'pest-control', title: 'Pest/grub control', description: 'Treating for insects, grubs, or moss' },
+      { value: 'pressure-wash', title: 'Power/pressure washing', description: 'Cleaning driveways, patios, fences, or house siding' },
+      { value: 'spring-fall', title: 'Spring/fall cleanups', description: 'Comprehensive yard tidy-ups (leaves, debris, bed prep)' },
+      { value: 'irrigation', title: 'Irrigation system tune-up/check', description: 'Spring startup, adjustments, winterization' },
+      { value: 'gutter-wash', title: 'Gutter cleaning or basic exterior house washing', description: 'Professional cleaning services' },
+      { value: 'holiday-lights', title: 'Holiday light installation/removal', description: 'Seasonal decoration services' }
+    ];
+
+    // Render addon items
+    const addonItemsContainer = document.getElementById('addon-items-container');
+    const addonToggleBtn = document.getElementById('addon-toggle-btn');
+    const addonServicesDropdown = document.getElementById('addon-services-dropdown');
+    const selectedAddonsDisplay = document.getElementById('selected-addons-display');
+    const selectedAddonsList = document.getElementById('selected-addons-list');
+
+    addonServicesData.forEach(addon => {
+      const item = document.createElement('label');
+      item.className = 'addon-item';
+      item.innerHTML = `
+        <input type="checkbox" value="${addon.value}" data-title="${addon.title}" />
+        <span class="addon-item-content">
+          <span class="addon-item-title">${addon.title}</span>
+          <span class="addon-item-description">${addon.description}</span>
+        </span>
+      `;
+      addonItemsContainer.appendChild(item);
+
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener('change', updateAddonSelection);
+    });
+
+    // Toggle dropdown visibility
+    addonToggleBtn.addEventListener('click', () => {
+      addonServicesDropdown.classList.toggle('hidden');
+      addonToggleBtn.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!addonToggleBtn.contains(e.target) && !addonServicesDropdown.contains(e.target)) {
+        addonServicesDropdown.classList.add('hidden');
+        addonToggleBtn.classList.remove('active');
+      }
+    });
+
+    function updateAddonSelection() {
+      const selectedCheckboxes = addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked');
+      const selectedServices = Array.from(selectedCheckboxes).map(cb => cb.dataset.title);
+
+      if (selectedServices.length === 0) {
+        selectedAddonsDisplay.style.display = 'none';
+        selectedAddonsList.innerHTML = '';
+      } else {
+        selectedAddonsDisplay.style.display = 'block';
+        selectedAddonsList.innerHTML = selectedServices.map(service => `<div style="margin-bottom: 6px;">✓ ${service}</div>`).join('');
+      }
+
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken().then(scheduleSave);
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const token = await user.getIdToken();
+
+      await loadQuoteSettingsAndPricing(token);
+
+      // ── Load invoice data in edit mode ────────────────────────────────────────
+      if (isEditMode && invoiceId) {
         try {
-          const pendingRaw = localStorage.getItem('pendingInvoiceSend');
-          if (pendingRaw) {
-            const pending = JSON.parse(pendingRaw);
-            // Basic validation: ensure jobId/quoteId match (if provided)
-            if (!pending.jobId || String(pending.jobId) === String(jobId)) {
-              const method = pending.method;
-              const token2 = await currentUser.getIdToken();
-              if (method === 'email') {
-                try {
-                  const sendRes = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}/send-email`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token2}`,
-                      'Content-Type': 'application/json'
-                    }
-                  });
-                  if (!sendRes.ok) {
-                    const txt = await sendRes.text().catch(() => '');
-                    console.warn('Invoice email send failed', txt || sendRes.status);
-                    alert('Invoice created but automatic email failed to send.');
-                  } else {
-                    alert('Invoice email sent successfully');
-                  }
-                } catch (e) {
-                  console.error('Invoice email send error', e);
-                }
-              } else if (method === 'sms') {
-                try {
-                  // fetch job to get client phone
-                  const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token2}` } });
-                  let jobData = null;
-                  if (jobRes2.ok) jobData = await jobRes2.json();
-                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
-                  if (!clientPhone) {
-                    alert('Invoice created but client phone not found for SMS');
-                  } else {
-                    const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
-                    const clientName = (jobData?.client?.firstName || jobData?.client?.name || 'Customer') + (jobData?.client?.lastName ? ` ${jobData.client.lastName}` : '');
-                    const amountStr = invoiceData && invoiceData.totalInclGst ? `$${Number(invoiceData.totalInclGst).toFixed(2)}` : (invoiceData && invoiceData.total ? `$${Number(invoiceData.total).toFixed(2)}` : '$0.00');
-                    let vendorName = 'Company';
-                    let vendorNumber = '';
-                    try {
-                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token2}` } });
-                      if (profRes.ok) {
-                        const pj = await profRes.json();
-                        vendorName = pj.profile?.companyName || vendorName;
-                        vendorNumber = pj.profile?.phone || vendorNumber;
-                      }
-                    } catch (e) { /* ignore profile fetch errors */ }
+          const res = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
 
-                    const message = window.buildMessageFromTemplate('invoice_sent', { clientName, invoiceUrl: publicLink, amount: amountStr, vendorName, vendorNumber });
-                    window.showSmsModal(clientName, clientPhone, message, { invoiceId, template: 'invoice_sent', vars: { clientName, invoiceUrl: publicLink, amount: amountStr, vendorName, vendorNumber } });
-                  }
-                } catch (e) {
-                  console.error('Invoice SMS send error', e);
+          if (res.ok) {
+            const invoice = await res.json();
+            editingInvoiceData = invoice;
+            editingInvoiceId = invoiceId;
+
+            // Prefetch invoice data in sessionStorage for prefilling
+            sessionStorage.setItem('editInvoiceData', JSON.stringify(invoice));
+
+            console.log('📋 Loaded invoice for editing:', invoice);
+          } else {
+            console.warn("Failed to load invoice for editing:", res.status);
+            if (loadingSplash) {
+              loadingSplash.classList.add('fade-out');
+              setTimeout(() => loadingSplash.style.display = 'none', 500);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load invoice:", err);
+          if (loadingSplash) {
+            loadingSplash.classList.add('fade-out');
+            setTimeout(() => loadingSplash.style.display = 'none', 500);
+          }
+        }
+      } else if (loadingSplash) {
+        // No invoice editing - hide splash if not already handled by jobId loading
+        if (!jobId) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
+      }
+
+      // ── Load job or quote data for prefilling ─────────────────────────────────────
+      if (jobId || quoteId) {
+        try {
+          const token = await user.getIdToken();
+
+          let data = null;
+          
+          // Load from quote if quoteId provided
+          if (quoteId) {
+            const prefetchedData = sessionStorage.getItem('editQuoteData') || sessionStorage.getItem('editInvoiceData');
+            if (prefetchedData) {
+              data = JSON.parse(prefetchedData);
+              sessionStorage.removeItem('editQuoteData');
+              sessionStorage.removeItem('editInvoiceData');
+            } else {
+              const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                data = await res.json();
+              }
+            }
+          }
+          
+          // Otherwise, load from job if jobId provided
+          if (!data && jobId) {
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const jobData = await res.json();
+              data = jobData;
+            }
+          }
+
+          if (data) {
+            prefillData = data;
+            console.log('📋 Loaded prefill data:', data);
+
+            // ── Populate invoice fields from loaded data ──────────────────────────
+            // For invoice edit mode, prefill the invoice number and dates
+            if (isEditMode && data.data) {
+              if (data.data.invoiceNumber) {
+                document.getElementById('invoice-number').value = data.data.invoiceNumber;
+              }
+              if (data.data.issueDate) {
+                document.getElementById('invoice-date').value = data.data.issueDate;
+              }
+              if (data.data.dueDate) {
+                document.getElementById('due-date').value = data.data.dueDate;
+              }
+              if (data.data.paymentTerms) {
+                const paymentTermsSelect = document.getElementById('payment-terms');
+                if (paymentTermsSelect) {
+                  paymentTermsSelect.value = data.data.paymentTerms;
                 }
-              } else if (method === 'clipboard') {
-                try {
-                  const link = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
-                  await navigator.clipboard.writeText(link);
-                  alert('Invoice link copied to clipboard');
-                } catch (e) {
-                  console.warn('Clipboard copy failed', e);
+              }
+            } else {
+              // Don't prefill invoice number - let user create a new one
+              // But prefill the dates with defaults
+              if (!document.getElementById('invoice-date').value) {
+                document.getElementById('invoice-date').valueAsDate = new Date();
+              }
+              if (!document.getElementById('due-date').value) {
+                const due = new Date();
+                due.setDate(due.getDate() + 14);
+                document.getElementById('due-date').valueAsDate = due;
+              }
+            }
+
+            // Extract the actual data (for quotes, it's at root; for invoices, it's in .data)
+            const actualData = data.data || data;
+
+            // Prefill other fields from quote/job data
+            console.log('calloutFee:', actualData.calloutFee, 'difficultyMultiplier:', actualData.difficultyMultiplier, 'mowerType:', actualData.mowerType);
+            console.log('timeSinceCut:', actualData.timeSinceCut, 'addonServices:', actualData.addonServices);
+            
+            if (actualData.calloutFee) document.getElementById('callout-input').value = actualData.calloutFee;
+            if (actualData.difficultyMultiplier) {
+              document.getElementById('difficulty-slider').value = actualData.difficultyMultiplier;
+              document.getElementById('difficulty-value').textContent = `${actualData.difficultyMultiplier}x`;
+            }
+            if (actualData.notes || actualData.invoiceNotes || actualData.quoteNotes) {
+              document.getElementById('quote-notes').value = actualData.notes || actualData.invoiceNotes || actualData.quoteNotes;
+            }
+
+            // Restore time since cut
+            if (actualData.timeSinceCut) {
+              console.log('✓ Setting time since cut to:', actualData.timeSinceCut);
+              timeSinceCutSelect.value = actualData.timeSinceCut;
+              currentTimeMultiplier = actualData.timeMultiplier || 1.0;
+              const season = getCurrentSeason();
+              adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
+              const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
+              timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
+              timeCutoffInfo.style.display = 'block';
+              
+              const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
+              const frequencyIndex = frequencies.indexOf(actualData.timeSinceCut);
+              if (frequencyIndex > 1) {
+                biweeklyEstimateDisplay.style.display = 'block';
+              } else {
+                biweeklyEstimateDisplay.style.display = 'none';
+              }
+            } else {
+              console.log('⚠ No timeSinceCut found in data');
+            }
+
+            // Restore addon services
+            if (Array.isArray(actualData.addonServices) && actualData.addonServices.length > 0) {
+              console.log('✓ Setting addon services:', actualData.addonServices);
+              const addonValues = actualData.addonServices.map(a => a.value);
+              addonItemsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = addonValues.includes(cb.value);
+              });
+              updateAddonSelection();
+            } else {
+              console.log('⚠ No addonServices found in data');
+            }
+
+            const mowerRadio = document.getElementById(`mower-${actualData.mowerType || 'push'}`);
+            if (mowerRadio) mowerRadio.checked = true;
+
+            // ── Display address and lawn area from saved data ──
+            if (actualData.address) {
+              document.getElementById('address').value = actualData.address;
+              addressDisplay.textContent = actualData.address;
+              resultDiv.classList.remove('hidden');
+              
+              if (actualData.lawnAreaM2) {
+                currentLawnArea = actualData.lawnAreaM2;
+                parcelAreaM2 = actualData.lawnAreaM2;
+                areaDisplay.innerHTML = `<strong>Lawn Area:</strong> ${Math.round(actualData.lawnAreaM2).toLocaleString()} m² (${(actualData.lawnAreaM2 / 10000).toFixed(2)} hectares)`;
+                finalAreaDisplay.textContent = `${Math.round(actualData.lawnAreaM2).toLocaleString()} m²`;
+                updateEstimatedJobTime();
+                
+                // Restore pricing from saved data
+                if (actualData.pricingSummary) {
+                  document.getElementById('total-revenue').textContent = `$${(actualData.pricingSummary.subtotalEx || 0).toFixed(2)}`;
+                  document.getElementById('gst').textContent = `$${(actualData.pricingSummary.gst || 0).toFixed(2)}`;
+                  document.getElementById('total-incl-display').textContent = `$${(actualData.pricingSummary.subtotalIncl || 0).toFixed(2)}`;
+                  finalPriceInput.value = actualData.pricingSummary.finalPrice || actualData.pricingSummary.subtotalIncl || 0;
+                  originalTotalIncl = actualData.pricingSummary.subtotalIncl || 0;
                 }
               }
             }
-            // Clear pending preference regardless
-            try { localStorage.removeItem('pendingInvoiceSend'); } catch (e) {}
+
+            // ── Load the aerial map directly with saved mapState ──
+            if (actualData.mapState) {
+              aerialContainer.classList.remove('hidden');
+              if (map) map.remove();
+              
+              const ms = actualData.mapState;
+              currentData = {
+                parcel_area_m2: actualData.lawnAreaM2 || 0,
+                parcel_geometry: ms.parcelGeometry,
+                buildings_geometries: [],
+                aerial: {
+                  center: [ms.center.lat, ms.center.lng],
+                  zoom: ms.zoom
+                }
+              };
+
+              // Initialize map with saved center and zoom
+              map = L.map('aerial-map').setView([ms.center.lat, ms.center.lng], ms.zoom);
+
+              L.tileLayer(LINZ_AERIAL_URL, {
+                attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+                maxZoom: 24,
+                tileSize: 256,
+                zoomOffset: 0,
+                noWrap: true
+              }).addTo(map);
+
+              // Add parcel boundary
+              if (ms.parcelGeometry) {
+                parcelLayer = L.geoJSON(ms.parcelGeometry, {
+                  style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+                }).addTo(map);
+              }
+
+              // Add buildings
+              if (ms.buildingsGeoJSON && ms.buildingsGeoJSON.features.length > 0) {
+                clippedBuildingsGeoJSON = ms.buildingsGeoJSON;
+                clippedBuildingsLayer = L.geoJSON(ms.buildingsGeoJSON, {
+                  style: { color: "#8B4513", weight: 1, fillColor: "#A0522D", fillOpacity: 0.7 }
+                }).addTo(map);
+              }
+
+              // Add saved exclusions (negative areas)
+              ensureNegativeLayer();
+              if (ms.negativeGeoJSON && ms.negativeGeoJSON.features && ms.negativeGeoJSON.features.length > 0) {
+                const exclusionLayer = L.geoJSON(ms.negativeGeoJSON, {
+                  style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
+                });
+                exclusionLayer.eachLayer(layer => {
+                  negativeLayer.addLayer(layer);
+                });
+              }
+
+              // Show pricing and buttons
+              pricingBox.classList.remove('hidden');
+            }
           }
-        } catch (e) {
-          console.warn('Error handling pendingInvoiceSend', e);
+
+        } catch (err) {
+          console.error("Failed to load prefill data", err);
+          // Continue without prefill data - user can use address lookup
         }
-
-        // Redirect back to jobs list with jobId param
-        setTimeout(() => {
-          window.location.href = `jobs.html?jobId=${jobId}`;
-        }, 1800);   // give user ~1.8 seconds to see the success message
-
-      } catch (err) {
-        alert('Error creating invoice: ' + err.message);
-        console.error(err);
       }
     });
+
+
+    function getSelectedMowerType() {
+      const selected = document.querySelector('input[name="mowerType"]:checked');
+      return selected ? selected.value : 'push';
+    }
+
+    function roundUpToQuarterHour(hours) {
+      if (hours <= 0) return 0;
+      return Math.ceil(hours * 4) / 4;
+    }
+
+    function updateEstimatedJobTime() {
+      if (!currentLawnArea || !profileMowingPricing) {
+        estimatedJobTimeInput.value = "0.0";
+        return;
+      }
+
+      const type = getSelectedMowerType();
+      const settings = profileMowingPricing[type];
+
+      if (!settings || !settings.m2PerHour || settings.m2PerHour <= 0) {
+        estimatedJobTimeInput.value = "0.0";
+        return;
+      }
+
+      const rawHours = currentLawnArea / settings.m2PerHour;
+      const roundedHours = roundUpToQuarterHour(rawHours);
+      estimatedJobTimeInput.value = roundedHours.toFixed(2);
+    }
+
+        function updateLawnArea() {
+      console.log("=== Negative Layer Debug ===");
+      const negativePolys = [];
+      let individualAreas = [];
+      let polygonCount = 0;
+
+      if (negativeLayer) {
+        negativeLayer.eachLayer(layer => {
+          if (layer.getLatLngs && layer.getLatLngs().length > 0) {
+            const latlngs = layer.getLatLngs()[0];
+            if (Array.isArray(latlngs) && latlngs.length >= 3) {
+              polygonCount++;
+              const area = L.GeometryUtil.geodesicArea(latlngs);
+              individualAreas.push(Math.round(area));
+              const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+              coords.push(coords[0]);
+              negativePolys.push(turf.polygon([coords]));
+              console.log(`Polygon ${polygonCount} area: ${Math.round(area)} m²`);
+            }
+          }
+        });
+      }
+
+      console.log(`Total polygons: ${polygonCount}`);
+      console.log(`Individual areas: ${individualAreas.join(', ')} m²`);
+
+      let negativeArea = 0;
+      if (negativePolys.length > 0) {
+        try {
+          let unioned = negativePolys.reduce((acc, poly) => turf.union(acc, poly));
+          negativeArea = turf.area(unioned);
+          console.log(`Unioned negative area (no overlap): ${Math.round(negativeArea)} m²`);
+        } catch (e) {
+          console.warn('Union failed, using sum', e);
+          individualAreas.forEach(a => negativeArea += a);
+          console.log(`Fallback sum negative area: ${Math.round(negativeArea)} m²`);
+        }
+      }
+
+      currentLawnArea = Math.max(0, parcelAreaM2 - Math.round(negativeArea));
+      console.log(`Parcel area: ${parcelAreaM2} m²`);
+      console.log(`Final lawn area: ${currentLawnArea} m²`);
+      console.log("=== End Debug ===\n");
+
+      if (areaOverlay && areaOverlay._div) {
+        areaOverlay._div.innerHTML = `<strong>Lawn Area:</strong> ${currentLawnArea.toLocaleString()} m²`;
+      }
+      areaDisplay.textContent = `${currentLawnArea.toLocaleString()} m² (edited)`;
+      finalAreaDisplay.textContent = `${currentLawnArea.toLocaleString()} m²`;
+
+      updateEstimatedJobTime();
+
+      // ── NEW PRICING LOGIC ───────────────────────────────────────────────
+      const type = getSelectedMowerType();
+      const settings = profileMowingPricing?.[type] || {};
+      const chargeOutRate  = settings.chargeOutRate  || 0;
+      const hourlyExpenses = settings.hourlyExpenses || 0;
+
+      const rawHours = currentLawnArea / (settings.m2PerHour || 1);   // avoid div by zero
+      const billedHours = roundUpToQuarterHour(rawHours * currentTimeMultiplier);
+
+      const mowingRevenue   = billedHours * chargeOutRate;
+      const callout         = parseFloat(calloutInput.value) || 0;
+      const difficulty      = parseFloat(difficultySlider.value) || 1.0;
+
+      const adjustedMowing  = mowingRevenue * difficulty;
+      const totalRevenueEx  = adjustedMowing + callout;
+
+      const gst             = totalRevenueEx * 0.15;
+      const totalIncl       = totalRevenueEx + gst;
+
+      const estCost         = billedHours * hourlyExpenses;
+      const estProfit       = totalRevenueEx - estCost;
+      const profitPerHour   = billedHours > 0 ? estProfit / billedHours : 0;
+
+      // Store original calculated price
+      originalTotalIncl = totalIncl;
+      
+      // Calculate biweekly estimate if applicable
+      const frequency = timeSinceCutSelect.value;
+      if (frequency) {
+        const biweeklyMultiplier = timeEstimates['2 Weeks'][getCurrentSeason()];
+        const biweeklyBilledHours = roundUpToQuarterHour(rawHours * biweeklyMultiplier);
+        const biweeklyMowingRevenue = biweeklyBilledHours * chargeOutRate;
+        const biweeklyAdjustedMowing = biweeklyMowingRevenue * difficulty;
+        const biweeklyTotalRevenueEx = biweeklyAdjustedMowing + callout;
+        const biweeklyGst = biweeklyTotalRevenueEx * 0.15;
+        const biweeklyTotalIncl = biweeklyTotalRevenueEx + biweeklyGst;
+        biweeklyEstimateText.textContent = 'Estimated cost if mowing every 2 weeks: $' + biweeklyTotalIncl.toFixed(2);
+      }
+
+      // Update displays
+      document.getElementById('callout-display').textContent = '$' + callout.toFixed(2);
+      document.getElementById('total-revenue').textContent  = '$' + totalRevenueEx.toFixed(2);
+      document.getElementById('gst').textContent            = '$' + gst.toFixed(2);
+      document.getElementById('total-incl-display').textContent     = '$' + totalIncl.toFixed(2);
+      document.getElementById('estimated-hours-display').textContent = billedHours.toFixed(2) + ' hrs';
+      
+      // Set the editable final price to the calculated value
+      finalPriceInput.value = totalIncl.toFixed(2);
+      
+      // Reset adjustments display
+      adjustmentsRow.style.display = 'none';
+      
+      // Only update if elements exist
+      const estCostEl = document.getElementById('est-cost');
+      const estProfitEl = document.getElementById('est-profit');
+      const profitHourEl = document.getElementById('profit-hour');
+      if (estCostEl) estCostEl.textContent = '$' + estCost.toFixed(2);
+      if (estProfitEl) estProfitEl.textContent = '$' + estProfit.toFixed(2);
+      if (profitHourEl) profitHourEl.textContent = '$' + profitPerHour.toFixed(2);
+    }
+
+    function constrainPointToParcel(latlng) {
+      if (!parcelLayer) return latlng;
+      
+      // Get parcel geometry
+      const parcelGeometry = parcelLayer.toGeoJSON().features[0]?.geometry;
+      if (!parcelGeometry) return latlng;
+      
+      // Check if point is inside parcel
+      const point = turf.point([latlng.lng, latlng.lat]);
+      const polygon = turf.polygon(parcelGeometry.coordinates);
+      
+      if (turf.booleanPointInPolygon(point, polygon)) {
+        return latlng; // Point is inside, keep it
+      }
+      
+      // Point is outside - find closest point on boundary
+      const polygonLine = turf.polygonToLine(polygon);
+      const nearestPoint = turf.nearestPointOnLine(point, polygonLine);
+      
+      return L.latLng(nearestPoint.geometry.coordinates[1], nearestPoint.geometry.coordinates[0]);
+    }
+
+    function clipPolygonToParcel(layer) {
+      if (!parcelLayer) {
+        console.log('[CLIP] No parcel layer');
+        return;
+      }
+      
+      const latLngs = layer.getLatLngs()[0] || layer.getLatLngs();
+      console.log(`[CLIP] Starting with ${latLngs.length} points`);
+      
+      if (latLngs.length < 3) {
+        console.log('[CLIP] Less than 3 points, skipping');
+        return;
+      }
+      
+      // Get parcel boundary points
+      let parcelBoundaryLatLngs = [];
+      try {
+        const parcelGeoJSON = parcelLayer.toGeoJSON();
+        const parcelGeometry = parcelGeoJSON.features?.[0]?.geometry || parcelGeoJSON.geometry;
+        
+        if (parcelGeometry && parcelGeometry.coordinates) {
+          // For Polygon, coordinates[0] is the outer ring
+          const coords = parcelGeometry.coordinates[0] || parcelGeometry.coordinates;
+          parcelBoundaryLatLngs = coords.map(coord => L.latLng(coord[1], coord[0]));
+          console.log(`[CLIP] Parcel has ${parcelBoundaryLatLngs.length} boundary points`);
+        } else {
+          console.log('[CLIP] Cannot extract parcel coordinates');
+          return;
+        }
+      } catch (err) {
+        console.error('[CLIP] Error extracting parcel coordinates:', err);
+        return;
+      }
+      
+      let modified = false;
+      const clippedLatLngs = [];
+      
+      // For each point, check if it's inside the parcel
+      for (let i = 0; i < latLngs.length; i++) {
+        const point = latLngs[i];
+        
+        // Simple point-in-polygon using ray casting
+        const isInside = isPointInPolygon(point, parcelBoundaryLatLngs);
+        console.log(`[CLIP] Point ${i} [${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}]: ${isInside ? 'INSIDE' : 'OUTSIDE'}`);
+        
+        if (isInside) {
+          clippedLatLngs.push(point);
+        } else {
+          // Point is outside - snap to nearest boundary point
+          console.log(`[CLIP] Point ${i} is OUTSIDE - snapping to boundary`);
+          const snappedPoint = snapPointToBoundary(point, parcelBoundaryLatLngs);
+          console.log(`[CLIP] Snapped to [${snappedPoint.lat.toFixed(6)}, ${snappedPoint.lng.toFixed(6)}]`);
+          clippedLatLngs.push(snappedPoint);
+          modified = true;
+        }
+      }
+      
+      if (modified) {
+        console.log(`[CLIP] Updating layer with ${clippedLatLngs.length} clipped points`);
+        try {
+          layer.setLatLngs(clippedLatLngs);
+          console.log('[CLIP] Layer updated successfully');
+        } catch (err) {
+          console.error('[CLIP] Error updating layer:', err);
+        }
+      }
+    }
+    
+    function isPointInPolygon(point, polygon) {
+      // Ray casting algorithm
+      let inside = false;
+      const x = point.lng, y = point.lat;
+      
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].lng, yi = polygon[i].lat;
+        const xj = polygon[j].lng, yj = polygon[j].lat;
+        
+        const intersect = ((yi > y) !== (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      
+      return inside;
+    }
+    
+    function snapPointToBoundary(point, boundaryLatLngs) {
+      // Find the closest point on the boundary
+      let closestPoint = boundaryLatLngs[0];
+      let minDistance = point.distanceTo(closestPoint);
+      
+      for (let i = 1; i < boundaryLatLngs.length; i++) {
+        const distance = point.distanceTo(boundaryLatLngs[i]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestPoint = boundaryLatLngs[i];
+        }
+      }
+      
+      return closestPoint;
+    }
+
+    function attachConstraintListeners(layer) {
+      if (layer.editing) {
+        layer.on('edit', (e) => {
+          updateLawnArea();
+        });
+      }
+    }
+
+    function ensureNegativeLayer() {
+      if (!map) return null;
+      if (!negativeLayer || !map.hasLayer(negativeLayer)) {
+        if (negativeLayer) map.removeLayer(negativeLayer);
+        negativeLayer = new L.FeatureGroup();
+        map.addLayer(negativeLayer);
+      }
+      return negativeLayer;
+    }
+
+    function transferBuildingsToExclusions() {
+      if (!clippedBuildingsLayer || buildingsTransferredToExclusions) return;
+
+      ensureNegativeLayer();
+
+      clippedBuildingsLayer.eachLayer(function(layer) {
+        const latlngs = layer.getLatLngs();
+        if (!latlngs || !latlngs.length) return;
+
+        const newPolygon = L.polygon(latlngs, {
+          color: "#ff4444",
+          weight: 2,
+          fillColor: "#ff4444",
+          fillOpacity: 0.6
+        });
+
+        negativeLayer.addLayer(newPolygon);
+      });
+
+      map.removeLayer(clippedBuildingsLayer);
+      clippedBuildingsLayer = null;
+      buildingsTransferredToExclusions = true;
+
+      updateLawnArea();
+    }
+
+    function enterEditMode(autoStartNewPolygon = false) {
+      if (!map) return;
+
+      ensureNegativeLayer();
+      transferBuildingsToExclusions();
+      
+      // Clear any existing draw handler from previous mode
+      if (map._drawHandler) {
+        map._drawHandler.disable();
+        map._drawHandler = null;
+      }
+
+      if (!areaOverlay) {
+        areaOverlay = L.control({ position: 'bottomleft' });
+        areaOverlay.onAdd = function () {
+          const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+          div.style.cssText = `
+            background: rgba(255,255,255,0.95);
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+          `;
+          areaOverlay._div = div;
+          div.innerHTML = 'Calculating...';
+          return div;
+        };
+        areaOverlay.addTo(map);
+      }
+
+      updateLawnArea();
+
+      if (autoStartNewPolygon) {
+        document.getElementById('btn-edit-shapes').disabled = true;
+        document.getElementById('btn-edit-shapes').style.opacity = '0.5';
+        document.getElementById('btn-edit-shapes').style.cursor = 'not-allowed';
+      } else {
+        document.getElementById('btn-new-shape').disabled = true;
+        document.getElementById('btn-new-shape').style.opacity = '0.5';
+        document.getElementById('btn-new-shape').style.cursor = 'not-allowed';
+      }
+
+      document.getElementById('btn-finish-editing').style.display = 'inline-block';
+
+      if (autoStartNewPolygon) {
+        const newPolygonDrawer = new L.Draw.Polygon(map, {
+          allowDrawingOnDrag: false,
+          touchExtend: false,
+          shapeOptions: {
+            color: '#ff4444',
+            weight: 2,
+            fillColor: '#ff4444',
+            fillOpacity: 0.6
+          }
+        });
+        newPolygonDrawer.enable();
+        
+        // Listen for draw events with comprehensive logging
+        map.on('draw:drawstart', (e) => {
+          console.log('🎨 [DRAW START] User started drawing polygon');
+        });
+
+        map.on('draw:drawvertex', (e) => {
+          console.log('🎨 [DRAW VERTEX] Vertex added to polygon');
+          if (e.layer && e.layer.getLatLngs) {
+            const latLngs = e.layer.getLatLngs()[0] || e.layer.getLatLngs();
+            console.log(`🎨 [DRAW VERTEX] Shape now has ${latLngs.length} points`);
+          }
+        });
+
+        map.once('draw:created', (e) => {
+          try {
+            console.log('🎨 [DRAW CREATED] Drawing complete!');
+            const layer = e.layer;
+            
+            if (layer && layer.getLatLngs) {
+              const latLngs = layer.getLatLngs()[0] || layer.getLatLngs();
+              console.log(`🎨 [DRAW CREATED] Final shape has ${latLngs.length} points`);
+              
+              // Log all points and check boundary
+              if (parcelLayer) {
+                console.log('🎨 [DRAW CREATED] Parcel layer exists, checking boundaries...');
+                const parcelGeoJSON = parcelLayer.toGeoJSON();
+                console.log('🎨 [DRAW CREATED] Parcel GeoJSON:', parcelGeoJSON);
+                
+                const parcelGeometry = parcelGeoJSON.features?.[0]?.geometry || parcelGeoJSON.geometry;
+                if (parcelGeometry) {
+                  console.log(`🎨 [DRAW CREATED] Parcel geometry type: ${parcelGeometry.type}`);
+                  console.log(`🎨 [DRAW CREATED] Parcel coordinates length: ${JSON.stringify(parcelGeometry.coordinates).length} chars`);
+                  
+                  try {
+                    const polygon = turf.polygon(parcelGeometry.coordinates);
+                    let insideCount = 0, outsideCount = 0;
+                    
+                    latLngs.forEach((pt, i) => {
+                      const turfPt = turf.point([pt.lng, pt.lat]);
+                      const isInside = turf.booleanPointInPolygon(turfPt, polygon);
+                      if (isInside) insideCount++;
+                      else outsideCount++;
+                      console.log(`   Point ${i}: [${pt.lat.toFixed(6)}, ${pt.lng.toFixed(6)}] ${isInside ? '✓ INSIDE' : '✗ OUTSIDE'}`);
+                    });
+                    
+                    console.log(`🎨 [DRAW CREATED] Boundary: ${insideCount} inside, ${outsideCount} outside`);
+                    
+                    if (outsideCount > 0) {
+                      console.log('🎨 [DRAW CREATED] Attempting to clip to boundary...');
+                      try {
+                        clipPolygonToParcel(layer);
+                        console.log('🎨 [DRAW CREATED] Clipping completed successfully');
+                      } catch (err) {
+                        console.error('🎨 [DRAW CREATED] ERROR during clipping:', err);
+                      }
+                    }
+                  } catch (err) {
+                    console.error('🎨 [DRAW CREATED] ERROR checking boundaries:', err);
+                  }
+                } else {
+                  console.log('🎨 [DRAW CREATED] No parcel geometry found');
+                }
+              } else {
+                console.log('🎨 [DRAW CREATED] No parcel layer');
+              }
+            }
+            
+            negativeLayer.addLayer(layer);
+            layer.editing.enable();
+            attachConstraintListeners(layer);
+            updateLawnArea();
+            console.log('🎨 [DRAW CREATED] Shape saved and lawn area updated');
+          } catch (err) {
+            console.error('🎨 [DRAW CREATED] CRITICAL ERROR:', err);
+          }
+        });
+
+      } else {
+        negativeLayer.eachLayer(layer => {
+          if (layer.editing) {
+            layer.editing.enable();
+            attachConstraintListeners(layer);
+          }
+        });
+      }
+    }
+
+    function finishEditing() {
+      if (!map) return;
+
+      if (map._drawHandler) {
+        map._drawHandler.disable();
+        map._drawHandler = null;
+      }
+
+      negativeLayer.eachLayer(layer => {
+        if (layer.editing) layer.editing.disable();
+      });
+
+      if (areaOverlay) {
+        areaOverlay.remove();
+        areaOverlay = null;
+      }
+
+      document.getElementById('btn-finish-editing').style.display = 'none';
+
+      const btnNew = document.getElementById('btn-new-shape');
+      const btnEdit = document.getElementById('btn-edit-shapes');
+      btnNew.disabled = false;
+      btnEdit.disabled = false;
+      btnNew.style.opacity = '1';
+      btnEdit.style.opacity = '1';
+      btnNew.style.cursor = 'pointer';
+      btnEdit.style.cursor = 'pointer';
+
+      updateLawnArea();
+    }
+
+    function showAerialMap(data) {
+      currentData = data;
+      if (!data.aerial) {
+        aerialContainer.style.display = 'none';
+        return;
+      }
+      aerialContainer.classList.remove('hidden');
+      if (map) map.remove();
+      map = L.map('aerial-map').setView(data.aerial.center, data.aerial.zoom);
+
+      L.tileLayer(LINZ_AERIAL_URL, {
+        attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+        maxZoom: 24,
+        tileSize: 256,
+        zoomOffset: 0,
+        noWrap: true
+      }).addTo(map);
+
+      parcelAreaM2 = data.parcel_area_m2 || 0;
+      if (data.parcel_geometry) {
+        parcelLayer = L.geoJSON(data.parcel_geometry, {
+          style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+        }).addTo(map);
+      }
+
+      if (data.parcel_geometry && data.buildings_geometries && data.buildings_geometries.length > 0) {
+        try {
+          let parcelPoly;
+          if (data.parcel_geometry.type === "MultiPolygon") {
+            parcelPoly = turf.multiPolygon(data.parcel_geometry.coordinates);
+          } else {
+            parcelPoly = turf.polygon(data.parcel_geometry.coordinates);
+          }
+          const clippedBuildings = [];
+          data.buildings_geometries.forEach(geom => {
+            try {
+              if (geom.type === "Polygon" && geom.coordinates && geom.coordinates.length > 0) {
+                const ring = geom.coordinates[0];
+                if (ring.length >= 4) {
+                  const cleaned = [];
+                  ring.forEach((p, i) => {
+                    const prev = ring[i === 0 ? ring.length - 1 : i - 1];
+                    if (i === 0 || p[0] !== prev[0] || p[1] !== prev[1]) {
+                      cleaned.push(p);
+                    }
+                  });
+                  if (cleaned.length >= 4) {
+                    if (cleaned[0][0] !== cleaned[cleaned.length - 1][0] || cleaned[0][1] !== cleaned[cleaned.length - 1][1]) {
+                      cleaned.push(cleaned[0]);
+                    }
+                    const buildingPoly = turf.polygon([cleaned]);
+                    const intersection = turf.intersect(parcelPoly, buildingPoly);
+                    if (intersection && intersection.geometry) {
+                      clippedBuildings.push(intersection.geometry);
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          });
+          if (clippedBuildings.length > 0) {
+            clippedBuildingsGeoJSON = { type: "FeatureCollection", features: clippedBuildings.map(g => ({ type: "Feature", geometry: g })) };
+            clippedBuildingsLayer = L.geoJSON(clippedBuildings, {
+              style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.5 }
+            }).addTo(map);
+          }
+        } catch (e) {
+          console.warn('Building clipping failed', e);
+        }
+      }
+
+      if (parcelLayer) {
+        map.fitBounds(parcelLayer.getBounds().pad(0.2));
+      }
+
+      buildingsTransferredToExclusions = false;
+      ensureNegativeLayer();
+      updateLawnArea();
+
+      document.getElementById('btn-finish-editing').style.display = 'none';
+
+      pricingBox.classList.remove('hidden');
+
+      // ────────────────────────────────────────────────
+      //          RESTORE EDIT MODE STATE
+      // ────────────────────────────────────────────────
+      if (isEditMode && editingQuoteData?.mapState) {
+
+        const ms = editingQuoteData.mapState;
+
+        // 1. Center & zoom to saved position
+        if (ms.center && ms.zoom) {
+          map.setView([ms.center.lat, ms.center.lng], ms.zoom);
+        }
+
+        // 2. Add saved exclusions (negative areas) — this is the most important part
+        if (ms.negativeGeoJSON?.type === 'FeatureCollection' && ms.negativeGeoJSON.features.length > 0) {
+
+          // We already have negativeLayer from ensureNegativeLayer()
+          const exclusionLayer = L.geoJSON(ms.negativeGeoJSON, {
+            style: {
+              color:      "#ff4444",
+              weight:     2,
+              fillColor:  "#ff4444",
+              fillOpacity: 0.6
+            }
+          });
+
+          exclusionLayer.eachLayer(layer => {
+            negativeLayer.addLayer(layer);
+          });
+
+          // Optional: make them editable right away if user came to edit
+          // (or wait until they click "Edit Areas")
+          // exclusionLayer.eachLayer(l => l.editing?.enable?.());
+        }
+
+        // 3. Optional: force recalculation now that exclusions are back
+        updateLawnArea();
+
+        // 4. Optional UX: show that we're using saved measurement
+        if (areaOverlay?._div) {
+          areaOverlay._div.innerHTML += ' <small>(from saved quote)</small>';
+        }
+      }
+    }
+
+    const btnNewShape = document.getElementById('btn-new-shape');
+    const btnEditShapes = document.getElementById('btn-edit-shapes');
+    const btnFinish = document.getElementById('btn-finish-editing');
+
+    btnNewShape.addEventListener('click', () => {
+      if (!map) {
+        alert('Map not ready yet. Please load a property first.');
+        return;
+      }
+      enterEditMode(true);
+    });
+
+    btnEditShapes.addEventListener('click', () => {
+      if (!map) {
+        alert('Map not ready yet. Please load a property first.');
+        return;
+      }
+      enterEditMode(false);
+    });
+
+    btnFinish.addEventListener('click', () => {
+      if (!map) {
+        alert('Nothing to finish — map not loaded.');
+        return;
+      }
+      finishEditing();
+    });
+
+    btn.addEventListener('click', async () => {
+      const address = addressInput.value.trim();
+      if (!address) {
+        showError("Please enter a valid address");
+        return;
+      }
+      hideError();
+      resultDiv.classList.add('hidden');
+      aerialContainer.classList.add('hidden');
+      pricingBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = "Looking up...";
+      btn.classList.add('loading');
+      try {
+        const startTime = performance.now();
+        let token = null;
+        if (auth.currentUser) {
+          token = await auth.currentUser.getIdToken(true);
+        }
+        const response = await fetch(`${WORKER_URL}/api/building-area?address=${encodeURIComponent(address)}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Invalid response from server");
+        }
+        const timeTaken = ((performance.now() - startTime) / 1000).toFixed(1);
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "Service error");
+        }
+        addressDisplay.textContent = data.address;
+        areaDisplay.textContent = `${data.estimated_lawn_area_m2?.toLocaleString() || 'Calculating...'} m²`;
+        timeDisplay.textContent = `Found in ${timeTaken} seconds`;
+        resultDiv.classList.remove('hidden');
+        showAerialMap(data);
+        
+        // Hide loading splash when data is loaded
+        if (loadingSplash) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
+      } catch (err) {
+        showError(err.message || "Failed to fetch data");
+        // Hide splash on error too
+        if (loadingSplash) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Search Property";
+        btn.classList.remove('loading');
+      }
+    });
+
+    addressInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+
+    function showError(msg) {
+      errorDiv.textContent = msg;
+      errorDiv.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorDiv.classList.add('hidden');
+      errorDiv.textContent = '';
+    }
+
+    document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
+      if (!currentData || currentLawnArea === 0) {
+        alert('Please load an address and measure the lawn area first.');
+        return;
+      }
+      if (!auth.currentUser) {
+        alert('Please sign in to save quotes');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const token = await auth.currentUser.getIdToken();
+
+      let companyProfile = {};
+      try {
+        const profileRes = await fetch(`${WORKER_URL}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const { profile } = await profileRes.json();
+          companyProfile = {
+            companyName: profile.companyName || 'Deep Edge',
+            nzbn: profile.nzbn || '',
+            phone: profile.phone || '',
+            gstNumber: profile.gstNumber || '',
+            email: profile.email || '',
+            logoUrl: profile.logoUrl || ''
+          };
+        }
+      } catch (e) {
+        console.warn('Could not fetch company profile for quote', e);
+      }
+
+      const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
+
+      // Get final price from the editable input field
+      const finalPrice = parseFloat(finalPriceInput.value) || 0;
+
+      let invoiceNumber = document.getElementById('invoice-number')?.value?.trim() || '';
+      if (!invoiceNumber) {
+          const year = new Date().getFullYear();
+          const timestampPart = Date.now().toString().slice(-6);
+          invoiceNumber = `INV-${year}-${timestampPart}`;
+      }
+
+      const invoiceDateVal = document.getElementById('invoice-date')?.value || new Date().toISOString().split('T')[0];
+      const dueDateVal = document.getElementById('due-date')?.value || '';
+
+      const invoiceData = {
+        invoiceNumber: invoiceNumber,
+        invoiceDate: invoiceDateVal,
+        dueDate: dueDateVal,
+        address: addressDisplay.textContent,
+        lawnAreaM2: currentLawnArea,
+        calloutFee: parseFloat(calloutInput.value) || 0,
+        difficultyMultiplier: parseFloat(difficultySlider.value),
+        estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
+        totalInclGst: finalPrice,
+        invoiceNotes: quoteNotesInput.value.trim() || null,
+        pricingSummary: {
+          estimatedHours: parseFloat(document.getElementById('estimated-hours-display').textContent) || 0,
+          lawnAreaM2: currentLawnArea,
+          calloutFee: parseFloat(calloutInput.value) || 0,
+          subtotalEx: parseFloat(document.getElementById('total-revenue').textContent.replace('$', '').replace(',', '')) || 0,
+          gst: parseFloat(document.getElementById('gst').textContent.replace('$', '').replace(',', '')) || 0,
+          subtotalIncl: parseFloat(document.getElementById('total-incl-display').textContent.replace('$', '').replace(',', '')) || 0,
+          finalPrice: finalPrice,
+          adjustmentAmount: document.getElementById('adjustments-amount').textContent || '-$0.00',
+          biweeklyEstimate: document.getElementById('biweekly-estimate-text').textContent || null
+        },
+        client: loadedJobData?.client ? {
+          firstName: loadedJobData.client.firstName || '',
+          lastName: loadedJobData.client.lastName || ''
+        } : {},
+        company: companyProfile,
+        mapState: {
+          center: map.getCenter(),
+          zoom: map.getZoom(),
+          parcelGeometry: currentData.parcel_geometry,
+          buildingsGeoJSON: clippedBuildingsGeoJSON,
+          negativeGeoJSON: negativeGeoJSON
+        },
+        generatedAt: new Date().toISOString(),
+        jobId: jobId || null,
+        mowerType: getSelectedMowerType(),
+        timeSinceCut: timeSinceCutSelect.value || null,
+        timeMultiplier: currentTimeMultiplier,
+        addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
+          value: cb.value,
+          label: cb.dataset.title
+        })),
+        addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
+          ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
+          : null
+      };
+
+      try {
+        let res;
+        let invoiceIdReturned;
+
+        if (isEditMode && editingInvoiceId) {
+          // ── UPDATE (PUT) mode for existing invoice ───────────────────────────
+          res = await fetch(`${WORKER_URL}/api/invoices/${editingInvoiceId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: invoiceData })
+          });
+          invoiceIdReturned = editingInvoiceId;
+        } else {
+          // ── CREATE (POST) mode for new invoice ───────────────────────────────
+          res = await fetch(`${WORKER_URL}/api/quotes`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoiceData)
+          });
+          const data = await res.json();
+          invoiceIdReturned = data.quoteId || data.invoiceId || data.id;
+        }
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || 'Failed to save invoice');
+        }
+
+        const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceIdReturned}`;
+
+        document.getElementById('quote-link').href = publicLink;
+        document.getElementById('quote-link').textContent = publicLink;
+        document.getElementById('quote-link-box').classList.remove('hidden');
+
+        const successMsg = isEditMode ? 'Invoice updated successfully!' : 'Invoice saved successfully!';
+        alert(`${successMsg}\n\nShare this link with your client:\n${publicLink}`);
+
+        const targetJobId = jobId || (prefillData?.jobId) || (editingInvoiceData?.data?.jobId);
+        if (targetJobId) {
+          setTimeout(() => {
+            window.location.href = `jobs.html?jobId=${targetJobId}`;
+          }, 1800);
+        }
+
+      } catch (err) {
+        console.error('Invoice save failed:', err);
+        alert('Failed to save invoice: ' + err.message);
+      }
+    });
+
+    const suggestionsBox = document.getElementById("address-suggestions");
+    let debounceTimer = null;
+
+    addressInput.addEventListener("input", (e) => {
+      const value = e.target.value.trim();
+
+      clearTimeout(debounceTimer);
+
+      if (value.length < 3) {
+        hideSuggestions();
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        fetchSuggestions(value);
+      }, 250);
+    });
+
+    async function fetchSuggestions(query) {
+      try {
+        const res = await fetch(
+          `${WORKER_URL}/api/address-suggest?q=${encodeURIComponent(query)}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        renderSuggestions(data.addresses || []);
+      } catch (err) {
+        console.warn("Suggest failed", err);
+      }
+    }
+
+    function renderSuggestions(addresses) {
+      suggestionsBox.innerHTML = "";
+
+      if (!addresses.length) {
+        hideSuggestions();
+        return;
+      }
+
+      addresses.forEach(addr => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = addr.FullAddress;
+
+        div.addEventListener("click", () => {
+          addressInput.value = addr.FullAddress;
+          hideSuggestions();
+        });
+
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.classList.remove("hidden");
+    }
+
+    function hideSuggestions() {
+      suggestionsBox.classList.add("hidden");
+      suggestionsBox.innerHTML = "";
+    }
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".input-group")) {
+        hideSuggestions();
+      }
+    });
+
   </script>
 </body>
 </html>

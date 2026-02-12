@@ -303,6 +303,55 @@
     <p>Loading your dashboard...</p>
   </div>
 
+  <!-- Onboarding Modal -->
+  <div id="onboardingModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 1000; transition: opacity 0.3s ease; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 48px; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); max-width: 600px; width: 90%;;">
+      <h2 style="font-size: 2rem; font-weight: 700; color: #1B1B2F; margin-bottom: 16px; text-align: center;">Onboarding</h2>
+      <p style="font-size: 1rem; color: #6b7280; line-height: 1.6; margin-bottom: 40px; text-align: center;">To get ready to use Deep Edge as your workflow, we're going to need 5 minutes to set things up.</p>
+      
+      <div style="text-align: left; margin-bottom: 40px;">
+        <!-- Task 1: Company Profile -->
+        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 12px; background: #f9fafb; margin-bottom: 16px;">
+          <div id="task1Icon" style="width: 24px; height: 24px; min-width: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 4px; background: #e5e7eb; transition: all 0.3s ease;"></div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #1B1B2F; margin-bottom: 8px;">1. Set Up Your Company Profile</h3>
+            <p style="font-size: 0.95rem; color: #6b7280; margin: 0;">Add your company name, address, phone, and logo</p>
+          </div>
+          <button onclick="window.location.href = 'profile.html#company-profile'" style="background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 9999px; font-weight: 600; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.3s ease;">Go →</button>
+        </div>
+
+        <!-- Task 2: Set Pricing -->
+        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 12px; background: #f9fafb; margin-bottom: 16px;">
+          <div id="task2Icon" style="width: 24px; height: 24px; min-width: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 4px; background: #e5e7eb; transition: all 0.3s ease;"></div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #1B1B2F; margin-bottom: 8px;">2. Configure Your Pricing</h3>
+            <p style="font-size: 0.95rem; color: #6b7280; margin: 0;">Set push & ride-on mower rates, m² per hour, and expenses</p>
+          </div>
+          <button onclick="window.location.href = 'profile.html#pricing'" style="background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 9999px; font-weight: 600; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.3s ease;">Go →</button>
+        </div>
+
+        <!-- Task 3: Add Bank Account -->
+        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 20px; border-radius: 12px; background: #f9fafb; margin-bottom: 16px;">
+          <div id="task3Icon" style="width: 24px; height: 24px; min-width: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 4px; background: #7B2D8E; transition: all 0.3s ease;"></div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #1B1B2F; margin-bottom: 8px;">3. Add Bank Account So You Can Get Paid</h3>
+            <p style="font-size: 0.95rem; color: #6b7280; margin: 0;">Connect your bank account to receive payments automatically</p>
+          </div>
+          <button onclick="window.location.href = 'profile.html#bank'" style="background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 9999px; font-weight: 600; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.3s ease;">Go →</button>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div style="height: 6px; background: #e5e7eb; border-radius: 3px; margin: 32px 0 24px; overflow: hidden;">
+        <div id="onboardingProgressFill" style="height: 100%; background: #7B2D8E; width: 0%; transition: width 0.6s ease;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
+        <button id="completeOnboardingBtn" style="background: #7B2D8E; color: white; border: none; padding: 12px 32px; border-radius: 9999px; font-weight: 600; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25); transition: all 0.3s ease; display: none;">All Done! ✓</button>
+      </div>
+    </div>
+  </div>
+
 <div class="container">
 
   <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
@@ -668,6 +717,88 @@ async function loadDashboardData() {
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     await loadDashboardData();
+    
+    // Check profile and show onboarding if needed
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const profile = await response.json();
+      
+      // If company name is not set, show onboarding
+      if (!profile.companyName || profile.companyName === 'My Lawn Business') {
+        const modal = document.getElementById('onboardingModal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+      }
+    } catch (err) {
+      console.error('Profile check error:', err);
+    }
+
+    // Onboarding task handling
+    const task1Icon = document.getElementById('task1Icon');
+    const task2Icon = document.getElementById('task2Icon');
+    const task3Icon = document.getElementById('task3Icon');
+    const completeBtn = document.getElementById('completeOnboardingBtn');
+    const onboardingModal = document.getElementById('onboardingModal');
+    const progressFill = document.getElementById('onboardingProgressFill');
+
+    // Function to update task icons based on localStorage
+    function updateTaskIcons() {
+      const task1 = localStorage.getItem('onboarding_companyProfile') === 'true';
+      const task2 = localStorage.getItem('onboarding_pricing') === 'true';
+      const task3 = true; // Bank account always complete
+      
+      const completedCount = (task1 ? 1 : 0) + (task2 ? 1 : 0) + (task3 ? 1 : 0);
+      const progressPercent = (completedCount / 3) * 100;
+
+      // Update icons
+      if (task1Icon) {
+        task1Icon.style.background = task1 ? '#7B2D8E' : '#e5e7eb';
+      }
+
+      if (task2Icon) {
+        task2Icon.style.background = task2 ? '#7B2D8E' : '#e5e7eb';
+      }
+
+      if (task3Icon) {
+        task3Icon.style.background = '#7B2D8E'; // Always complete
+      }
+
+      // Update progress bar
+      if (progressFill) {
+        progressFill.style.width = progressPercent + '%';
+      }
+
+      // If all tasks are done, show complete button
+      if (task1 && task2 && task3) {
+        if (completeBtn) completeBtn.style.display = 'inline-block';
+      } else {
+        if (completeBtn) completeBtn.style.display = 'none';
+      }
+    }
+
+    // Update icons on initial load
+    updateTaskIcons();
+
+    // Complete button closes modal
+    if (completeBtn) {
+      completeBtn.addEventListener('click', () => {
+        if (onboardingModal) {
+          onboardingModal.style.display = 'none';
+        }
+        localStorage.setItem('onboarding_completed', 'true');
+      });
+    }
+
+    // Listen for task completions (fire from profile.html when user updates data)
+    window.addEventListener('storage', (e) => {
+      if (e.key && e.key.startsWith('onboarding_')) {
+        updateTaskIcons();
+      }
+    });
     
     // Hide loading splash screen
     const loadingSplash = document.getElementById('loading-splash');
