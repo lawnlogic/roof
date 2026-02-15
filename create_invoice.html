@@ -2856,13 +2856,9 @@
           throw new Error(errText || 'Failed to save invoice');
         }
 
-        // Construct proper public link (handle local development vs production)
-        let baseUrl = window.location.origin;
-        if (baseUrl.startsWith('file://') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost')) {
-          // Use production URL when running locally
-          baseUrl = 'https://deepedge.co.nz';
-        }
-        const publicLink = `${baseUrl}/roof/invoice.html?inv=${invoiceIdReturned}`;
+        // Always use production domain for Stripe payment success URL
+        // Stripe must redirect to where invoice.html is actually deployed
+        const publicLink = `https://deepedge.co.nz/invoice.html?inv=${invoiceIdReturned}`;
 
         document.getElementById('quote-link').href = publicLink;
         document.getElementById('quote-link').textContent = publicLink;
