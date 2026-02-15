@@ -49,6 +49,7 @@
     h1 { font-size: 2.25rem; font-weight: 800; color: #1B1B2F; letter-spacing: -0.5px; margin-bottom: 8px; }
     h2 { font-size: 1.5rem; font-weight: 700; margin: 32px 0 16px; color: #1B1B2F; }
     h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+    h4 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: #1B1B2F; }
 
     .container { 
       width: 100%;
@@ -271,8 +272,9 @@
 
     .job-notes {
       padding: 16px 0;
-      border-bottom: 1px solid #f3f4f6;
+      border-top: 1px solid #f3f4f6;
       font-size: 0.95rem;
+      margin-top: 12px;
     }
 
     .job-notes h4 {
@@ -287,6 +289,32 @@
       font-size: 0.95rem;
       margin: 0;
       line-height: 1.5;
+    }
+
+    /* Add-on items styling */
+    .addon-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.4);
+      font-size: 0.95rem;
+    }
+
+    .addon-item:last-child {
+      border-bottom: none;
+    }
+
+    .addon-item span {
+      color: #6b7280;
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .addon-item strong {
+      color: #7B2D8E;
+      font-weight: 600;
+      text-align: right;
     }
 
     /* Loading Splash */
@@ -436,12 +464,28 @@
             <span>GST</span>
             <strong id="company-gst">-</strong>
           </div>
+          <div class="company-row" style="border-top: 2px solid #e5e7eb; padding-top: 20px; margin-top: 12px;">
+            <span>Invoice Number</span>
+            <strong id="invoice-number">-</strong>
+          </div>
+          <div class="company-row">
+            <span>Issue Date</span>
+            <strong id="issue-date">-</strong>
+          </div>
+          <div class="company-row">
+            <span>Due Date</span>
+            <strong id="due-date">-</strong>
+          </div>
+          <div class="company-row">
+            <span>Payment Terms</span>
+            <strong id="payment-terms">-</strong>
+          </div>
         </div>
       </div>
 
-      <!-- Job Summary Card -->
-      <div class="pricing-box" id="job-summary-box">
-        <h3>Job Summary</h3>
+      <!-- Invoice Summary Card -->
+      <div class="pricing-box" id="invoice-summary-box">
+        <h3>Invoice Summary</h3>
         <div class="pricing-row">
           <span>Client</span>
           <strong id="client-display">TBD</strong>
@@ -454,9 +498,30 @@
           <span>Lawn Area</span>
           <strong id="final-area">-</strong>
         </div>
+
+        <!-- Time Since Last Cut Info -->
+        <div id="time-multiplier-info" class="pricing-row" style="display: none;">
+          <span>Time Since Last Cut</span>
+          <strong id="time-since-cut-display">-</strong>
+        </div>
+        
+        <!-- Estimated Hours -->
         <div class="pricing-row">
-          <span>Lawn Cost (ex GST)</span>
-          <strong id="mowing-revenue">-</strong>
+          <span>Estimated Job Hours</span>
+          <strong id="estimated-hours-display">-</strong>
+        </div>
+
+        <!-- Add-On Services Section -->
+        <div id="addon-services-section" style="display: none;">
+          <div class="job-notes">
+            <h4>Add-On Services</h4>
+          </div>
+          <div id="addon-services-display"></div>
+        </div>
+
+        <div class="pricing-row">
+          <span>Callout Fee (ex GST)</span>
+          <strong id="callout-fee-display">-</strong>
         </div>
         <div class="pricing-row">
           <span>Subtotal (ex GST)</span>
@@ -466,13 +531,27 @@
           <span>GST (15%)</span>
           <strong id="gst">-</strong>
         </div>
+
+        <!-- Adjustments Row -->
+        <div id="adjustments-row" class="pricing-row" style="display: none; color: #f59e0b; border-top: 1px solid rgba(245, 158, 11, 0.2); padding-top: 12px;">
+          <span>Adjustments</span>
+          <strong id="adjustments-display">-</strong>
+        </div>
+
         <div class="pricing-row">
           <span>Total (incl GST)</span>
           <strong id="total-incl">-</strong>
         </div>
-        <div class="job-notes">
+
+        <!-- Biweekly Estimate -->
+        <div id="biweekly-estimate-info" class="pricing-row" style="display: none; padding: 12px 0;">
+          <span style="font-size: 0.85rem; color: #9ca3af;">Biweekly Estimate</span>
+          <strong id="biweekly-estimate-display" style="font-size: 0.85rem; font-weight: 700;">-</strong>
+        </div>
+
+        <div id="notes-section" class="job-notes" style="display: none;">
           <h4>Notes / Payment Instructions</h4>
-          <p id="invoice-notes">Example notes will appear here</p>
+          <p id="invoice-notes">No notes provided</p>
         </div>
       </div>
     </div>
@@ -482,27 +561,6 @@
       <p>© 2026 Deep Edge. All rights reserved.</p>
     </footer>
 
-    <!-- Invoice Details Card -->
-    <div class="pricing-box" id="invoice-info-box">
-      <h3>Invoice Details</h3>
-      <div class="pricing-row">
-        <span>Invoice Number</span>
-        <strong id="invoice-number">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Issue Date</span>
-        <strong id="issue-date">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Due Date</span>
-        <strong id="due-date">-</strong>
-      </div>
-      <div class="pricing-row">
-        <span>Payment Terms</span>
-        <strong id="payment-terms">-</strong>
-      </div>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
@@ -510,19 +568,27 @@
     const urlParams = new URLSearchParams(window.location.search);
     const invId = urlParams.get('inv');
     const isEditMode = urlParams.get('edit') === 'true';
+    const isPaid = urlParams.get('paid') === 'true';
 
-    // Add edit button if in edit mode
-    if (isEditMode && invId) {
-      const actionButtonsDiv = document.getElementById('action-buttons');
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit Invoice';
-      editBtn.style.cssText = 'background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;';
-      editBtn.onmouseover = () => editBtn.style.background = '#662375';
-      editBtn.onmouseout = () => editBtn.style.background = '#7B2D8E';
-      editBtn.onclick = () => {
-        window.location.href = `create_invoice.html?invoice=${invId}&edit=true`;
-      };
-      actionButtonsDiv.appendChild(editBtn);
+    // If payment was just completed, mark invoice as paid
+    if (isPaid && invId) {
+      fetch(`${WORKER_URL}/api/invoices/${invId}/mark-paid`, {
+        method: 'POST'
+      }).then(res => {
+        if (res.ok) {
+          console.log('Invoice marked as paid');
+          // Show success message
+          const successBanner = document.createElement('div');
+          successBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500;';
+          successBanner.textContent = '✓ Payment successful! Invoice has been marked as paid.';
+          document.body.appendChild(successBanner);
+          setTimeout(() => {
+            successBanner.style.opacity = '0';
+            successBanner.style.transition = 'opacity 0.5s';
+            setTimeout(() => successBanner.remove(), 500);
+          }, 5000);
+        }
+      }).catch(err => console.error('Failed to mark invoice as paid:', err));
     }
 
     if (!invId) {
@@ -535,6 +601,41 @@
         })
         .then(invoice => {
           const data = invoice;
+          const actionButtonsDiv = document.getElementById('action-buttons');
+
+          // Check if invoice is already paid
+          const isInvoicePaid = data.status === 'paid';
+
+          // Add Payment Link button if available
+          if (data.stripePaymentLink) {
+            const payBtn = document.createElement('a');
+            payBtn.href = isInvoicePaid ? '#' : data.stripePaymentLink;
+            payBtn.target = isInvoicePaid ? '' : '_blank';
+            payBtn.textContent = isInvoicePaid ? '✓ Paid' : 'Pay Now';
+            
+            if (isInvoicePaid) {
+              payBtn.style.cssText = 'background: #9ca3af; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: not-allowed; font-weight: 500; text-decoration: none; display: inline-block; opacity: 0.6;';
+              payBtn.onclick = (e) => e.preventDefault();
+            } else {
+              payBtn.style.cssText = 'background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; text-decoration: none; display: inline-block;';
+              payBtn.onmouseover = () => payBtn.style.background = '#059669';
+              payBtn.onmouseout = () => payBtn.style.background = '#10b981';
+            }
+            actionButtonsDiv.appendChild(payBtn);
+          }
+
+          // Add Edit button if in edit mode
+          if (isEditMode && invId) {
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Edit Invoice';
+            editBtn.style.cssText = 'background: #7B2D8E; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;';
+            editBtn.onmouseover = () => editBtn.style.background = '#662375';
+            editBtn.onmouseout = () => editBtn.style.background = '#7B2D8E';
+            editBtn.onclick = () => {
+              window.location.href = `create_invoice.html?invoice=${invId}&edit=true`;
+            };
+            actionButtonsDiv.appendChild(editBtn);
+          }
           
           // === Company Info (check quoteSnapshot first for backward compatibility, then top-level) ===
           const company = (data.quoteSnapshot?.data?.company || data.company) || {};
@@ -568,6 +669,14 @@
             data.paymentTerms === '20th-next' ? '20th of following month' :
             data.paymentTerms || '—';
 
+          // Show paid status badge if invoice is paid
+          if (isInvoicePaid) {
+            const paidBadge = document.createElement('div');
+            paidBadge.style.cssText = 'background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; text-align: center; margin-top: 16px; font-size: 0.95rem;';
+            paidBadge.textContent = `✓ PAID ${data.paidAt ? '- ' + new Date(data.paidAt).toLocaleDateString() : ''}`;
+            document.querySelector('.invoice-header').appendChild(paidBadge);
+          }
+
           // === Quote Details (check quoteSnapshot first, then top-level) ===
           const address = (data.quoteSnapshot?.data?.address || data.address) || 'Unknown Address';
           document.getElementById('address-display').textContent = address;
@@ -586,25 +695,88 @@
             clientDisplay.textContent = 'TBD';
           }
 
-          // Job Summary
+          // === Pricing Summary (from pricingSummary object or fallback) ===
           const area = (data.quoteSnapshot?.data?.lawnAreaM2 || data.lawnAreaM2) || 0;
-          document.getElementById('final-area').textContent = `${area} m²`;
+          document.getElementById('final-area').textContent = `${area.toLocaleString()} m²`;
 
-          const rate = (data.quoteSnapshot?.data?.ratePerM2 || data.ratePerM2) || 0;
-          const multiplier = (data.quoteSnapshot?.data?.difficultyMultiplier || 1) || 1;
-          const callout = (data.quoteSnapshot?.data?.calloutFee || data.calloutFee) || 0;
-          const mowingEx = area * rate * multiplier;
-          const totalEx = mowingEx + callout;
-          const gstAmount = totalEx * 0.15;
+          const ps = (data.quoteSnapshot?.data?.pricingSummary || data.pricingSummary) || {};
+          
+          // Populate pricing details
+          if (ps.estimatedHours !== undefined) {
+            document.getElementById('estimated-hours-display').textContent = ps.estimatedHours.toFixed(2) + ' hrs';
+          } else {
+            document.getElementById('estimated-hours-display').textContent = '-';
+          }
+          
+          if (ps.calloutFee !== undefined) {
+            document.getElementById('callout-fee-display').textContent = '$' + ps.calloutFee.toFixed(2);
+          } else {
+            const callout = (data.quoteSnapshot?.data?.calloutFee || data.calloutFee) || 0;
+            document.getElementById('callout-fee-display').textContent = '$' + callout.toFixed(2);
+          }
+          
+          // Time Since Last Cut - only show if present
+          const timeSinceCut = (data.quoteSnapshot?.data?.timeSinceCut || data.timeSinceCut);
+          if (timeSinceCut) {
+            document.getElementById('time-multiplier-info').style.display = 'flex';
+            document.getElementById('time-since-cut-display').textContent = timeSinceCut;
+          }
+          
+          // Use pricingSummary data if available, otherwise calculate
+          const totalEx = ps.subtotalEx !== undefined ? ps.subtotalEx : 
+            (data.totalInclGst ? data.totalInclGst / 1.15 : 0);
+          const gstAmount = ps.gst !== undefined ? ps.gst : (totalEx * 0.15);
 
-          document.getElementById('mowing-revenue').textContent = `$${mowingEx.toFixed(2)}`;
-          document.getElementById('total-revenue').textContent = `$${totalEx.toFixed(2)}`;
-          document.getElementById('gst').textContent = `$${gstAmount.toFixed(2)}`;
-          document.getElementById('total-incl').textContent = 
-            `$${data.totalInclGst?.toFixed(2) || (totalEx + gstAmount).toFixed(2)}`;
+          document.getElementById('total-revenue').textContent = '$' + totalEx.toFixed(2);
+          document.getElementById('gst').textContent = '$' + gstAmount.toFixed(2);
+          
+          // Final price (may be different from subtotal if manually adjusted)
+          const finalPrice = ps.finalPrice !== undefined ? ps.finalPrice : 
+            (data.totalInclGst || (totalEx + gstAmount));
+          document.getElementById('total-incl').textContent = '$' + finalPrice.toFixed(2);
+          
+          // Adjustments - only show if present and not zero
+          if (ps.adjustmentAmount !== undefined && ps.adjustmentAmount !== '-$0.00' && ps.adjustmentAmount !== '$0.00') {
+            document.getElementById('adjustments-row').style.display = 'flex';
+            document.getElementById('adjustments-display').textContent = ps.adjustmentAmount;
+          }
+          
+          // Biweekly estimate - only show if present
+          if (ps.biweeklyEstimate !== undefined && ps.biweeklyEstimate) {
+            document.getElementById('biweekly-estimate-info').style.display = 'flex';
+            document.getElementById('biweekly-estimate-display').textContent = ps.biweeklyEstimate;
+          }
+
+          // === Add-On Services ===
+          const addonServices = (data.quoteSnapshot?.data?.addonServices || data.addonServices);
+          const hasAddons = addonServices && addonServices.length > 0;
+          const addonContainer = document.getElementById('addon-services-display');
+          const addonSection = document.getElementById('addon-services-section');
+
+          if (hasAddons) {
+            addonSection.style.display = 'block';
+            addonContainer.innerHTML = ''; // Clear
+            addonServices.forEach(addon => {
+              const addonItem = document.createElement('div');
+              addonItem.className = 'addon-item';
+              const price = addon.price ? '$' + addon.price.toFixed(2) : 'TBD';
+              addonItem.innerHTML = `<span>${addon.label}</span><strong style="color: #7B2D8E;">${price}</strong>`;
+              addonContainer.appendChild(addonItem);
+            });
+          }
 
           // === Notes ===
-          document.getElementById('invoice-notes').textContent = data.notes?.trim() || 'No additional notes provided.';
+          const invoiceNotes = (data.quoteSnapshot?.data?.invoiceNotes || data.invoiceNotes || data.notes);
+          const notesSection = document.getElementById('notes-section');
+          const notesDisplay = document.getElementById('invoice-notes');
+          
+          if (invoiceNotes && invoiceNotes.trim()) {
+            notesSection.style.display = 'block';
+            notesDisplay.textContent = invoiceNotes.trim();
+          } else if (hasAddons) {
+            notesSection.style.display = 'block';
+            notesDisplay.textContent = 'Add-ons to be priced on site, unless defined.';
+          }
 
           // === Map (check quoteSnapshot first, then top-level) ===
           const mapState = (data.quoteSnapshot?.data?.mapState || data.mapState) || {};

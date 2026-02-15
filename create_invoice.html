@@ -271,6 +271,64 @@
       border-color: #7B2D8E;
     }
 
+    /* Add-on items in pricing summary (matching quote.html) */
+    .pricing-addon-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.4);
+      font-size: 0.95rem;
+    }
+
+    .pricing-addon-item:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-addon-item span {
+      color: #6b7280;
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .pricing-addon-item strong {
+      color: #7B2D8E;
+      font-weight: 600;
+      text-align: right;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .pricing-addon-item strong:hover {
+      background: rgba(123, 45, 142, 0.05);
+    }
+
+    .pricing-addon-item input[type="number"] {
+      width: 110px;
+      padding: 6px 10px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 6px;
+      text-align: right;
+      font-weight: 600;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: #1B1B2F;
+    }
+
+    .pricing-addon-item input[type="number"]:focus {
+      outline: none;
+      border-color: #7B2D8E;
+    }
+
+    .addon-section-header {
+      margin: 0 0 12px 0;
+      font-size: 0.95rem;
+      color: #1B1B2F;
+      font-weight: 600;
+    }
+
     input[type="text"]:focus,
     input[type="number"]:focus,
     input[type="email"]:focus,
@@ -1014,16 +1072,12 @@
         <strong style="color: #1B1B2F;" id="callout-display">$0.00</strong>
       </div>
 
-      <!-- Selected Add-ons Display -->
-      <div id="selected-addons-display" style="grid-column: 1 / -1; margin: 20px 0; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
-        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #666;">Selected add-ons:</p>
-        <div id="selected-addons-list" style="font-size: 0.9rem; color: #1B1B2F;"></div>
-        <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: #7B2D8E; font-weight: 500;">⚠️ Pricing to be quoted on site</p>
-      </div>
-
-      <div class="pricing-row" style="grid-column: 1 / -1;">
-        <span>Add-on Services (ex GST)</span>
-        <strong style="color: #7B2D8E;" id="addons-display">TBD</strong>
+      <!-- Add-on Services Section with editable prices -->
+      <div id="addon-services-section" style="grid-column: 1 / -1; display: none; padding: 16px 0; border-bottom: 2px solid rgba(229, 231, 235, 0.4); margin-bottom: 16px;">
+        <h4 class="addon-section-header">Add-on Services</h4>
+        <div id="addon-services-display">
+          <!-- Individual add-on items will be inserted here -->
+        </div>
       </div>
 
       <div class="pricing-row" style="grid-column: 1 / -1;">
@@ -1295,6 +1349,8 @@
     const biweeklyEstimateDisplay = document.getElementById('biweekly-estimate-display');
     const biweeklyEstimateText = document.getElementById('biweekly-estimate-text');
     let originalTotalIncl = 0; // Track calculated price before user edits
+    let hasSavedFinalPrice = false; // Flag to prevent overwriting saved final price
+    const addonPrices = new Map(); // Store addon prices: Map<addonValue, price>
 
     timeSinceCutSelect.addEventListener('change', () => {
       const frequency = timeSinceCutSelect.value;
@@ -1488,8 +1544,6 @@
     const addonItemsContainer = document.getElementById('addon-items-container');
     const addonToggleBtn = document.getElementById('addon-toggle-btn');
     const addonServicesDropdown = document.getElementById('addon-services-dropdown');
-    const selectedAddonsDisplay = document.getElementById('selected-addons-display');
-    const selectedAddonsList = document.getElementById('selected-addons-list');
 
     addonServicesData.forEach(addon => {
       const item = document.createElement('label');
@@ -1523,14 +1577,77 @@
 
     function updateAddonSelection() {
       const selectedCheckboxes = addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked');
-      const selectedServices = Array.from(selectedCheckboxes).map(cb => cb.dataset.title);
+      const selectedServices = Array.from(selectedCheckboxes).map(cb => ({
+        label: cb.dataset.title,
+        value: cb.value
+      }));
+
+      // Update pricing summary display (matching quote.html format)
+      const addonServicesSection = document.getElementById('addon-services-section');
+      const addonServicesDisplay = document.getElementById('addon-services-display');
 
       if (selectedServices.length === 0) {
-        selectedAddonsDisplay.style.display = 'none';
-        selectedAddonsList.innerHTML = '';
+        addonServicesSection.style.display = 'none';
+        addonServicesDisplay.innerHTML = '';
       } else {
-        selectedAddonsDisplay.style.display = 'block';
-        selectedAddonsList.innerHTML = selectedServices.map(service => `<div style="margin-bottom: 6px;">✓ ${service}</div>`).join('');
+        addonServicesSection.style.display = 'block';
+        // Display each addon as individual line item with TBD (click to edit)
+        addonServicesDisplay.innerHTML = selectedServices.map(service => {
+          const savedPrice = addonPrices.get(service.value);
+          const displayValue = savedPrice && savedPrice > 0 ? `$${savedPrice.toFixed(2)}` : 'TBD';
+          return `<div class="pricing-addon-item" data-addon="${service.value}">
+            <span>${service.label}</span>
+            <strong class="addon-price-display" style="color: #7B2D8E;">${displayValue}</strong>
+          </div>`;
+        }).join('');
+        
+        // Attach click-to-edit functionality
+        document.querySelectorAll('.pricing-addon-item').forEach(item => {
+          const addonValue = item.dataset.addon;
+          const displayElement = item.querySelector('.addon-price-display');
+          
+          displayElement.addEventListener('click', () => {
+            const currentPrice = addonPrices.get(addonValue) || 0;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'addon-price-input';
+            input.value = currentPrice.toFixed(2);
+            input.step = '0.01';
+            input.min = '0';
+            input.placeholder = '0.00';
+            
+            // Replace display with input
+            displayElement.replaceWith(input);
+            input.focus();
+            input.select();
+            
+            // Handle when user finishes editing
+            const finishEdit = () => {
+              const price = parseFloat(input.value) || 0;
+              addonPrices.set(addonValue, price);
+              
+              const newDisplay = document.createElement('strong');
+              newDisplay.className = 'addon-price-display';
+              newDisplay.style.color = '#7B2D8E';
+              newDisplay.style.cursor = 'pointer';
+              newDisplay.textContent = price > 0 ? `$${price.toFixed(2)}` : 'TBD';
+              
+              input.replaceWith(newDisplay);
+              
+              // Reattach click listener
+              newDisplay.addEventListener('click', () => displayElement.click.call(displayElement));
+              
+              updateLawnArea(); // Recalculate totals
+            };
+            
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') {
+                finishEdit();
+              }
+            });
+          });
+        });
       }
 
       if (auth.currentUser) {
@@ -1564,6 +1681,23 @@
             sessionStorage.setItem('editInvoiceData', JSON.stringify(invoice));
 
             console.log('📋 Loaded invoice for editing:', invoice);
+
+            // Restore pricing from invoice pricingSummary
+            if (invoice.pricingSummary) {
+              const finalPrice = invoice.pricingSummary.finalPrice || invoice.pricingSummary.subtotalIncl || 0;
+              const subtotalIncl = invoice.pricingSummary.subtotalIncl || finalPrice;
+              
+              // Set the original total for adjustment calculation
+              originalTotalIncl = subtotalIncl;
+              
+              // Set both display and input to finalPrice
+              document.getElementById('total-incl-display').textContent = `$${finalPrice.toFixed(2)}`;
+              finalPriceInput.value = finalPrice.toFixed(2);
+              
+              // Trigger change event to calculate adjustments automatically
+              finalPriceInput.dispatchEvent(new Event('change'));
+              console.log('✓ Prefilled from invoice: finalPrice=$' + finalPrice + ', originalTotal=$' + subtotalIncl);
+            }
           } else {
             console.warn("Failed to load invoice for editing:", res.status);
             if (loadingSplash) {
@@ -1591,13 +1725,14 @@
         try {
           const token = await user.getIdToken();
 
-          let data = null;
+          let quoteData = null;
+          let jobData = null;
           
           // Load from quote if quoteId provided
           if (quoteId) {
             const prefetchedData = sessionStorage.getItem('editQuoteData') || sessionStorage.getItem('editInvoiceData');
             if (prefetchedData) {
-              data = JSON.parse(prefetchedData);
+              quoteData = JSON.parse(prefetchedData);
               sessionStorage.removeItem('editQuoteData');
               sessionStorage.removeItem('editInvoiceData');
             } else {
@@ -1605,20 +1740,40 @@
                 headers: { 'Authorization': `Bearer ${token}` }
               });
               if (res.ok) {
-                data = await res.json();
+                quoteData = await res.json();
               }
             }
           }
           
-          // Otherwise, load from job if jobId provided
-          if (!data && jobId) {
+          // Also load job data if jobId provided (for additional fields like mowerType/difficultyMultiplier)
+          if (jobId) {
             const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-              const jobData = await res.json();
-              data = jobData;
+              jobData = await res.json();
             }
+          }
+
+          // Merge: quote data takes priority, job data fills gaps for missing fields
+          let data = quoteData || jobData;
+          
+          // If we have both, merge missing fields from job into quote
+          if (quoteData && jobData) {
+            // Use explicit undefined/null checks
+            if ((quoteData.mowerType === undefined || quoteData.mowerType === null) && jobData.mowerType) {
+              quoteData.mowerType = jobData.mowerType;
+              console.log('✓ Merged mowerType from job data');
+            }
+            if ((quoteData.difficultyMultiplier === undefined || quoteData.difficultyMultiplier === null) && jobData.difficultyMultiplier !== undefined && jobData.difficultyMultiplier !== null) {
+              quoteData.difficultyMultiplier = jobData.difficultyMultiplier;
+              console.log('✓ Merged difficultyMultiplier from job data');
+            }
+            if ((!quoteData.client?.firstName || !quoteData.client?.lastName) && jobData.client?.firstName) {
+              quoteData.client = jobData.client;
+              console.log('✓ Merged client info from job data');
+            }
+            data = quoteData;
           }
 
           if (data) {
@@ -1664,10 +1819,14 @@
             console.log('timeSinceCut:', actualData.timeSinceCut, 'addonServices:', actualData.addonServices);
             
             if (actualData.calloutFee) document.getElementById('callout-input').value = actualData.calloutFee;
-            if (actualData.difficultyMultiplier) {
+            
+            // Use !== undefined to properly handle 0 and 1 values
+            if (actualData.difficultyMultiplier !== undefined && actualData.difficultyMultiplier !== null) {
               document.getElementById('difficulty-slider').value = actualData.difficultyMultiplier;
               document.getElementById('difficulty-value').textContent = `${actualData.difficultyMultiplier}x`;
+              console.log(`✓ Set difficulty multiplier from merged data: ${actualData.difficultyMultiplier}x`);
             }
+            
             if (actualData.notes || actualData.invoiceNotes || actualData.quoteNotes) {
               document.getElementById('quote-notes').value = actualData.notes || actualData.invoiceNotes || actualData.quoteNotes;
             }
@@ -1698,6 +1857,14 @@
             if (Array.isArray(actualData.addonServices) && actualData.addonServices.length > 0) {
               console.log('✓ Setting addon services:', actualData.addonServices);
               const addonValues = actualData.addonServices.map(a => a.value);
+              
+              // Restore addon prices from saved data
+              actualData.addonServices.forEach(addon => {
+                if (addon.price !== undefined) {
+                  addonPrices.set(addon.value, addon.price);
+                }
+              });
+              
               addonItemsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 cb.checked = addonValues.includes(cb.value);
               });
@@ -1706,8 +1873,20 @@
               console.log('⚠ No addonServices found in data');
             }
 
-            const mowerRadio = document.getElementById(`mower-${actualData.mowerType || 'push'}`);
-            if (mowerRadio) mowerRadio.checked = true;
+            // Preselect mower type - default to 'push' if not specified
+            const mowerType = actualData.mowerType || 'push';
+            const mowerRadio = document.getElementById(`mower-${mowerType}`);
+            if (mowerRadio) {
+              mowerRadio.checked = true;
+              console.log(`✓ Selected mower type: ${mowerType}`);
+            }
+
+            // Preselect difficulty multiplier - use !== undefined to handle 0 or 1
+            if (actualData.difficultyMultiplier !== undefined) {
+              document.getElementById('difficulty-slider').value = actualData.difficultyMultiplier;
+              document.getElementById('difficulty-value').textContent = `${actualData.difficultyMultiplier}x`;
+              console.log(`✓ Set difficulty multiplier: ${actualData.difficultyMultiplier}x`);
+            }
 
             // ── Display address and lawn area from saved data ──
             if (actualData.address) {
@@ -1722,15 +1901,28 @@
                 finalAreaDisplay.textContent = `${Math.round(actualData.lawnAreaM2).toLocaleString()} m²`;
                 updateEstimatedJobTime();
                 
-                // Restore pricing from saved data
+                // Restore pricing from saved data - DELAYED until after splash screen and map load
                 if (actualData.pricingSummary) {
-                  document.getElementById('total-revenue').textContent = `$${(actualData.pricingSummary.subtotalEx || 0).toFixed(2)}`;
-                  document.getElementById('gst').textContent = `$${(actualData.pricingSummary.gst || 0).toFixed(2)}`;
-                  document.getElementById('total-incl-display').textContent = `$${(actualData.pricingSummary.subtotalIncl || 0).toFixed(2)}`;
-                  finalPriceInput.value = actualData.pricingSummary.finalPrice || actualData.pricingSummary.subtotalIncl || 0;
-                  originalTotalIncl = actualData.pricingSummary.subtotalIncl || 0;
+                  setTimeout(() => {
+                    const finalPrice = actualData.pricingSummary.finalPrice || actualData.pricingSummary.subtotalIncl || 0;
+                    const subtotalIncl = actualData.pricingSummary.subtotalIncl || finalPrice;
+                    
+                    // Set the flag to prevent updateLawnArea from overwriting
+                    hasSavedFinalPrice = true;
+                    
+                    // Set the original total for adjustment calculation
+                    originalTotalIncl = subtotalIncl;
+                    
+                    // Set the saved final price
+                    finalPriceInput.value = finalPrice.toFixed(2);
+                    
+                    // Trigger updateLawnArea to recalculate with the saved price preserved
+                    updateLawnArea();
+                    
+                    console.log('✓ Prefilled: finalPrice=$' + finalPrice + ', originalTotal=$' + subtotalIncl);
+                  }, 1500);
                 }
-              }
+            }
             }
 
             // ── Load the aerial map directly with saved mapState ──
@@ -1894,7 +2086,14 @@
       const difficulty      = parseFloat(difficultySlider.value) || 1.0;
 
       const adjustedMowing  = mowingRevenue * difficulty;
-      const totalRevenueEx  = adjustedMowing + callout;
+      
+      // Calculate add-on services total
+      let addonsTotal = 0;
+      addonPrices.forEach(price => {
+        addonsTotal += price;
+      });
+      
+      const totalRevenueEx  = adjustedMowing + callout + addonsTotal;
 
       const gst             = totalRevenueEx * 0.15;
       const totalIncl       = totalRevenueEx + gst;
@@ -1926,11 +2125,22 @@
       document.getElementById('total-incl-display').textContent     = '$' + totalIncl.toFixed(2);
       document.getElementById('estimated-hours-display').textContent = billedHours.toFixed(2) + ' hrs';
       
-      // Set the editable final price to the calculated value
-      finalPriceInput.value = totalIncl.toFixed(2);
-      
-      // Reset adjustments display
-      adjustmentsRow.style.display = 'none';
+      // Only set the editable final price if we don't have a saved price loaded
+      if (!hasSavedFinalPrice) {
+        finalPriceInput.value = totalIncl.toFixed(2);
+        adjustmentsRow.style.display = 'none';
+      }
+      // If we have saved price, keep it and recalculate adjustments
+      else {
+        const savedFinalPrice = parseFloat(finalPriceInput.value) || 0;
+        const difference = savedFinalPrice - totalIncl;
+        if (Math.abs(difference) > 0.01) {
+          adjustmentsRow.style.display = 'flex';
+          adjustmentsAmount.textContent = (difference > 0 ? '+$' : '-$') + Math.abs(difference).toFixed(2);
+        } else {
+          adjustmentsRow.style.display = 'none';
+        }
+      }
       
       // Only update if elements exist
       const estCostEl = document.getElementById('est-cost');
@@ -2604,7 +2814,8 @@
         timeMultiplier: currentTimeMultiplier,
         addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
           value: cb.value,
-          label: cb.dataset.title
+          label: cb.dataset.title,
+          price: addonPrices.get(cb.value) || 0
         })),
         addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
           ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
@@ -2628,7 +2839,7 @@
           invoiceIdReturned = editingInvoiceId;
         } else {
           // ── CREATE (POST) mode for new invoice ───────────────────────────────
-          res = await fetch(`${WORKER_URL}/api/quotes`, {
+          res = await fetch(`${WORKER_URL}/api/invoices`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -2637,7 +2848,7 @@
             body: JSON.stringify(invoiceData)
           });
           const data = await res.json();
-          invoiceIdReturned = data.quoteId || data.invoiceId || data.id;
+          invoiceIdReturned = data.invoiceId || data.quoteId || data.id;
         }
 
         if (!res.ok) {
@@ -2645,14 +2856,56 @@
           throw new Error(errText || 'Failed to save invoice');
         }
 
-        const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceIdReturned}`;
+        // Construct proper public link (handle local development vs production)
+        let baseUrl = window.location.origin;
+        if (baseUrl.startsWith('file://') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost')) {
+          // Use production URL when running locally
+          baseUrl = 'https://deepedge.co.nz';
+        }
+        const publicLink = `${baseUrl}/roof/invoice.html?inv=${invoiceIdReturned}`;
 
         document.getElementById('quote-link').href = publicLink;
         document.getElementById('quote-link').textContent = publicLink;
         document.getElementById('quote-link-box').classList.remove('hidden');
 
+        // Create Stripe payment link
+        let stripePaymentLink = null;
+        try {
+          const clientEmail = loadedJobData?.client?.email || document.getElementById('client-email')?.value || '';
+          
+          const paymentRes = await fetch(`${WORKER_URL}/api/invoices/${invoiceIdReturned}/payment-link`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              totalInclGst: finalPrice,
+              customerEmail: clientEmail,
+              successUrl: publicLink + '&paid=true'
+            })
+          });
+
+          if (paymentRes.ok) {
+            const paymentData = await paymentRes.json();
+            stripePaymentLink = paymentData.paymentLink?.final_url;
+            console.log('Stripe payment link created:', stripePaymentLink);
+          } else {
+            console.warn('Failed to create Stripe payment link:', await paymentRes.text());
+          }
+        } catch (err) {
+          console.warn('Error creating payment link:', err);
+          // Don't fail the entire invoice save if payment link fails
+        }
+
         const successMsg = isEditMode ? 'Invoice updated successfully!' : 'Invoice saved successfully!';
-        alert(`${successMsg}\n\nShare this link with your client:\n${publicLink}`);
+        let fullMessage = `${successMsg}\n\nShare this link with your client:\n${publicLink}`;
+        
+        if (stripePaymentLink) {
+          fullMessage += `\n\nPayment Link:\n${stripePaymentLink}`;
+        }
+
+        alert(fullMessage);
 
         const targetJobId = jobId || (prefillData?.jobId) || (editingInvoiceData?.data?.jobId);
         if (targetJobId) {
