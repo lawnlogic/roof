@@ -572,57 +572,97 @@
 
     // If payment was just completed, verify with Stripe then mark invoice as paid
     if (isPaid && invId) {
-      console.log('[PAYMENT-SUCCESS] Verifying payment with Stripe for invoice:', invId);
+      console.log('[PAYMENT-SUCCESS] Payment redirect received for invoice:', invId);
       
-      // First, verify the payment actually exists with Stripe
-      fetch(`${WORKER_URL}/api/invoices/${invId}/verify-payment`, {
-        method: 'GET'
-      }).then(res => {
-        if (res.ok) {
-          return res.json().then(data => {
-            if (data.verified) {
-              console.log('[PAYMENT-SUCCESS] ✓ Payment verified:', data);
-              
-              // Payment verified! Now mark the invoice as paid in our system
-              return fetch(`${WORKER_URL}/api/invoices/${invId}/mark-paid`, {
-                method: 'POST'
-              }).then(markRes => {
-                if (markRes.ok) {
-                  console.log('Invoice marked as paid');
-                  // Show success message
-                  const successBanner = document.createElement('div');
-                  successBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500;';
-                  successBanner.textContent = '✓ Payment successful! Invoice has been marked as paid.';
-                  document.body.appendChild(successBanner);
-                  setTimeout(() => {
-                    successBanner.style.opacity = '0';
-                    successBanner.style.transition = 'opacity 0.5s';
-                    setTimeout(() => successBanner.remove(), 500);
-                  }, 5000);
-                }
-              });
-            } else {
-              throw new Error(data.error || 'Payment not found');
+      let processingBanner = null;
+      
+      // Function to check payment status with retries
+      async function checkPaymentStatus(retries = 0, maxRetries = 10) {
+        console.log(`[PAYMENT-SUCCESS] Checking payment status (attempt ${retries + 1}/${maxRetries + 1})`);
+        
+        try {
+          const res = await fetch(`${WORKER_URL}/api/invoices/${invId}/verify-payment`, { method: 'GET' });
+          const data = await res.json();
+          console.log(`[PAYMENT-SUCCESS] Response:`, data);
+          
+          if (data.verified) {
+            console.log('[PAYMENT-SUCCESS] ✓ Payment verified by webhook!', data);
+            
+            // Remove processing banner if exists
+            if (processingBanner) processingBanner.remove();
+            
+            // Show success message
+            const successBanner = document.createElement('div');
+            successBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500; animation: slideDown 0.3s ease-out;';
+            successBanner.textContent = '✓ Payment successful! Your invoice has been marked as paid.';
+            document.body.appendChild(successBanner);
+            
+            setTimeout(() => {
+              successBanner.style.opacity = '0';
+              successBanner.style.transition = 'opacity 0.5s';
+              setTimeout(() => successBanner.remove(), 500);
+            }, 5000);
+            
+            // Reload the page to reflect paid status
+            setTimeout(() => {
+              window.location.href = `invoice.html?inv=${invId}`;
+            }, 2000);
+            return;
+          }
+          
+          // Payment not yet marked - webhook may still be processing
+          if (data.retryable && retries < maxRetries) {
+            const delayMs = retries === 0 ? 1000 : 2000; // First check after 1s, then 2s intervals
+            console.log(`[PAYMENT-SUCCESS] Payment still processing, retrying in ${delayMs}ms (attempt ${retries + 1}/${maxRetries + 1})`);
+            
+            // Show processing message on first attempt
+            if (retries === 0) {
+              processingBanner = document.createElement('div');
+              processingBanner.id = 'processing-banner';
+              processingBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #3b82f6; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500; animation: slideDown 0.3s ease-out;';
+              processingBanner.textContent = '⏳ Processing your payment... This may take a moment.';
+              document.body.appendChild(processingBanner);
             }
-          });
-        } else {
-          return res.json().then(data => {
-            throw new Error(data.error || 'Verification failed');
-          });
+            
+            // Retry with specified delay
+            setTimeout(() => checkPaymentStatus(retries + 1, maxRetries), delayMs);
+            return;
+          }
+          
+          // Max retries exceeded or not retryable
+          console.error('[PAYMENT-SUCCESS] Payment verification exhausted retries or not retryable');
+          if (processingBanner) processingBanner.remove();
+          
+          const endBanner = document.createElement('div');
+          endBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500; animation: slideDown 0.3s ease-out;';
+          endBanner.textContent = '⏱ Payment is still being processed. Refreshing page...';
+          document.body.appendChild(endBanner);
+          
+          // Reload the page after 3 seconds to check final status
+          setTimeout(() => {
+            window.location.href = `invoice.html?inv=${invId}`;
+          }, 3000);
+          
+        } catch (err) {
+          console.error('[PAYMENT-SUCCESS] Error checking payment:', err.message);
+          
+          // On network error, retry
+          if (retries < maxRetries) {
+            console.log('[PAYMENT-SUCCESS] Network error, retrying in 2000ms...');
+            setTimeout(() => checkPaymentStatus(retries + 1, maxRetries), 2000);
+          } else {
+            if (processingBanner) processingBanner.remove();
+            const errorBanner = document.createElement('div');
+            errorBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500; animation: slideDown 0.3s ease-out;';
+            errorBanner.textContent = '⚠ Unable to verify payment. Please refresh the page or contact support.';
+            document.body.appendChild(errorBanner);
+          }
         }
-      }).catch(err => {
-        console.error('[PAYMENT-SUCCESS] ✗ Payment verification failed:', err.message);
-        // Show error message
-        const errorBanner = document.createElement('div');
-        errorBanner.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-weight: 500;';
-        errorBanner.textContent = '⚠ Payment verification failed: ' + err.message + '. Please contact support if the payment was successful.';
-        document.body.appendChild(errorBanner);
-        setTimeout(() => {
-          errorBanner.style.opacity = '0';
-          errorBanner.style.transition = 'opacity 0.5s';
-          setTimeout(() => errorBanner.remove(), 500);
-        }, 8000);
-      });
+      }
+      
+      // Start checking payment status immediately
+      console.log('[PAYMENT-SUCCESS] Auto-retry enabled, checking payment status...');
+      checkPaymentStatus();
     }
 
     if (!invId) {
