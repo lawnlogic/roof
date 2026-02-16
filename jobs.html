@@ -3596,6 +3596,103 @@ function attachSingleCardEventListeners(card, jobs) {
           });
         });
       }
+      else if (action === 'change-price') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        
+        // Quick price edit for quoteSent stage
+        try {
+          const token = await auth.currentUser.getIdToken();
+          
+          // Fetch the current quote to get the current price
+          const quoteRes = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!quoteRes.ok) throw new Error(`Failed to load quote: ${quoteRes.status}`);
+          const quoteData = await quoteRes.json();
+          
+          const currentTotal = quoteData.total || quoteData.data?.total || 0;
+          // Use the original calculated subtotal from pricingSummary, not the current total minus adjustments
+          const pricingSummary = quoteData.pricingSummary || quoteData.data?.pricingSummary || {};
+          const originalSubtotal = pricingSummary.subtotalIncl || currentTotal;
+          
+          showModal(`
+            <h2 class="modal-title">Edit Quote Price</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">Adjust the quote total. The difference will be recorded as an adjustment.</p>
+            <div style="text-align:center; margin-bottom:20px;">
+              <p style="color:#6b7280; margin-bottom:8px; font-weight:500;">Current Price</p>
+              <p style="font-size:1.5rem; font-weight:600; color:var(--accent);">$${currentTotal.toFixed(2)}</p>
+            </div>
+            <label style="display:block; margin-bottom:8px; font-weight:600; text-align:center;">New Price</label>
+            <div style="display:flex; justify-content:center; margin-bottom:20px;">
+              <input type="number" step="0.01" class="modal-input" id="newPriceInput" value="${currentTotal.toFixed(2)}" placeholder="Enter new price" style="max-width:200px; text-align:center;">
+            </div>
+            <div class="modal-buttons">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+              <button class="btn-modal btn-primary-modal confirm-price-change">Update Price</button>
+            </div>
+          `);
+          
+          const modal = document.getElementById('modalContent');
+          const newPriceInput = modal.querySelector('#newPriceInput');
+          newPriceInput.focus();
+          newPriceInput.select();
+          
+          modal.querySelector('.confirm-price-change').addEventListener('click', async () => {
+            const newPrice = parseFloat(newPriceInput.value);
+            
+            if (isNaN(newPrice) || newPrice < 0) {
+              showToast('Please enter a valid price', 'error');
+              return;
+            }
+            
+            try {
+              // The adjustment is the difference between new price and original subtotal
+              const adjustment = newPrice - originalSubtotal;
+              
+              // Update pricingSummary with new values
+              const updatedPricingSummary = { 
+                ...(quoteData.pricingSummary || quoteData.data?.pricingSummary || {})
+              };
+              updatedPricingSummary.finalPrice = newPrice;
+              updatedPricingSummary.adjustmentAmount = adjustment >= 0 
+                ? `$${adjustment.toFixed(2)}`
+                : `-$${Math.abs(adjustment).toFixed(2)}`;
+              
+              // Update the quote with new adjustment
+              const updateRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  adjustments: adjustment,
+                  total: newPrice,
+                  pricingSummary: updatedPricingSummary,
+                  updatedAt: new Date().toISOString(),
+                  activityLog: `Price changed from $${currentTotal.toFixed(2)} to $${newPrice.toFixed(2)} (adjustment: ${adjustment >= 0 ? '+' : ''}$${adjustment.toFixed(2)})`
+                })
+              });
+              
+              if (!updateRes.ok) {
+                const errData = await updateRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Update failed (${updateRes.status})`);
+              }
+              
+              closeModal();
+              await loadAndRenderJobs();
+              showToast(`Price updated to $${newPrice.toFixed(2)}`, 'success');
+            } catch (err) {
+              console.error('Price update failed:', err);
+              showToast('Failed to update price: ' + err.message, 'error');
+            }
+          });
+        } catch (err) {
+          console.error('Failed to load quote for price edit:', err);
+          showToast('Could not load quote: ' + err.message, 'error');
+        }
+      }
       else if (action === 'schedule-visit') {
         if (currentMenu) currentMenu.classList.remove('show');
         showScheduleModal(card);
@@ -4790,6 +4887,103 @@ function attachCardEventListeners() {
               }
             });
           });
+        }
+        else if (action === 'change-price') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          
+          // Quick price edit for quoteSent stage
+          try {
+            const token = await auth.currentUser.getIdToken();
+            
+            // Fetch the current quote to get the current price
+            const quoteRes = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!quoteRes.ok) throw new Error(`Failed to load quote: ${quoteRes.status}`);
+            const quoteData = await quoteRes.json();
+            
+            const currentTotal = quoteData.total || quoteData.data?.total || 0;
+            // Use the original calculated subtotal from pricingSummary, not the current total minus adjustments
+            const pricingSummary = quoteData.pricingSummary || quoteData.data?.pricingSummary || {};
+            const originalSubtotal = pricingSummary.subtotalIncl || currentTotal;
+            
+            showModal(`
+              <h2 class="modal-title">Edit Quote Price</h2>
+              <p style="margin-bottom:20px; color:#4b5563;">Adjust the quote total. The difference will be recorded as an adjustment.</p>
+              <div style="text-align:center; margin-bottom:20px;">
+                <p style="color:#6b7280; margin-bottom:8px; font-weight:500;">Current Price</p>
+                <p style="font-size:1.5rem; font-weight:600; color:var(--accent);">$${currentTotal.toFixed(2)}</p>
+              </div>
+              <label style="display:block; margin-bottom:8px; font-weight:600; text-align:center;">New Price</label>
+              <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                <input type="number" step="0.01" class="modal-input" id="newPriceInput" value="${currentTotal.toFixed(2)}" placeholder="Enter new price" style="max-width:200px; text-align:center;">
+              </div>
+              <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-modal btn-primary-modal confirm-price-change">Update Price</button>
+              </div>
+            `);
+            
+            const modal = document.getElementById('modalContent');
+            const newPriceInput = modal.querySelector('#newPriceInput');
+            newPriceInput.focus();
+            newPriceInput.select();
+            
+            modal.querySelector('.confirm-price-change').addEventListener('click', async () => {
+              const newPrice = parseFloat(newPriceInput.value);
+              
+              if (isNaN(newPrice) || newPrice < 0) {
+                showToast('Please enter a valid price', 'error');
+                return;
+              }
+              
+              try {
+                // The adjustment is the difference between new price and original subtotal
+                const adjustment = newPrice - originalSubtotal;
+                
+                // Update pricingSummary with new values
+                const updatedPricingSummary = { 
+                  ...(quoteData.pricingSummary || quoteData.data?.pricingSummary || {})
+                };
+                updatedPricingSummary.finalPrice = newPrice;
+                updatedPricingSummary.adjustmentAmount = adjustment >= 0 
+                  ? `$${adjustment.toFixed(2)}`
+                  : `-$${Math.abs(adjustment).toFixed(2)}`;
+                
+                // Update the quote with new adjustment
+                const updateRes = await fetch(`${WORKER_URL}/api/quotes/${quoteId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    adjustments: adjustment,
+                    total: newPrice,
+                    pricingSummary: updatedPricingSummary,
+                    updatedAt: new Date().toISOString(),
+                    activityLog: `Price changed from $${currentTotal.toFixed(2)} to $${newPrice.toFixed(2)} (adjustment: ${adjustment >= 0 ? '+' : ''}$${adjustment.toFixed(2)})`
+                  })
+                });
+                
+                if (!updateRes.ok) {
+                  const errData = await updateRes.json().catch(() => ({}));
+                  throw new Error(errData.error || `Update failed (${updateRes.status})`);
+                }
+                
+                closeModal();
+                await loadAndRenderJobs();
+                showToast(`Price updated to $${newPrice.toFixed(2)}`, 'success');
+              } catch (err) {
+                console.error('Price update failed:', err);
+                showToast('Failed to update price: ' + err.message, 'error');
+              }
+            });
+          } catch (err) {
+            console.error('Failed to load quote for price edit:', err);
+            showToast('Could not load quote: ' + err.message, 'error');
+          }
         }
         if (currentMenu) currentMenu.classList.remove('show');
       });
