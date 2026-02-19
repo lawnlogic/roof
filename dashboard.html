@@ -770,18 +770,27 @@ function startConfetti() {
   }
 }
 
+// Function to hide the splash screen
+function hideSplashScreen() {
+  const loadingSplash = document.getElementById('loading-splash');
+  if (loadingSplash) {
+    loadingSplash.classList.add('fade-out');
+    setTimeout(() => loadingSplash.style.display = 'none', 500);
+  }
+}
+
 // Check for email verification in URL
 function checkEmailVerification() {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get('mode');
   const oobCode = params.get('oobCode');
-  const apiKey = params.get('apiKey');
   
   if (mode === 'verifyEmail' && oobCode) {
     // Apply the verification action code
     auth.applyActionCode(oobCode)
       .then(() => {
         // Show verification modal with confetti
+        hideSplashScreen();
         const verificationModal = document.getElementById('verificationModal');
         if (verificationModal) {
           verificationModal.style.display = 'flex';
@@ -807,16 +816,22 @@ function checkEmailVerification() {
         console.error('Email verification failed:', error);
         // Clean up URL even on error
         window.history.replaceState({}, document.title, window.location.pathname);
+        hideSplashScreen();
       });
+    
+    return true; // Verification link detected
   }
+  return false; // No verification link
 }
+
+// Check for email verification immediately on page load (before auth check)
+document.addEventListener('DOMContentLoaded', () => {
+  checkEmailVerification();
+});
 
 // Load data when user is authenticated
 auth.onAuthStateChanged(async (user) => {
   if (user) {
-    // Check for email verification first
-    checkEmailVerification();
-    
     await loadDashboardData();
     
     // Check profile and show onboarding if needed
@@ -904,11 +919,11 @@ auth.onAuthStateChanged(async (user) => {
       }
     });
     
-    // Hide loading splash screen
-    const loadingSplash = document.getElementById('loading-splash');
-    if (loadingSplash) {
-      loadingSplash.classList.add('fade-out');
-      setTimeout(() => loadingSplash.style.display = 'none', 500);
+    // Hide loading splash screen (only if not verifying email)
+    const params = new URLSearchParams(window.location.search);
+    const isVerifying = params.get('mode') === 'verifyEmail' && params.get('oobCode');
+    if (!isVerifying) {
+      hideSplashScreen();
     }
   }
 });
