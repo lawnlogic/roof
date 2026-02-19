@@ -303,6 +303,15 @@
     <p>Loading your dashboard...</p>
   </div>
 
+  <!-- Email Verification Modal -->
+  <div id="verificationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 1001; transition: opacity 0.3s ease; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: white; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 48px;">
+      <h2 style="font-size: 2rem; font-weight: 700; color: #1B1B2F; margin-bottom: 16px; text-align: center;">Email Successfully Verified! ✓</h2>
+      <p style="font-size: 1rem; color: #6b7280; line-height: 1.6; margin-bottom: 40px; text-align: center;">Your email has been confirmed and your account is ready to go.</p>
+      <button id="continueFromVerification" style="background: #7B2D8E; color: white; border: none; padding: 12px 32px; border-radius: 9999px; font-weight: 600; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25); transition: all 0.3s ease;">Continue →</button>
+    </div>
+  </div>
+
   <!-- Onboarding Modal -->
   <div id="onboardingModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 1000; transition: opacity 0.3s ease; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: white; border-radius: 20px; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column;">
@@ -719,9 +728,95 @@ async function loadDashboardData() {
   }
 }
 
+// Confetti animation function
+function createConfetti() {
+  const confetti = document.createElement('div');
+  confetti.style.position = 'fixed';
+  confetti.style.left = Math.random() * 100 + 'vw';
+  confetti.style.top = '-10px';
+  confetti.style.width = '10px';
+  confetti.style.height = '10px';
+  confetti.style.background = ['#7B2D8E', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'][Math.floor(Math.random() * 5)];
+  confetti.style.borderRadius = '50%';
+  confetti.style.pointerEvents = 'none';
+  confetti.style.zIndex = '10000';
+  confetti.style.opacity = '1';
+  
+  document.body.appendChild(confetti);
+  
+  const duration = 2000 + Math.random() * 1000;
+  const startTime = Date.now();
+  
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = elapsed / duration;
+    
+    if (progress < 1) {
+      const yPos = progress * (window.innerHeight + 100);
+      const xOffset = Math.sin(elapsed / 100) * 50;
+      confetti.style.transform = `translateY(${yPos}px) translateX(${xOffset}px)`;
+      confetti.style.opacity = (1 - progress);
+      requestAnimationFrame(animate);
+    } else {
+      confetti.remove();
+    }
+  }
+  animate();
+}
+
+function startConfetti() {
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => createConfetti(), i * 30);
+  }
+}
+
+// Check for email verification in URL
+function checkEmailVerification() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode');
+  const oobCode = params.get('oobCode');
+  const apiKey = params.get('apiKey');
+  
+  if (mode === 'verifyEmail' && oobCode) {
+    // Apply the verification action code
+    auth.applyActionCode(oobCode)
+      .then(() => {
+        // Show verification modal with confetti
+        const verificationModal = document.getElementById('verificationModal');
+        if (verificationModal) {
+          verificationModal.style.display = 'flex';
+          startConfetti();
+          
+          // Handle continue button
+          const continueBtn = document.getElementById('continueFromVerification');
+          if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+              verificationModal.style.display = 'none';
+              // Clean up URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+              // Show onboarding after verification
+              const onboardingModal = document.getElementById('onboardingModal');
+              if (onboardingModal) {
+                onboardingModal.style.display = 'flex';
+              }
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Email verification failed:', error);
+        // Clean up URL even on error
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+  }
+}
+
 // Load data when user is authenticated
 auth.onAuthStateChanged(async (user) => {
   if (user) {
+    // Check for email verification first
+    checkEmailVerification();
+    
     await loadDashboardData();
     
     // Check profile and show onboarding if needed
@@ -732,8 +827,11 @@ auth.onAuthStateChanged(async (user) => {
       });
       const profile = await response.json();
       
-      // If company name is not set, show onboarding
-      if (!profile.companyName || profile.companyName === 'My Lawn Business') {
+      // If company name is not set, show onboarding (but not if verification is being processed)
+      const verificationModal = document.getElementById('verificationModal');
+      const isVerifying = verificationModal && verificationModal.style.display === 'flex';
+      
+      if (!isVerifying && (!profile.companyName || profile.companyName === 'My Lawn Business')) {
         const modal = document.getElementById('onboardingModal');
         if (modal) {
           modal.style.display = 'flex';

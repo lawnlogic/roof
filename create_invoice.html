@@ -2894,6 +2894,20 @@
           // Don't fail the entire invoice save if payment link fails
         }
 
+        // ── Check for pending send action and update it with invoice ID ────────────
+        try {
+          const pendingStr = localStorage.getItem('pendingInvoiceSend');
+          if (pendingStr) {
+            const pending = JSON.parse(pendingStr);
+            pending.invoiceId = invoiceIdReturned;
+            pending.publicLink = publicLink;
+            localStorage.setItem('pendingInvoiceSend', JSON.stringify(pending));
+            console.log(`✓ Updated pendingInvoiceSend with invoiceId: ${invoiceIdReturned}`);
+          }
+        } catch (e) {
+          console.warn('Could not update pendingInvoiceSend in localStorage', e);
+        }
+
         const successMsg = isEditMode ? 'Invoice updated successfully!' : 'Invoice saved successfully!';
         let fullMessage = `${successMsg}\n\nShare this link with your client:\n${publicLink}`;
         

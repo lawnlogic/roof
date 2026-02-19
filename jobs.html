@@ -3035,11 +3035,11 @@ function attachSingleCardEventListeners(card, jobs) {
           <div id="invoiceStep1">
             <h2 class="modal-title">Create Invoice</h2>
             <p style="margin-bottom:16px; color:#4b5563;">
-              Select which quote to base the invoice on:
+              Select which invoice or quote to base the new invoice on:
             </p>
-            <label style="display:block; margin-bottom:8px; font-weight:600;">Quote</label>
+            <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice or Quote</label>
             <select id="modal-quote-select" class="modal-select">
-              <option value="">-- Select a quote --</option>
+              <option value="">-- Select an option --</option>
             </select>
             <div class="modal-buttons" style="margin-top:24px;">
               <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
@@ -3072,29 +3072,56 @@ function attachSingleCardEventListeners(card, jobs) {
             const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Couldn't load job quotes");
+            if (!res.ok) throw new Error("Couldn't load job data");
             const job = await res.json();
             const quotes = job.quotes || [];
-            if (quotes.length === 0) {
-              quoteSelect.innerHTML = '<option value="">No quotes found for this job</option>';
+            const invoices = job.invoices || [];
+            
+            if (invoices.length === 0 && quotes.length === 0) {
+              quoteSelect.innerHTML = '<option value="">No invoices or quotes found for this job</option>';
               return;
             }
-            quotes.forEach(q => {
-              const opt = document.createElement('option');
-              opt.value = q.id;
-              const dateStr = new Date(q.date || q.createdAt || Date.now())
-                .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
-              const amount = (q.totalInclGst || q.total || 0).toFixed(2);
-              opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
-              opt.dataset.quoteId = q.id;
-              quoteSelect.appendChild(opt);
-            });
+            
+            // Add invoices first (visual hierarchy) - only if they exist
+            if (invoices.length > 0) {
+              const invoicesGroup = document.createElement('optgroup');
+              invoicesGroup.label = 'Invoices';
+              invoices.forEach(inv => {
+                const opt = document.createElement('option');
+                opt.value = inv.id;
+                const dateStr = new Date(inv.date || inv.createdAt || Date.now())
+                  .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+                const amount = (inv.finalPrice || inv.totalInclGst || inv.total || 0).toFixed(2);
+                opt.textContent = `${inv.number || 'Invoice'} – ${dateStr} – $${amount}`;
+                opt.dataset.invoiceId = inv.id;
+                invoicesGroup.appendChild(opt);
+              });
+              quoteSelect.appendChild(invoicesGroup);
+            }
+            
+            // Add quotes second
+            if (quotes.length > 0) {
+              const quotesGroup = document.createElement('optgroup');
+              quotesGroup.label = 'Quotes';
+              quotes.forEach(q => {
+                const opt = document.createElement('option');
+                opt.value = q.id;
+                const dateStr = new Date(q.date || q.createdAt || Date.now())
+                  .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+                const amount = (q.totalInclGst || q.total || 0).toFixed(2);
+                opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
+                opt.dataset.quoteId = q.id;
+                quotesGroup.appendChild(opt);
+              });
+              quoteSelect.appendChild(quotesGroup);
+            }
+            
             quoteSelect.addEventListener('change', () => {
               nextBtn.disabled = !quoteSelect.value;
             });
           } catch (err) {
             console.error(err);
-            quoteSelect.innerHTML = '<option value="">Error loading quotes</option>';
+            quoteSelect.innerHTML = '<option value="">Error loading data</option>';
           }
         })();
         
@@ -3108,6 +3135,13 @@ function attachSingleCardEventListeners(card, jobs) {
             const selectedQuoteId = quoteSelect.value;
             if (!selectedQuoteId) return showToast('Please select a quote first');
             try {
+              // Save user's desired send method so create_invoice.html can act after invoice is created
+              const method = btn.classList.contains('send-email') ? 'email' : (btn.classList.contains('send-sms') ? 'sms' : 'clipboard');
+              try {
+                localStorage.setItem('pendingInvoiceSend', JSON.stringify({ method, jobId, quoteId: selectedQuoteId, ts: Date.now() }));
+              } catch (e) {
+                console.warn('Could not write pendingInvoiceSend to localStorage', e);
+              }
               const token = await auth.currentUser.getIdToken();
               const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
                 method: 'PATCH',
@@ -4361,11 +4395,11 @@ function attachCardEventListeners() {
             <div id="invoiceStep1">
               <h2 class="modal-title">Create Invoice</h2>
               <p style="margin-bottom:16px; color:#4b5563;">
-                Select which quote to base the invoice on:
+                Select which invoice or quote to base the new invoice on:
               </p>
-              <label style="display:block; margin-bottom:8px; font-weight:600;">Quote</label>
+              <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice or Quote</label>
               <select id="modal-quote-select" class="modal-select">
-                <option value="">-- Select a quote --</option>
+                <option value="">-- Select an option --</option>
               </select>
               <div class="modal-buttons" style="margin-top:24px;">
                 <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
@@ -4391,37 +4425,64 @@ function attachCardEventListeners() {
           const quoteSelect = modalContent.querySelector('#modal-quote-select');
           const nextBtn = modalContent.querySelector('#next-to-send');
           const jobId = card.getAttribute('data-job-id');
-          // ── Populate quotes dropdown ────────────────────────────────────────────
+          // ── Populate invoices and quotes dropdown ──────────────────────────────
           (async () => {
             try {
               const token = await auth.currentUser.getIdToken();
               const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
               });
-              if (!res.ok) throw new Error("Couldn't load job quotes");
+              if (!res.ok) throw new Error("Couldn't load job data");
               const job = await res.json();
               const quotes = job.quotes || [];
-              if (quotes.length === 0) {
-                quoteSelect.innerHTML = '<option value="">No quotes found for this job</option>';
+              const invoices = job.invoices || [];
+              
+              if (invoices.length === 0 && quotes.length === 0) {
+                quoteSelect.innerHTML = '<option value="">No invoices or quotes found for this job</option>';
                 return;
               }
-              quotes.forEach(q => {
-                const opt = document.createElement('option');
-                opt.value = q.id;
-                const dateStr = new Date(q.date || q.createdAt || Date.now())
-                  .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
-                const amount = (q.totalInclGst || q.total || 0).toFixed(2);
-                opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
-                opt.dataset.quoteId = q.id;
-                quoteSelect.appendChild(opt);
-              });
+              
+              // Add invoices first (visual hierarchy) - only if they exist
+              if (invoices.length > 0) {
+                const invoicesGroup = document.createElement('optgroup');
+                invoicesGroup.label = 'Invoices';
+                invoices.forEach(inv => {
+                  const opt = document.createElement('option');
+                  opt.value = inv.id;
+                  const dateStr = new Date(inv.date || inv.createdAt || Date.now())
+                    .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+                  const amount = (inv.finalPrice || inv.totalInclGst || inv.total || 0).toFixed(2);
+                  opt.textContent = `${inv.number || 'Invoice'} – ${dateStr} – $${amount}`;
+                  opt.dataset.invoiceId = inv.id;
+                  invoicesGroup.appendChild(opt);
+                });
+                quoteSelect.appendChild(invoicesGroup);
+              }
+              
+              // Add quotes second
+              if (quotes.length > 0) {
+                const quotesGroup = document.createElement('optgroup');
+                quotesGroup.label = 'Quotes';
+                quotes.forEach(q => {
+                  const opt = document.createElement('option');
+                  opt.value = q.id;
+                  const dateStr = new Date(q.date || q.createdAt || Date.now())
+                    .toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+                  const amount = (q.totalInclGst || q.total || 0).toFixed(2);
+                  opt.textContent = `${q.number || 'Quote'} – ${dateStr} – $${amount}`;
+                  opt.dataset.quoteId = q.id;
+                  quotesGroup.appendChild(opt);
+                });
+                quoteSelect.appendChild(quotesGroup);
+              }
+              
               // Enable next button once a quote is selected
               quoteSelect.addEventListener('change', () => {
                 nextBtn.disabled = !quoteSelect.value;
               });
             } catch (err) {
               console.error(err);
-              quoteSelect.innerHTML = '<option value="">Error loading quotes</option>';
+              quoteSelect.innerHTML = '<option value="">Error loading data</option>';
             }
           })();
           // Next → button (switch to step 2)
@@ -5068,10 +5129,88 @@ function attachCardEventListeners() {
 }
 // ── Start ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // ── Handle pending invoice send action ─────────────────────────────────────
+  async function handlePendingInvoiceSend() {
+    try {
+      const pendingStr = localStorage.getItem('pendingInvoiceSend');
+      if (!pendingStr) return;
+      
+      const pending = JSON.parse(pendingStr);
+      const { method, jobId, invoiceId, publicLink } = pending;
+      
+      if (!invoiceId || !jobId) {
+        console.warn('Incomplete pending send data, clearing');
+        localStorage.removeItem('pendingInvoiceSend');
+        return;
+      }
+      
+      console.log(`Processing pending ${method} send for invoice ${invoiceId}`);
+      const token = await auth.currentUser.getIdToken();
+      
+      if (method === 'email') {
+        // Send email
+        const sendRes = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}/send/email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (sendRes.ok) {
+          showToast('✓ Invoice sent via email!', 'success');
+          console.log(`✓ Email sent for invoice ${invoiceId}`);
+        } else {
+          const errData = await sendRes.json().catch(() => ({}));
+          console.warn('Email send failed:', errData);
+          showToast('Could not send email. The invoice link is available to share manually.', 'info');
+        }
+      } else if (method === 'sms') {
+        // Send SMS
+        const sendRes = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}/send/sms`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (sendRes.ok) {
+          showToast('✓ Invoice sent via SMS!', 'success');
+          console.log(`✓ SMS sent for invoice ${invoiceId}`);
+        } else {
+          const errData = await sendRes.json().catch(() => ({}));
+          console.warn('SMS send failed:', errData);
+          showToast('Could not send SMS. The invoice link is available to share manually.', 'info');
+        }
+      } else if (method === 'clipboard') {
+        // Copy to clipboard
+        if (publicLink) {
+          try {
+            await navigator.clipboard.writeText(publicLink);
+            showToast('✓ Invoice link copied to clipboard!', 'success');
+            console.log(`✓ Clipboard copy for invoice ${invoiceId}`);
+          } catch (err) {
+            console.warn('Clipboard copy failed:', err);
+            showToast('Could not copy to clipboard. Please copy the URL manually.', 'info');
+          }
+        }
+      }
+      
+      // Clear pending send after processing
+      localStorage.removeItem('pendingInvoiceSend');
+      
+    } catch (err) {
+      console.error('Error handling pending invoice send:', err);
+      // Don't error out - just log and continue
+    }
+  }
+
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)
       await loadAndRenderJobs(); // ← add await if your function returns a Promise
+      
+      // Handle any pending invoice send action
+      await handlePendingInvoiceSend();
       
       // Start periodic sync to catch any data drift
       startPeriodicSync();
