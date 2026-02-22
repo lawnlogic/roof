@@ -296,6 +296,78 @@ document.addEventListener("DOMContentLoaded", () => {
             padding-top: 80px !important;
             margin: 0 !important;
         }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 480px;
+            padding: 32px;
+            box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+            transform: translateY(30px);
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1B1B2F;
+            margin-bottom: 16px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .btn-modal {
+            padding: 14px 24px;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        .btn-cancel {
+            background: #e5e7eb;
+            color: #1B1B2F;
+        }
+        .btn-cancel:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary-modal {
+            background: #7B2D8E;
+            color: white;
+            box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25);
+        }
+        .btn-primary-modal:hover {
+            background: #662375;
+            box-shadow: 0 8px 20px rgba(123, 45, 142, 0.35);
+            transform: translateY(-2px);
+        }
   `;
   document.head.appendChild(headerStyles);
 
@@ -312,10 +384,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <!-- Desktop Navigation -->
             <div class="h-nav-menu-desktop">
                 <button class="h-nav-link" onclick="window.location.href='dashboard.html'">Dashboard</button>
+                <button class="h-nav-link" onclick="window.location.href='financials.html'">Financials</button>
                 <button class="h-nav-link" onclick="window.location.href='jobs.html'">Jobs</button>
                 <button class="h-nav-link" onclick="window.location.href='profile.html'">Profile</button>
                 <button class="h-nav-link" onclick="window.location.href='help.html'">Help</button>
-                <button class="h-button-primary" onclick="window.location.href='index.html'">Home</button>
+                <button class="h-button-primary" id="navAuthBtn" onclick="navigateAuth()">Login / Sign Up</button>
                 <button class="h-nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
                     <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect width="28" height="4" rx="2" fill="#1B1B2F"/>
@@ -340,10 +413,26 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="h-mobile-menu" id="mobileMenu" onclick="closeMobileMenu()">
         <div class="h-mobile-menu-panel" onclick="event.stopPropagation()">
             <button onclick="window.location.href='dashboard.html'; closeMobileMenu();">Dashboard</button>
+            <button onclick="window.location.href='financials.html'; closeMobileMenu();">Financials</button>
             <button onclick="window.location.href='jobs.html'; closeMobileMenu();">Jobs</button>
             <button onclick="window.location.href='profile.html'; closeMobileMenu();">Profile</button>
             <button onclick="window.location.href='help.html'; closeMobileMenu();">Help</button>
-            <button onclick="signOut(); closeMobileMenu();" style="color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">Sign Out</button>
+            <button id="mobileLoginBtn" onclick="window.location.href='index.html#final-cta'; closeMobileMenu();" style="display: none; color: #7B2D8E; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem; font-weight: 600;">Login / Sign Up</button>
+            <button id="mobileSignOutBtn" onclick="signOut(); closeMobileMenu();" style="display: none; color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- Sign Out Modal -->
+    <div id="signOutModalOverlay" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 class="modal-title">Sign Out</h2>
+            <p style="margin-bottom:20px; color:#4b5563;">
+                Are you sure you want to sign out of Deep Edge?
+            </p>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="cancelSignOutBtn">Cancel</button>
+                <button class="btn-modal btn-primary-modal" id="confirmSignOutBtn">Yes – Sign Out</button>
+            </div>
         </div>
     </div>
   `);
@@ -383,14 +472,128 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Sign out function
-  window.signOut = function() {
-    if (confirm('Sign out of Deep Edge?')) {
-      // Clear any stored auth data
-      localStorage.clear();
-      sessionStorage.clear();
-      // Redirect to login
-      window.location.href = 'login.html';
+  // Modal functions for sign out
+  window.showSignOutModal = function() {
+    const modal = document.getElementById('signOutModalOverlay');
+    if (modal) {
+      modal.classList.add('active');
     }
   }
+
+  window.closeSignOutModal = function() {
+    const modal = document.getElementById('signOutModalOverlay');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  }
+
+  window.confirmSignOut = function() {
+    console.log('Sign out confirmed');
+    // Clear storage immediately
+    localStorage.clear();
+    sessionStorage.clear();
+    // Redirect to home - Firebase will handle auth state on page load
+    window.location.href = 'index.html#final-cta';
+  }
+
+  // Sign out function - shows modal
+  window.signOut = function() {
+    showSignOutModal();
+  }
+
+  // Attach event listeners to modal buttons
+  const cancelSignOutBtn = document.getElementById('cancelSignOutBtn');
+  const confirmSignOutBtn = document.getElementById('confirmSignOutBtn');
+  
+  if (cancelSignOutBtn) {
+    cancelSignOutBtn.addEventListener('click', function() {
+      window.closeSignOutModal();
+    });
+  }
+  
+  if (confirmSignOutBtn) {
+    confirmSignOutBtn.addEventListener('click', async function() {
+      confirmSignOutBtn.disabled = true;
+      confirmSignOutBtn.textContent = 'Signing out...';
+      
+      try {
+        // Dynamically import Firebase Auth and sign out
+        const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+        const auth = getAuth();
+        await signOut(auth);
+        console.log('Firebase sign out successful');
+      } catch (err) {
+        console.error('Firebase sign out error:', err);
+      }
+      
+      // Clear all auth data
+      localStorage.removeItem('isLoggedIn');
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    });
+  }
+
+  // Close modal when clicking outside
+  const signOutModal = document.getElementById('signOutModalOverlay');
+  if (signOutModal) {
+    signOutModal.addEventListener('click', function(e) {
+      if (e.target === signOutModal) {
+        closeSignOutModal();
+      }
+    });
+  }
+
+  // Auth state detection
+  window.navigateAuth = function() {
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      // If logged in, go to dashboard
+      window.location.href = 'dashboard.html';
+    } else {
+      // If not logged in, go to signup
+      window.location.href = 'index.html#final-cta';
+    }
+  }
+
+  // Check auth state and update header
+  function updateAuthUI(isLoggedIn) {
+    const navAuthBtn = document.getElementById('navAuthBtn');
+    const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+    const mobileSignOutBtn = document.getElementById('mobileSignOutBtn');
+    
+    if (isLoggedIn) {
+      localStorage.setItem('isLoggedIn', 'true');
+      if (navAuthBtn) navAuthBtn.textContent = 'Dashboard';
+      if (navAuthBtn) navAuthBtn.onclick = () => { window.location.href = 'dashboard.html'; };
+      if (mobileLoginBtn) mobileLoginBtn.style.setProperty('display', 'none', 'important');
+      if (mobileSignOutBtn) mobileSignOutBtn.style.setProperty('display', 'block', 'important');
+    } else {
+      localStorage.removeItem('isLoggedIn');
+      if (navAuthBtn) navAuthBtn.textContent = 'Login / Sign Up';
+      if (navAuthBtn) navAuthBtn.onclick = () => { window.location.href = 'index.html#final-cta'; };
+      if (mobileLoginBtn) mobileLoginBtn.style.setProperty('display', 'block', 'important');
+      if (mobileSignOutBtn) mobileSignOutBtn.style.setProperty('display', 'none', 'important');
+    }
+  }
+
+  // Initialize Firebase auth check (runs after Firebase is loaded on pages that use it)
+  // First, set initial state from localStorage immediately
+  const isLoggedInStorage = localStorage.getItem('isLoggedIn') === 'true';
+  updateAuthUI(isLoggedInStorage);
+
+  // Then try to check Firebase auth if available (will override localStorage if found)
+  setTimeout(() => {
+    try {
+      // Check if Firebase auth is available on this page
+      if (window.firebase && window.firebase.auth) {
+        const auth = window.firebase.auth();
+        auth.onAuthStateChanged((user) => {
+          updateAuthUI(!!user);
+        });
+      }
+    } catch (err) {
+      // Firebase not available - that's OK, localStorage is being used
+      console.log('Firebase auth not available on this page');
+    }
+  }, 500);
 });

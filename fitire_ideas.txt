@@ -1,3 +1,12 @@
 -add resources, and manage resources.
 -after a job is complete, it should neber cycle back to quote, (not sure if it does, but check this out.)
 -just connect all shapes
+-when showing the job value on the card use whatever, quote or invoice, that has the most recent date. 
+-make a page that has all invoices and quotes. can manage at a high level. see paid/outstanding/ability to cancel from here too. ability to send sms and email from here too.
+-this is where you export all your stuff.
+-add deepedge email to brevo
+-add ability to approve quote from client side
+-some weird stuff happenin with the since last cut dropdown retention when creating from a invoice?
+-also when im updating TBD items, they should update the total price, currently the final price stays as it was so the user will get a huge discount?
+-add the ability to quote TBD items, just as the invoice works.
+-remove the alerts() anywhere, def on invoice, probqably on quote.

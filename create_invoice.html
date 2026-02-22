@@ -910,8 +910,8 @@
   <div class="create-quote-container">
     <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
     <div class="create-quote-header">
-      <h1>Create Invoice</h1>
-      <p>Enter a property address to create a professional invoice. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
+      <h1 id="page-title">Create Invoice</h1>
+      <p id="page-description">Enter a property address to create a professional invoice. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
     </div>
 
     <!-- Address Input Section -->
@@ -1153,7 +1153,7 @@
           btn.style.color = '';
         }, 2000);
       }).catch(() => {
-        alert('Failed to copy link');
+        console.error('Failed to copy link');
       });
     };
 
@@ -1210,9 +1210,14 @@
     let editingInvoiceId = null;
     let editingInvoiceData = null;
 
-    // Update button text for edit mode
+    // Update title, description, and button text for edit mode
     if (isEditMode) {
+      const title = document.getElementById('page-title');
+      const description = document.getElementById('page-description');
       const btn = document.getElementById('generate-pdf-btn');
+      
+      if (title) title.textContent = "Edit Invoice";
+      if (description) description.textContent = "Update the invoice details below. All changes will be saved when you click Update Invoice.";
       if (btn) btn.textContent = "Update Invoice";
     }
     
@@ -1255,7 +1260,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html#final-cta';
         return;
       }
     });
@@ -1657,10 +1662,12 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = 'login.html';
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html#final-cta';
         return;
       }
 
+      localStorage.setItem('isLoggedIn', 'true');
       const token = await user.getIdToken();
 
       await loadQuoteSettingsAndPricing(token);
@@ -1681,11 +1688,16 @@
             sessionStorage.setItem('editInvoiceData', JSON.stringify(invoice));
 
             console.log('📋 Loaded invoice for editing:', invoice);
+            
+            // Immediately prefill address field to trigger map load if needed
+            if (invoice.data?.address) {
+              document.getElementById('address').value = invoice.data.address;
+            }
 
             // Restore pricing from invoice pricingSummary
-            if (invoice.pricingSummary) {
-              const finalPrice = invoice.pricingSummary.finalPrice || invoice.pricingSummary.subtotalIncl || 0;
-              const subtotalIncl = invoice.pricingSummary.subtotalIncl || finalPrice;
+            if (invoice.data?.pricingSummary) {
+              const finalPrice = invoice.data.pricingSummary.finalPrice || invoice.data.pricingSummary.subtotalIncl || 0;
+              const subtotalIncl = invoice.data.pricingSummary.subtotalIncl || finalPrice;
               
               // Set the original total for adjustment calculation
               originalTotalIncl = subtotalIncl;
@@ -1721,26 +1733,30 @@
       }
 
       // ── Load job or quote data for prefilling ─────────────────────────────────────
-      if (jobId || quoteId) {
+      if (jobId || quoteId || (isEditMode && invoiceId)) {
         try {
           const token = await user.getIdToken();
 
           let quoteData = null;
           let jobData = null;
           
-          // Load from quote if quoteId provided
-          if (quoteId) {
-            const prefetchedData = sessionStorage.getItem('editQuoteData') || sessionStorage.getItem('editInvoiceData');
+          // Load from invoice in edit mode, or from quote if quoteId provided
+          if ((isEditMode && invoiceId) || quoteId) {
+            // Priority: editInvoiceData (when editing invoice) > editQuoteData (when creating from quote)
+            const prefetchedData = sessionStorage.getItem('editInvoiceData') || sessionStorage.getItem('editQuoteData');
             if (prefetchedData) {
               quoteData = JSON.parse(prefetchedData);
               sessionStorage.removeItem('editQuoteData');
               sessionStorage.removeItem('editInvoiceData');
-            } else {
+              console.log('✓ Loaded prefill data from sessionStorage (invoice or quote)');
+            } else if (quoteId) {
+              // Fallback: fetch quote from API if not in sessionStorage
               const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
               });
               if (res.ok) {
                 quoteData = await res.json();
+                console.log('✓ Fetched quote from API for prefilling');
               }
             }
           }
@@ -1786,8 +1802,8 @@
               if (data.data.invoiceNumber) {
                 document.getElementById('invoice-number').value = data.data.invoiceNumber;
               }
-              if (data.data.issueDate) {
-                document.getElementById('invoice-date').value = data.data.issueDate;
+              if (data.data.issueDate || data.data.invoiceDate) {
+                document.getElementById('invoice-date').value = data.data.issueDate || data.data.invoiceDate;
               }
               if (data.data.dueDate) {
                 document.getElementById('due-date').value = data.data.dueDate;
@@ -1798,6 +1814,7 @@
                   paymentTermsSelect.value = data.data.paymentTerms;
                 }
               }
+              console.log('✓ Prefilled invoice-specific fields (number, dates)');
             } else {
               // Don't prefill invoice number - let user create a new one
               // But prefill the dates with defaults
@@ -2627,7 +2644,7 @@
 
     btnNewShape.addEventListener('click', () => {
       if (!map) {
-        alert('Map not ready yet. Please load a property first.');
+        console.warn('Map not ready yet. Please load a property first.');
         return;
       }
       enterEditMode(true);
@@ -2635,7 +2652,7 @@
 
     btnEditShapes.addEventListener('click', () => {
       if (!map) {
-        alert('Map not ready yet. Please load a property first.');
+        console.warn('Map not ready yet. Please load a property first.');
         return;
       }
       enterEditMode(false);
@@ -2643,7 +2660,7 @@
 
     btnFinish.addEventListener('click', () => {
       if (!map) {
-        alert('Nothing to finish — map not loaded.');
+        console.warn('Nothing to finish — map not loaded.');
         return;
       }
       finishEditing();
@@ -2727,12 +2744,12 @@
 
     document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
       if (!currentData || currentLawnArea === 0) {
-        alert('Please load an address and measure the lawn area first.');
+        console.warn('Please load an address and measure the lawn area first.');
         return;
       }
       if (!auth.currentUser) {
-        alert('Please sign in to save quotes');
-        window.location.href = 'login.html';
+        console.warn('Please sign in to save invoices');
+        window.location.href = 'index.html#final-cta';
         return;
       }
 
@@ -2915,18 +2932,16 @@
           fullMessage += `\n\nPayment Link:\n${stripePaymentLink}`;
         }
 
-        alert(fullMessage);
+        console.log('Invoice saved:', fullMessage);
 
         const targetJobId = jobId || (prefillData?.jobId) || (editingInvoiceData?.data?.jobId);
         if (targetJobId) {
-          setTimeout(() => {
-            window.location.href = `jobs.html?jobId=${targetJobId}`;
-          }, 1800);
+          window.location.href = `jobs.html?jobId=${targetJobId}`;
         }
 
       } catch (err) {
         console.error('Invoice save failed:', err);
-        alert('Failed to save invoice: ' + err.message);
+        console.error('Failed to save invoice: ' + err.message);
       }
     });
 
