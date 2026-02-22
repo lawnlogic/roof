@@ -154,46 +154,83 @@
     }
     .overflow {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 1.9rem;
-      color: hsl(var(--muted-foreground));
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: #6E6E82;
       cursor: pointer;
       user-select: none;
       z-index: 5;
+      border-radius: 50%;
+      background: rgba(123, 45, 142, 0.06);
+      transition: all 0.25s ease;
+    }
+    .overflow:hover {
+      background: rgba(123, 45, 142, 0.12);
+      color: #7B2D8E;
+      transform: scale(1.05);
     }
     .menu {
       position: absolute;
-      top: 50px;
-      right: 0;
-      background: hsl(var(--card));
-      border: 1px solid hsl(var(--border));
-      border-radius: 12px;
-      min-width: 240px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      top: 56px;
+      right: 16px;
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 16px;
+      min-width: 220px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
       z-index: 10;
       display: none;
       overflow: hidden;
+      animation: menuSlideIn 0.2s ease-out;
+    }
+    @keyframes menuSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
     .menu.show { display: block; }
-    .menu-section { padding: 6px 0; }
+    .menu-section { padding: 8px 0; }
     .menu-item {
-      padding: 12px 20px;
+      padding: 14px 20px;
       cursor: pointer;
-      transition: background 0.15s;
-      color: hsl(var(--foreground));
+      transition: all 0.2s ease;
+      color: #1B1B2F;
       font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .menu-item.menu-disabled {
       color: #9ca3af;
       cursor: default;
+      opacity: 0.5;
     }
-    .menu-item:hover { background: hsl(var(--secondary)); }
+    .menu-item:not(.menu-disabled):hover { 
+      background: rgba(123, 45, 142, 0.06);
+      color: #7B2D8E;
+      padding-left: 24px;
+    }
     .menu-danger {
-      color: var(--red);
-      border-top: 1px solid hsl(var(--border));
+      color: #dc2626;
+      border-top: 1px solid rgba(229, 231, 235, 0.5);
+      margin-top: 4px;
     }
-    .menu-danger:hover { background: #fee2e2; }
+    .menu-danger:not(.menu-disabled):hover { 
+      background: #fef2f2;
+      color: #b91c1c;
+    }
     .progress-bar {
       height: 6px;
       background: hsl(var(--border));
@@ -424,22 +461,34 @@
     /* Modern Detail Section Styles */
     .detail-section {
       margin-bottom: 20px;
+      background: transparent;
+      border: none;
+      padding: 0;
     }
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 16px;
-      background: rgba(123, 45, 142, 0.04);
-      border-radius: 10px;
+      padding: 14px 20px;
+      background: white;
+      border-radius: 999px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s ease;
-      border: 1px solid rgba(123, 45, 142, 0.1);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      box-shadow: 0 2px 8px rgba(27, 27, 47, 0.06);
     }
     .section-header:hover {
-      background: rgba(123, 45, 142, 0.08);
+      background: rgba(123, 45, 142, 0.04);
       border-color: rgba(123, 45, 142, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.1);
+    }
+    .section-header.open {
+      border-radius: 20px 20px 0 0;
+      background: rgba(123, 45, 142, 0.04);
+      box-shadow: none;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.3);
     }
     .section-header h3 {
       font-family: 'Space Grotesk', sans-serif;
@@ -462,15 +511,16 @@
       transform: rotate(-180deg);
     }
     .section-content {
-      padding: 16px;
-      background: rgba(123, 45, 142, 0.02);
-      border-radius: 0 0 10px 10px;
-      border: 1px solid hsl(var(--border));
+      padding: 20px;
+      background: white;
+      border-radius: 0 0 20px 20px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
       border-top: none;
       display: none;
     }
     .section-content.open {
       display: block;
+      animation: slideDown 0.3s ease;
     }
     .section-content p {
       margin: 12px 0;
@@ -958,6 +1008,22 @@
     }
     .jobs-section details {
       background: var(--card);
+      border-radius: 999px;
+      padding: 12px 20px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+    .jobs-section details[open] {
+      border-radius: 24px;
+      padding: 12px 20px 12px 20px;
+    }
+    .jobs-section details[open] .jobs-section-content {
+      margin-left: -10px;
+      margin-right: -10px;
+      padding-top: 12px;
+    }
+    .jobs-section details .mini-card {
+      margin-left: 0;
+      margin-right: 0;
     }
     .jobs-section summary {
       list-style: none;
@@ -1751,14 +1817,10 @@ function showJobDetailsModal(job, jobId) {
       <button id="applyManualStatus" class="btn-modal btn-primary-modal" style="margin-top:12px; width:100%;">Apply Status</button>
     </div>
     
-    <!-- Danger Zone -->
-    <div class="danger-zone">
-      <button id="deleteJobBtn" class="btn-danger">Delete Job</button>
-    </div>
-    
     <!-- Actions Footer -->
-    <div class="modal-buttons" style="margin-top:32px; justify-content:center;">
-      <button class="btn-modal btn-cancel" onclick="closeModal()">Close</button>
+    <div class="modal-buttons" style="margin-top:32px; display: flex; gap: 12px; justify-content: center;">
+      <button id="deleteJobBtn" class="btn-danger" style="flex: 1;">Delete Job</button>
+      <button class="btn-modal btn-cancel" onclick="closeModal()" style="flex: 1;">Cancel</button>
     </div>
   `);
   const modal = document.getElementById('modalContent');
@@ -2599,9 +2661,10 @@ function renderTodayJobs(jobs, selectedDate = null) {
         <h3>On-Site <span class="jobs-section-badge">${onSiteJobs.length}</span></h3>
         <div class="jobs-section-content">
           ${onSiteJobs.map(job => renderMiniCard(job)).join('')}
-          <button id="route-apple-maps-btn-today" style="padding: 10px 16px;background: var(--accent);color: white;border: none;border-radius: 8px;font-weight: 600;cursor: pointer;font-size: 0.9rem;transition: background 0.2s, transform 0.15s;display: flex;margin: 10px;/* justify-content: flex-end; */align-items: center;/* flex-direction: row; *//* justify-content: flex-start; */float: right;">
-            🗺️ Route in Apple Maps
+          <button id="route-apple-maps-btn-today" style="padding: 12px 20px; background: #7B2D8E; color: white; border: none; border-radius: 999px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; display: inline-flex; margin: 10px; align-items: center; gap: 8px; float: right; box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25);">
+            🗺️ Route in Google Maps
           </button>
+          <div style="clear: both;"></div>
         </div>
       </div>
     `;
@@ -5827,7 +5890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Setup route button hover effects and click handler (handles dynamically added buttons)
   document.addEventListener('click', (e) => {
-    if (e.target.id === 'route-apple-maps-btn-today') {
+    if (e.target.id === 'route-apple-maps-btn-today' || e.target.closest('#route-apple-maps-btn-today')) {
       const todayContainer = document.querySelector('.today-previews');
       // Find the Admin heading to know where on-site jobs end
       const adminHeading = Array.from(todayContainer.querySelectorAll('h3')).find(h => h.textContent.includes('Admin'));
@@ -5839,11 +5902,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (adminHeading && !(card.compareDocumentPosition(adminHeading) & Node.DOCUMENT_POSITION_FOLLOWING)) {
           break; // Admin heading is before or contains this card, so we're in admin section
         }
+        // Get full address by combining address line and suburb
         const addressLine = card.querySelector('.mini-address-line');
+        const suburbLine = card.querySelector('.mini-suburb');
         if (addressLine) {
-          const addr = addressLine.textContent.trim();
-          if (addr && addr !== 'No address') {
-            addresses.push(addr);
+          let fullAddr = addressLine.textContent.trim();
+          if (suburbLine) {
+            fullAddr += ', ' + suburbLine.textContent.trim();
+          }
+          if (fullAddr && fullAddr !== 'No address') {
+            addresses.push(fullAddr);
           }
         }
       }
@@ -5853,21 +5921,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
       
-      // Build Apple Maps URL with waypoint format
-      let mapsUrl = 'https://maps.apple.com/directions?dirflg=d';
+      // Build Google Maps URL with multi-stop route
+      // Format: https://www.google.com/maps/dir/address1/address2/address3
+      let mapsUrl = 'https://www.google.com/maps/dir/';
+      mapsUrl += addresses.map(addr => encodeURIComponent(addr)).join('/');
       
-      if (addresses.length === 1) {
-        // Single address - just set as destination
-        mapsUrl += `&destination=${encodeURIComponent(addresses[0])}`;
-      } else {
-        // Multiple addresses - all except last are waypoints, last is destination
-        for (let i = 0; i < addresses.length - 1; i++) {
-          mapsUrl += `&waypoint=${encodeURIComponent(addresses[i])}`;
-        }
-        mapsUrl += `&destination=${encodeURIComponent(addresses[addresses.length - 1])}`;
-      }
-      
-      // Open in new tab
+      // Open the route in new tab
       window.open(mapsUrl, '_blank');
     }
   });
