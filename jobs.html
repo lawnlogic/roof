@@ -32,6 +32,8 @@
       --radius: 1.75rem;
       --green: #10b981;
       --green-dark: #059669;
+      --purple: #7B2D8E;
+      --purple-dark: #662375;
       --yellow: #d97706;
       --blue: #2563eb;
       --red: #dc2626;
@@ -136,7 +138,7 @@
         max-width: 300px;
         margin: 24px auto;
         padding: 16px 20px;
-        background: var(--green);
+        background: var(--purple);
         color: white;
         border: none;
         border-radius: 50px;
@@ -144,10 +146,10 @@
         font-weight: 700;
         cursor: pointer;
         transition: all 0.25s;
-        box-shadow: 0 5px 16px rgba(16, 185, 129, 0.25);
+        box-shadow: 0 5px 16px rgba(123, 45, 142, 0.25);
     }
     .primary-action:hover {
-      background: var(--green-dark);
+      background: var(--purple-dark);
       transform: translateY(-2px);
     }
     .overflow {
@@ -558,6 +560,47 @@
       color: #4b5563;
       margin: 4px 0 0;
       font-size: 0.9rem;
+    }
+    /* Activity log type styling */
+    .activity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .activity-type-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .activity-type-badge.activity-manual {
+      background: rgba(34, 197, 94, 0.15);
+      color: #16a34a;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .activity-type-badge.activity-auto {
+      background: rgba(59, 130, 246, 0.15);
+      color: #2563eb;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .activity-type-badge.activity-system {
+      background: rgba(107, 114, 128, 0.15);
+      color: #6b7280;
+      border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+    .activity-log-item.activity-manual {
+      border-left: 3px solid #22c55e;
+      padding-left: 12px;
+    }
+    .activity-log-item.activity-auto {
+      border-left: 3px solid #3b82f6;
+      padding-left: 12px;
+    }
+    .activity-log-item.activity-system {
+      border-left: 3px solid #9ca3af;
+      padding-left: 12px;
     }
     .no-content-message {
       color: #9ca3af;
@@ -1420,6 +1463,7 @@ const STAGES = [
     menuItems: [
       { text: 'View Invoice', action: 'view-invoice', danger: false },
       { text: 'Edit Invoice', action: 'edit-invoice', danger: false },
+      { text: 'Resend Invoice', action: 'resend-invoice', danger: false },
       { text: 'View Details', action: 'view-details', danger: false },
       { text: 'Void Invoice', action: 'void-invoice', danger: true }
     ]
@@ -1432,8 +1476,6 @@ const STAGES = [
     primary: 'Schedule Next Visit', // default - will be overridden in updateCard for one-off
     lastActivity: 'Payment received',
     menuItems: [
-      { text: 'Send Receipt', action: 'send-receipt', danger: false },
-      { text: 'View History', action: 'view-history', danger: false },
       { text: 'View Details', action: 'view-details', danger: false },
       { text: 'Archive Client', action: 'archive-client', danger: true }
     ]
@@ -1468,24 +1510,24 @@ function updateCard(card) {
 
   // Special override for paid stage
   let primaryText = config.primary;
-  let btnColor = "var(--green)";  // default active
+  let btnColor = "var(--purple)";  // default active (changed to purple)
   let isDisabled = false;
 
   if (stage === 'paid') {
     if (isRecurring) {
       primaryText = "Schedule Next Visit";
-      btnColor = "var(--green)";      // active / encouraging
+      btnColor = "var(--purple)";      // active / encouraging
       isDisabled = false;
     } else {
       primaryText = "Job Complete";
-      btnColor = "var(--green-dark)"; // final / subdued
+      btnColor = "var(--purple-dark)"; // final / subdued
       isDisabled = true;
     }
   }
   
   if (stage === 'pendingService') {
     primaryText = "Start Service";
-    btnColor = "var(--green)";        // active / encouraging
+    btnColor = "var(--purple)";        // active / encouraging
     isDisabled = false;
   }
 
@@ -1660,7 +1702,8 @@ function showJobDetailsModal(job, jobId) {
               <button class="invoice-menu-btn" data-invoice-id="${i.id}" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 4px 8px; color: #4b5563;">⋮</button>
               <div class="invoice-menu" data-invoice-id="${i.id}" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; min-width: 120px;">
                 <a href="invoice.html?inv=${i.id}" target="_blank" style="display: block; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #7B2D8E; text-decoration: none; font-size: 0.9rem; font-weight: 500;">View</a>
-                <button class="edit-invoice-btn" data-invoice-id="${i.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #7B2D8E; cursor: pointer; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #e5e7eb;">Edit</button>
+                <button class="edit-invoice-btn" data-invoice-id="${i.id}" data-job-id="${jobId}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #7B2D8E; cursor: pointer; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #e5e7eb;">Edit</button>
+                <button class="resend-invoice-btn" data-invoice-id="${i.id}" data-job-id="${jobId}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #7B2D8E; cursor: pointer; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #e5e7eb;">Resend</button>
                 <button class="delete-invoice-btn" data-invoice-id="${i.id}" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; color: #dc2626; cursor: pointer; font-size: 0.9rem; font-weight: 500;">Delete</button>
               </div>
             </div>
@@ -1676,12 +1719,19 @@ function showJobDetailsModal(job, jobId) {
         <span class="toggle-icon">▼</span>
       </div>
       <div class="section-content">
-        ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => `
-          <div class="activity-log-item">
-            <strong>${formatTimestamp(log.timestamp)}</strong>
+        ${job.activityLog?.length > 0 ? job.activityLog.slice().reverse().map(log => {
+          const typeClass = log.type === 'manual' ? 'activity-manual' : log.type === 'automatic' ? 'activity-auto' : 'activity-system';
+          const typeLabel = log.type === 'manual' ? '👤 Manual' : log.type === 'automatic' ? '⚡ Auto' : '🔧 System';
+          const typeTitle = log.type === 'manual' ? 'User-initiated action' : log.type === 'automatic' ? 'Automatic system action' : 'System process';
+          return `
+          <div class="activity-log-item ${typeClass}">
+            <div class="activity-header">
+              <strong>${formatTimestamp(log.timestamp)}</strong>
+              <span class="activity-type-badge ${typeClass}" title="${typeTitle}">${typeLabel}</span>
+            </div>
             <p>${escapeHtml(log.action)}</p>
           </div>
-        `).join('') : '<p class="no-content-message">No activity logged yet</p>'}
+        `}).join('') : '<p class="no-content-message">No activity logged yet</p>'}
       </div>
     </div>
     
@@ -1865,7 +1915,92 @@ function showJobDetailsModal(job, jobId) {
     btn.onclick = (e) => {
       e.preventDefault();
       const invoiceId = btn.dataset.invoiceId;
-      window.location.href = `invoice.html?inv=${invoiceId}&edit=true`;
+      const invoiceJobId = btn.dataset.jobId || jobId;
+      window.location.href = `create_invoice.html?jobId=${invoiceJobId}&invoice=${invoiceId}&edit=true`;
+    };
+  });
+  
+  // Resend Invoice
+  modal.querySelectorAll('.resend-invoice-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      const invoiceId = btn.dataset.invoiceId;
+      const invoiceJobId = btn.dataset.jobId || jobId;
+      closeModal();
+      showModal(`
+        <h2 class="modal-title">Resend Invoice</h2>
+        <p style="margin-bottom:16px; color:#4b5563;">How would you like to send this invoice?</p>
+        <div class="send-options">
+          <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+          <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+          <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+        </div>
+        <div class="modal-buttons" style="margin-top:24px;">
+          <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+        </div>
+      `);
+      
+      const resendModalContent = document.getElementById('modalContent');
+      resendModalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(sendBtn => {
+        sendBtn.addEventListener('click', async () => {
+          const isEmail = sendBtn.classList.contains('send-email');
+          const isSMS = sendBtn.classList.contains('send-sms');
+          const isClipboard = sendBtn.classList.contains('send-clipboard');
+          
+          sendBtn.disabled = true;
+          sendBtn.textContent = isEmail ? 'Sending...' : (isSMS ? 'Sending...' : 'Copying...');
+          
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('Not signed in');
+            const token = await user.getIdToken();
+            
+            if (isEmail) {
+              const res = await fetch(`${WORKER_URL}/api/invoices/${invoiceId}/send/email`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+              });
+              if (!res.ok) {
+                const txt = await res.text().catch(() => `HTTP ${res.status}`);
+                throw new Error(txt);
+              }
+              showToast('Invoice email sent successfully!', 'success');
+            } else if (isClipboard) {
+              const link = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
+              try { await navigator.clipboard.writeText(link); showToast('Invoice link copied to clipboard'); } catch { showToast('Failed to copy to clipboard', 'error'); }
+            } else if (isSMS) {
+              // Fetch job to build SMS vars
+              let jobData = null;
+              try {
+                const jobRes = await fetch(`${WORKER_URL}/api/jobs/${invoiceJobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (jobRes.ok) jobData = await jobRes.json();
+              } catch (e) {}
+              const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+              if (!clientPhone) {
+                showToast('Client phone not found');
+              } else {
+                const invoiceObj = (jobData?.invoices || []).find(i => i.id === invoiceId) || null;
+                const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
+                const publicLink = `${window.location.origin}/roof/invoice.html?inv=${invoiceId}`;
+                let vendorName = 'Company', vendorNumber = '';
+                try {
+                  const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                  if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; }
+                } catch (e) {}
+                const message = window.buildMessageFromTemplate('invoice_send', { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, dueDate: '', amount, vendorName, vendorNumber });
+                window.showSmsModal(jobData?.client?.firstName || 'Customer', clientPhone, message, { invoiceId: invoiceId, template: 'invoice_send', vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } });
+              }
+            }
+            closeModal();
+          } catch (err) {
+            console.error('Invoice send failed', err);
+            showToast('Failed to send invoice:\n' + (err.message || err), 'error');
+          } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
+          }
+        });
+      });
     };
   });
   
@@ -3170,32 +3305,95 @@ function attachSingleCardEventListeners(card, jobs) {
         });
       }
       
-      // ── Handle invoiced stage (Mark as Paid) ────────────────────
+      // ── Handle invoiced stage (Payment Choice Modal) ────────────────────
       else if (stage === 'invoiced') {
         showModal(`
-          <h2 class="modal-title">Mark as Paid</h2>
-          <p style="margin-bottom:20px; color:#4b5563;">
-            Confirm that the full invoice has been paid?<br>
-            This will move the job to "Paid" status.
+          <h2 class="modal-title">Choose Payment Method</h2>
+          <p style="margin-bottom:24px; color:#4b5563; line-height:1.6;">
+            <strong>Platform payments are quick, secure, and fee-free on your end</strong> (we handle the processing).<br><br>
+            Manual marking adds a small <strong>$5 admin fee</strong> to cover our extra reconciliation work.<br><br>
+            Prefer to proceed manually?
           </p>
-          <div class="modal-buttons">
-            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
-            <button class="btn-modal btn-primary-modal confirm-mark-paid">Yes – Mark as Paid</button>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-modal btn-online-payment" style="background: #10b981; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+              💳 Pay Online – No Extra Fee
+            </button>
+            <button class="btn-modal btn-manual-mark" style="background: transparent; color: #dc2626; padding: 14px 20px; border: 2px solid #dc2626; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+              ⚠️ Mark as Paid Manually (+$5)
+            </button>
+            <button class="btn-modal btn-cancel" onclick="closeModal()" style="background: transparent; color: #6b7280; padding: 10px; border: none; font-size: 0.9rem; cursor: pointer;">Cancel</button>
           </div>
         `);
         const modal = document.getElementById('modalContent');
-        modal.querySelector('.confirm-mark-paid').addEventListener('click', async () => {
+        
+        // Online payment button hover effect
+        const onlineBtn = modal.querySelector('.btn-online-payment');
+        onlineBtn.addEventListener('mouseenter', () => {
+          onlineBtn.style.background = '#059669';
+          onlineBtn.style.transform = 'translateY(-2px)';
+          onlineBtn.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.35)';
+        });
+        onlineBtn.addEventListener('mouseleave', () => {
+          onlineBtn.style.background = '#10b981';
+          onlineBtn.style.transform = 'translateY(0)';
+          onlineBtn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
+        });
+        
+        // Manual button hover effect
+        const manualBtn = modal.querySelector('.btn-manual-mark');
+        manualBtn.addEventListener('mouseenter', () => {
+          manualBtn.style.background = '#fee2e2';
+          manualBtn.style.borderColor = '#b91c1c';
+        });
+        manualBtn.addEventListener('mouseleave', () => {
+          manualBtn.style.background = 'transparent';
+          manualBtn.style.borderColor = '#dc2626';
+        });
+        
+        // Online payment button - just a reference/warning, closes modal without action
+        onlineBtn.addEventListener('click', () => {
+          closeModal();
+        });
+        
+        // Manual mark as paid (with $5 fee)
+        manualBtn.addEventListener('click', async () => {
           try {
             const user = auth.currentUser;
             if (!user) throw new Error("Not signed in");
             const token = await user.getIdToken();
             const jobId = card.getAttribute('data-job-id');
             if (!jobId) throw new Error("No job ID on card");
+            
+            // First, get the job data to find the invoice
+            const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!jobRes.ok) throw new Error("Failed to fetch job data");
+            const jobData = await jobRes.json();
+            
+            // Find the most recent invoice
+            const invoices = jobData.invoices || [];
+            const latestInvoice = invoices.sort((a, b) => 
+              new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+            )[0];
+            
+            if (latestInvoice?.id) {
+              // Mark the invoice as paid via the public endpoint
+              const invoiceRes = await fetch(`${WORKER_URL}/api/invoices/${latestInvoice.id}/mark-paid`, {
+                method: 'POST'
+              });
+              if (!invoiceRes.ok) {
+                console.warn("Failed to mark invoice as paid, but continuing with job update");
+              }
+            }
+            
+            // Update job status to paid
             const patchBody = {
               status: 'paid',
-              nextAction: 'Payment received',
+              nextAction: 'Payment received (Manual +$5 fee)',
               paidAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              updatedAt: new Date().toISOString(),
+              _activityType: 'manual'
             };
             const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
               method: 'PATCH',
@@ -3211,7 +3409,7 @@ function attachSingleCardEventListeners(card, jobs) {
             }
             closeModal();
             await loadAndRenderJobs();
-            showToast('Job marked as paid!', 'success');
+            showToast('Invoice and job marked as paid (Manual +$5 admin fee)', 'success');
           } catch (err) {
             console.error("Mark as paid failed:", err);
             showToast('Failed to mark job as paid:\n' + err.message, 'error');
@@ -3730,6 +3928,152 @@ function attachSingleCardEventListeners(card, jobs) {
       else if (action === 'schedule-visit') {
         if (currentMenu) currentMenu.classList.remove('show');
         showScheduleModal(card);
+      }
+      else if (action === 'view-invoice') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        // Get invoice ID from job data
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+          if (!res.ok) throw new Error('Could not load job');
+          const job = await res.json();
+          const invoices = job.invoices || [];
+          if (invoices.length === 0) {
+            showToast('No invoices found for this job', 'error');
+            return;
+          }
+          // Open the most recent invoice
+          const latestInvoice = invoices[invoices.length - 1];
+          window.open(`invoice.html?inv=${latestInvoice.id}`, '_blank');
+        } catch (err) {
+          console.error('Failed to load invoice:', err);
+          showToast('Could not load invoice: ' + err.message, 'error');
+        }
+      }
+      else if (action === 'edit-invoice') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        // Get invoice ID from job data and navigate to edit
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+          if (!res.ok) throw new Error('Could not load job');
+          const job = await res.json();
+          const invoices = job.invoices || [];
+          if (invoices.length === 0) {
+            showToast('No invoices found for this job', 'error');
+            return;
+          }
+          // Edit the most recent invoice
+          const latestInvoice = invoices[invoices.length - 1];
+          window.location.href = `create_invoice.html?jobId=${jobId}&invoice=${latestInvoice.id}&edit=true`;
+        } catch (err) {
+          console.error('Failed to load invoice for editing:', err);
+          showToast('Could not load invoice: ' + err.message, 'error');
+        }
+      }
+      else if (action === 'resend-invoice') {
+        if (currentMenu) currentMenu.classList.remove('show');
+        // Show modal to resend invoice via email/SMS/clipboard
+        showModal(`
+          <h2 class="modal-title">Resend Invoice</h2>
+          <p style="margin-bottom:12px; color:#4b5563;">Select which invoice to resend:</p>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice</label>
+          <select id="modal-invoice-select" class="modal-select"><option value="">Loading...</option></select>
+          <p style="margin:16px 0 8px 0; color:#4b5563;">How would you like to send the invoice?</p>
+          <div class="send-options">
+            <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+            <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+            <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+          </div>
+          <div class="modal-buttons" style="margin-top:24px;">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+          </div>
+        `);
+
+        const modalContent = document.getElementById('modalContent');
+        const invoiceSelect = modalContent.querySelector('#modal-invoice-select');
+
+        (async () => {
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) throw new Error('Could not load job invoices');
+            const job = await res.json();
+            const invoices = job.invoices || [];
+            if (invoices.length === 0) {
+              invoiceSelect.innerHTML = '<option value="">No invoices for this job</option>';
+              return;
+            }
+            invoiceSelect.innerHTML = '<option value="">-- Select invoice --</option>' + invoices.map(i => `<option value="${i.id}">${i.number || i.id} • ${i.date} • $${(i.total||0).toFixed(2)}</option>`).join('');
+          } catch (e) {
+            console.error('Failed to load invoices', e);
+            invoiceSelect.innerHTML = '<option value="">Error loading invoices</option>';
+          }
+        })();
+
+        modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const selectedInvoiceId = invoiceSelect.value;
+            if (!selectedInvoiceId) return showToast('Please select an invoice first');
+            const isEmail = btn.classList.contains('send-email');
+            const isSMS = btn.classList.contains('send-sms');
+            const isClipboard = btn.classList.contains('send-clipboard');
+
+            btn.disabled = true;
+            btn.textContent = isEmail ? 'Sending...' : (isSMS ? 'Sending...' : 'Copying...');
+
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error('Not signed in');
+              const token = await user.getIdToken();
+
+              if (isEmail) {
+                const res = await fetch(`${WORKER_URL}/api/invoices/${selectedInvoiceId}/send/email`, {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) {
+                  const txt = await res.text().catch(() => `HTTP ${res.status}`);
+                  throw new Error(txt);
+                }
+                showToast('Invoice email sent successfully!', 'success');
+              } else if (isClipboard) {
+                const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                try { await navigator.clipboard.writeText(link); showToast('Invoice link copied to clipboard'); } catch { showToast('Failed to copy to clipboard', 'error'); }
+              } else if (isSMS) {
+                // Fetch job & invoice to build sms vars
+                const tkn = await auth.currentUser.getIdToken();
+                let jobData = null;
+                try {
+                  const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                  if (jobRes2.ok) jobData = await jobRes2.json();
+                } catch (e) {}
+                const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+                if (!clientPhone) {
+                  showToast('Client phone not found');
+                } else {
+                  const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
+                  const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
+                  const publicLink = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                  let vendorName = 'Company', vendorNumber = '';
+                  try {
+                    const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                    if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; }
+                  } catch (e) {}
+                  const message = window.buildMessageFromTemplate('invoice_send', { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, dueDate: '', amount, vendorName, vendorNumber });
+                  window.showSmsModal(jobData?.client?.firstName || 'Customer', clientPhone, message, { invoiceId: selectedInvoiceId, template: 'invoice_send', vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } });
+                }
+              }
+              closeModal();
+            } catch (err) {
+              console.error('Invoice send failed', err);
+              showToast('Failed to send invoice:\n' + (err.message || err), 'error');
+            } finally {
+              btn.disabled = false;
+              btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
+            }
+          });
+        });
       }
       
       if (currentMenu) currentMenu.classList.remove('show');
@@ -4533,31 +4877,94 @@ function attachCardEventListeners() {
           });
         }
         else if (stage === 'invoiced') {
-          // ── Mark as Paid ────────────────────────────────────────────────────────
+          // ── Payment Choice Modal ────────────────────────────────────────────────────────
           showModal(`
-            <h2 class="modal-title">Mark as Paid</h2>
-            <p style="margin-bottom:20px; color:#4b5563;">
-              Confirm that the full invoice has been paid?<br>
-              This will move the job to "Paid" status.
+            <h2 class="modal-title">Choose Payment Method</h2>
+            <p style="margin-bottom:24px; color:#4b5563; line-height:1.6;">
+              <strong>Platform payments are quick, secure, and fee-free on your end</strong> (we handle the processing).<br><br>
+              Manual marking adds a small <strong>$5 admin fee</strong> to cover our extra reconciliation work.<br><br>
+              Prefer to proceed manually?
             </p>
-            <div class="modal-buttons">
-              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
-              <button class="btn-modal btn-primary-modal confirm-mark-paid">Yes – Mark as Paid</button>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <button class="btn-modal btn-online-payment" style="background: #10b981; color: white; padding: 14px 20px; border: none; border-radius: 999px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                💳 Pay Online – No Extra Fee
+              </button>
+              <button class="btn-modal btn-manual-mark" style="background: transparent; color: #dc2626; padding: 14px 20px; border: 2px solid #dc2626; border-radius: 999px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                ⚠️ Mark as Paid Manually (+$5)
+              </button>
+              <button class="btn-modal btn-cancel" onclick="closeModal()" style="background: transparent; color: #6b7280; padding: 10px; border: none; font-size: 0.9rem; cursor: pointer;">Cancel</button>
             </div>
           `);
           const modal = document.getElementById('modalContent');
-          modal.querySelector('.confirm-mark-paid').addEventListener('click', async () => {
+          
+          // Online payment button hover effect
+          const onlineBtn = modal.querySelector('.btn-online-payment');
+          onlineBtn.addEventListener('mouseenter', () => {
+            onlineBtn.style.background = '#059669';
+            onlineBtn.style.transform = 'translateY(-2px)';
+            onlineBtn.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.35)';
+          });
+          onlineBtn.addEventListener('mouseleave', () => {
+            onlineBtn.style.background = '#10b981';
+            onlineBtn.style.transform = 'translateY(0)';
+            onlineBtn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
+          });
+          
+          // Manual button hover effect
+          const manualBtn = modal.querySelector('.btn-manual-mark');
+          manualBtn.addEventListener('mouseenter', () => {
+            manualBtn.style.background = '#fee2e2';
+            manualBtn.style.borderColor = '#b91c1c';
+          });
+          manualBtn.addEventListener('mouseleave', () => {
+            manualBtn.style.background = 'transparent';
+            manualBtn.style.borderColor = '#dc2626';
+          });
+          
+          // Online payment button - just a reference/warning, closes modal without action
+          onlineBtn.addEventListener('click', () => {
+            closeModal();
+          });
+          
+          // Manual mark as paid (with $5 fee)
+          manualBtn.addEventListener('click', async () => {
             try {
               const user = auth.currentUser;
               if (!user) throw new Error("Not signed in");
               const token = await user.getIdToken();
               const jobId = card.getAttribute('data-job-id');
               if (!jobId) throw new Error("No job ID on card");
+              
+              // First, get the job data to find the invoice
+              const jobRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (!jobRes.ok) throw new Error("Failed to fetch job data");
+              const jobData = await jobRes.json();
+              
+              // Find the most recent invoice
+              const invoices = jobData.invoices || [];
+              const latestInvoice = invoices.sort((a, b) => 
+                new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+              )[0];
+              
+              if (latestInvoice?.id) {
+                // Mark the invoice as paid via the public endpoint
+                const invoiceRes = await fetch(`${WORKER_URL}/api/invoices/${latestInvoice.id}/mark-paid`, {
+                  method: 'POST'
+                });
+                if (!invoiceRes.ok) {
+                  console.warn("Failed to mark invoice as paid, but continuing with job update");
+                }
+              }
+              
+              // Update job status to paid
               const patchBody = {
                 status: 'paid',
-                nextAction: 'Payment received',
+                nextAction: 'Payment received (Manual +$5 fee)',
                 paidAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                _activityType: 'manual'
               };
               const patchRes = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
                 method: 'PATCH',
@@ -4573,7 +4980,7 @@ function attachCardEventListeners() {
               }
               closeModal();
               await loadAndRenderJobs();
-              showToast('Job marked as paid!', 'success');
+              showToast('Invoice and job marked as paid (Manual +$5 admin fee)', 'success');
             } catch (err) {
               console.error("Mark as paid failed:", err);
               showToast('Failed to mark job as paid:\n' + err.message, 'error');
@@ -5046,6 +5453,152 @@ function attachCardEventListeners() {
             showToast('Could not load quote: ' + err.message, 'error');
           }
         }
+        else if (action === 'view-invoice') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          // Get invoice ID from job data
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) throw new Error('Could not load job');
+            const job = await res.json();
+            const invoices = job.invoices || [];
+            if (invoices.length === 0) {
+              showToast('No invoices found for this job', 'error');
+              return;
+            }
+            // Open the most recent invoice
+            const latestInvoice = invoices[invoices.length - 1];
+            window.open(`invoice.html?inv=${latestInvoice.id}`, '_blank');
+          } catch (err) {
+            console.error('Failed to load invoice:', err);
+            showToast('Could not load invoice: ' + err.message, 'error');
+          }
+        }
+        else if (action === 'edit-invoice') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          // Get invoice ID from job data and navigate to edit
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) throw new Error('Could not load job');
+            const job = await res.json();
+            const invoices = job.invoices || [];
+            if (invoices.length === 0) {
+              showToast('No invoices found for this job', 'error');
+              return;
+            }
+            // Edit the most recent invoice
+            const latestInvoice = invoices[invoices.length - 1];
+            window.location.href = `create_invoice.html?jobId=${jobId}&invoice=${latestInvoice.id}&edit=true`;
+          } catch (err) {
+            console.error('Failed to load invoice for editing:', err);
+            showToast('Could not load invoice: ' + err.message, 'error');
+          }
+        }
+        else if (action === 'resend-invoice') {
+          if (currentMenu) currentMenu.classList.remove('show');
+          // Show modal to resend invoice via email/SMS/clipboard
+          showModal(`
+            <h2 class="modal-title">Resend Invoice</h2>
+            <p style="margin-bottom:12px; color:#4b5563;">Select which invoice to resend:</p>
+            <label style="display:block; margin-bottom:8px; font-weight:600;">Invoice</label>
+            <select id="modal-invoice-select" class="modal-select"><option value="">Loading...</option></select>
+            <p style="margin:16px 0 8px 0; color:#4b5563;">How would you like to send the invoice?</p>
+            <div class="send-options">
+              <button class="btn-modal btn-primary-modal btn-send send-email">Email</button>
+              <button class="btn-modal btn-primary-modal btn-send send-sms">SMS</button>
+              <button class="btn-modal btn-primary-modal btn-send send-clipboard">Copy to Clipboard</button>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+              <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+          `);
+
+          const modalContent = document.getElementById('modalContent');
+          const invoiceSelect = modalContent.querySelector('#modal-invoice-select');
+
+          (async () => {
+            try {
+              const token = await auth.currentUser.getIdToken();
+              const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!res.ok) throw new Error('Could not load job invoices');
+              const job = await res.json();
+              const invoices = job.invoices || [];
+              if (invoices.length === 0) {
+                invoiceSelect.innerHTML = '<option value="">No invoices for this job</option>';
+                return;
+              }
+              invoiceSelect.innerHTML = '<option value="">-- Select invoice --</option>' + invoices.map(i => `<option value="${i.id}">${i.number || i.id} • ${i.date} • $${(i.total||0).toFixed(2)}</option>`).join('');
+            } catch (e) {
+              console.error('Failed to load invoices', e);
+              invoiceSelect.innerHTML = '<option value="">Error loading invoices</option>';
+            }
+          })();
+
+          modalContent.querySelectorAll('.send-email, .send-sms, .send-clipboard').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const selectedInvoiceId = invoiceSelect.value;
+              if (!selectedInvoiceId) return showToast('Please select an invoice first');
+              const isEmail = btn.classList.contains('send-email');
+              const isSMS = btn.classList.contains('send-sms');
+              const isClipboard = btn.classList.contains('send-clipboard');
+
+              btn.disabled = true;
+              btn.textContent = isEmail ? 'Sending...' : (isSMS ? 'Sending...' : 'Copying...');
+
+              try {
+                const user = auth.currentUser;
+                if (!user) throw new Error('Not signed in');
+                const token = await user.getIdToken();
+
+                if (isEmail) {
+                  const res = await fetch(`${WORKER_URL}/api/invoices/${selectedInvoiceId}/send/email`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                  });
+                  if (!res.ok) {
+                    const txt = await res.text().catch(() => `HTTP ${res.status}`);
+                    throw new Error(txt);
+                  }
+                  showToast('Invoice email sent successfully!', 'success');
+                } else if (isClipboard) {
+                  const link = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                  try { await navigator.clipboard.writeText(link); showToast('Invoice link copied to clipboard'); } catch { showToast('Failed to copy to clipboard', 'error'); }
+                } else if (isSMS) {
+                  // Fetch job & invoice to build sms vars
+                  const tkn = await auth.currentUser.getIdToken();
+                  let jobData = null;
+                  try {
+                    const jobRes2 = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                    if (jobRes2.ok) jobData = await jobRes2.json();
+                  } catch (e) {}
+                  const clientPhone = jobData?.client?.phone || jobData?.client?.mobile || jobData?.client?.phoneNumber;
+                  if (!clientPhone) {
+                    showToast('Client phone not found');
+                  } else {
+                    const invoiceObj = (jobData?.invoices || []).find(i => i.id === selectedInvoiceId) || null;
+                    const amount = invoiceObj ? `$${Number(invoiceObj.total||0).toFixed(2)}` : '';
+                    const publicLink = `${window.location.origin}/roof/invoice.html?inv=${selectedInvoiceId}`;
+                    let vendorName = 'Company', vendorNumber = '';
+                    try {
+                      const profRes = await fetch(`${WORKER_URL}/api/user/profile`, { headers: { 'Authorization': `Bearer ${tkn}` } });
+                      if (profRes.ok) { const pj = await profRes.json(); vendorName = pj.profile?.companyName || vendorName; vendorNumber = pj.profile?.phone || vendorNumber; }
+                    } catch (e) {}
+                    const message = window.buildMessageFromTemplate('invoice_send', { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, dueDate: '', amount, vendorName, vendorNumber });
+                    window.showSmsModal(jobData?.client?.firstName || 'Customer', clientPhone, message, { invoiceId: selectedInvoiceId, template: 'invoice_send', vars: { clientName: (jobData?.client?.firstName||'Customer'), invoiceUrl: publicLink, amount, vendorName, vendorNumber } });
+                  }
+                }
+                closeModal();
+              } catch (err) {
+                console.error('Invoice send failed', err);
+                showToast('Failed to send invoice:\n' + (err.message || err), 'error');
+              } finally {
+                btn.disabled = false;
+                btn.textContent = isEmail ? 'Email' : (isSMS ? 'SMS' : 'Copy to Clipboard');
+              }
+            });
+          });
+        }
         if (currentMenu) currentMenu.classList.remove('show');
       });
     });
@@ -5206,6 +5759,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   auth.onAuthStateChanged(async (user) => {
     if (user) {
+      localStorage.setItem('isLoggedIn', 'true');
       // Load the jobs (make sure loadAndRenderJobs is awaited if it's async)
       await loadAndRenderJobs(); // ← add await if your function returns a Promise
       
@@ -5255,14 +5809,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } else {
-      document.getElementById('jobs-container').innerHTML = `
-        <div style="text-align:center; padding:60px;">
-          <p style="color:#6b7280; margin-bottom:20px;">Please sign in to view your jobs</p>
-          <button onclick="loadAndRenderJobs(true)" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 0.98rem; cursor: pointer; box-shadow: 0 2px 8px rgba(139,92,246,0.2);">
-            📋 Load Mock Data (Test)
-          </button>
-        </div>
-      `;
+      // Not logged in - redirect to signup
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = 'index.html#final-cta';
     }
   });
   // Keep your existing modal close listener
@@ -5357,13 +5906,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Sign out function
   function signOut() {
-    if (confirm('Are you sure you want to sign out?')) {
+    showModal(`
+      <h2 class="modal-title">Sign Out</h2>
+      <p style="margin-bottom:20px; color:#4b5563;">
+        Are you sure you want to sign out of Deep Edge?
+      </p>
+      <div class="modal-buttons">
+        <button class="btn-modal btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-modal btn-primary-modal confirm-signout">Yes – Sign Out</button>
+      </div>
+    `);
+    const modal = document.getElementById('modalContent');
+    modal.querySelector('.confirm-signout').addEventListener('click', () => {
       // Clear any stored auth data
       localStorage.clear();
       sessionStorage.clear();
-      // Redirect to login
-      window.location.href = 'login.html';
-    }
+      // Redirect to signup
+      window.location.href = 'index.html#final-cta';
+    });
   }
 });
 </script>

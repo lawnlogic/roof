@@ -598,6 +598,7 @@
 
         if (verified) {
           showMessage("✓ Email verified! Redirecting...", "success");
+          localStorage.setItem('isLoggedIn', 'true');
           setTimeout(() => {
             window.location.href = 'dashboard.html';
           }, 800);

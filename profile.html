@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: all 0.3s ease; padding: 0 1.5rem; height: 5rem; font-family: 'Inter', sans-serif;"></div>
+  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 99; transition: all 0.3s ease; padding: 0 1.5rem; height: 5rem; font-family: 'Inter', sans-serif; pointer-events: none;"></div>
 
   <div class="profile-container">
     <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
@@ -122,69 +122,6 @@
         </div>
       </div>
       <div id="pricing-message" style="margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 16px; text-align: center;"></div>
-    </details>
-
-    <!-- Company Add-Ons Section -->
-    <details>
-      <summary><h2>⚙️ Company Add-Ons</h2></summary>
-      <div class="profile-pricing-box">
-        <p style="margin-bottom: 20px; color: var(--muted);">
-          Define optional services (e.g. edge trimming, hedge clipping, fertiliser application, etc.) 
-          that can be added to quotes.
-        </p>
-
-        <button id="create-addon-btn" class="action-button" style="background: #10b981; color: white;">+ New Add-On</button>
-
-        <!-- Form (hidden by default) -->
-        <div id="addon-form" style="display: none; margin-top: 24px;">
-          <div class="profile-input-group">
-            <label for="addonName">Add-On Name</label>
-            <input type="text" id="addonName" placeholder="e.g. Edge Trimming" />
-          </div>
-
-          <div class="profile-input-group">
-            <label for="addonDescription">Description</label>
-            <textarea id="addonDescription" rows="3" placeholder="Brief description visible to customers..."></textarea>
-          </div>
-
-          <div class="profile-input-group" style="margin-bottom: 12px;">
-            <label>Pricing Type</label>
-            <div style="display: flex; gap: 24px; margin-top: 8px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="addonPricingType" value="m2" checked />
-                Per m²
-              </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="addonPricingType" value="hour" />
-                Per Hour
-              </label>
-            </div>
-          </div>
-
-          <div class="profile-input-group">
-            <label for="addonPrice" id="addonPriceLabel">Price (per m²)</label>
-            <input type="number" id="addonPrice" min="0" step="0.01" placeholder="e.g. 4.50" />
-          </div>
-
-          <!-- New checkbox -->
-          <div class="profile-input-group" style="margin-top: 16px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500;">
-              <input type="checkbox" id="addonRequiresSiteQuote" />
-              Must quote on site (cannot be priced automatically)
-            </label>
-          </div>
-
-          <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <button id="save-addon-btn" class="action-button" style="background: #10b981; color: white;">Save Add-On</button>
-            <button id="cancel-addon-btn" class="action-button" style="background: #9ca3af; color: white;">Cancel</button>
-          </div>
-
-          <div id="addon-message" style="margin-top: 16px;"></div>
-        </div>
-
-        <!-- List of add-ons -->
-        <div id="addons-list" style="margin-top: 32px;"></div>
-      </div>
     </details>
 
   </div>
@@ -326,7 +263,7 @@
             await loadProfile(await auth.currentUser.getIdToken());
           } catch (err) {
             console.error("Delete failed:", err);
-            alert('Failed to delete: ' + err.message);
+            console.error('Failed to delete: ' + err.message);
           }
         });
       });
@@ -357,12 +294,12 @@
         const push = pricing.push || {};
         const rideon = pricing.rideon || {};
 
-        els.pushM2PerHour.value      = push.m2PerHour ?? '';
-        els.pushChargeOutRate.value  = push.chargeOutRate ?? '';
-        els.pushHourlyExpenses.value = push.hourlyExpenses ?? '';
-        els.rideonM2PerHour.value     = rideon.m2PerHour ?? '';
-        els.rideonChargeOutRate.value = rideon.chargeOutRate ?? '';
-        els.rideonHourlyExpenses.value = rideon.hourlyExpenses ?? '';
+        els.pushM2PerHour.value      = push.m2PerHour ?? 100;
+        els.pushChargeOutRate.value  = push.chargeOutRate ?? 50;
+        els.pushHourlyExpenses.value = push.hourlyExpenses ?? 25;
+        els.rideonM2PerHour.value     = rideon.m2PerHour ?? 4000;
+        els.rideonChargeOutRate.value = rideon.chargeOutRate ?? 70;
+        els.rideonHourlyExpenses.value = rideon.hourlyExpenses ?? 35;
 
         // Load and display add-ons
         renderAddOns(profile.addOns || []);
@@ -471,125 +408,14 @@
     document.getElementById('pricing-update-push-btn').addEventListener('click', savePricing);
     document.getElementById('pricing-update-rideon-btn').addEventListener('click', savePricing);
 
-    // ── Add-Ons ────────────────────────────────────────────────────────────
-    const createAddonBtn   = document.getElementById('create-addon-btn');
-    const addonForm        = document.getElementById('addon-form');
-    const cancelAddonBtn   = document.getElementById('cancel-addon-btn');
-    const saveAddonBtn     = document.getElementById('save-addon-btn');
-    const addonMessage     = document.getElementById('addon-message');
-    const addonPriceLabel  = document.getElementById('addonPriceLabel');
-    const addonPriceInput  = document.getElementById('addonPrice');
-    const requiresSiteQuote = document.getElementById('addonRequiresSiteQuote');
-
-    function showAddonMessage(text, type = 'success') {
-      if (!addonMessage) return;
-      addonMessage.textContent = text;
-      addonMessage.className = type === 'success' ? 'profile-success' : 'profile-error';
-    }
-
-    if (createAddonBtn) {
-      createAddonBtn.addEventListener('click', () => {
-        addonForm.style.display = 'block';
-        createAddonBtn.style.display = 'none';
-        addonMessage.textContent = '';
-      });
-
-      cancelAddonBtn.addEventListener('click', () => {
-        addonForm.style.display = 'none';
-        createAddonBtn.style.display = 'block';
-        clearAddonForm();
-      });
-
-      document.querySelectorAll('input[name="addonPricingType"]').forEach(radio => {
-        radio.addEventListener('change', e => {
-          if (e.target.value === 'm2') {
-            addonPriceLabel.textContent = 'Price (per m²)';
-            addonPriceInput.placeholder = 'e.g. 4.50';
-          } else {
-            addonPriceLabel.textContent = 'Price (per hour)';
-            addonPriceInput.placeholder = 'e.g. 65.00';
-          }
-        });
-      });
-
-      saveAddonBtn.addEventListener('click', async () => {
-        const name  = document.getElementById('addonName').value.trim();
-        const desc  = document.getElementById('addonDescription').value.trim();
-        const type  = document.querySelector('input[name="addonPricingType"]:checked')?.value;
-        const price = parseFloat(document.getElementById('addonPrice').value);
-        const reqSite = requiresSiteQuote.checked;
-
-        if (!name) return showAddonMessage('Add-on name is required', 'error');
-        if (!type) return showAddonMessage('Select pricing type', 'error');
-        if (isNaN(price) || price <= 0) return showAddonMessage('Enter a valid price > 0', 'error');
-
-        showAddonMessage('Saving add-on...', 'info');
-
-        const newAddon = {
-          id: crypto.randomUUID(),
-          name,
-          description: desc,
-          pricingType: type,
-          price,
-          requiresSiteQuote: reqSite,
-          createdAt: new Date().toISOString()
-        };
-
-        try {
-          const token = await auth.currentUser.getIdToken();
-
-          const payload = {
-            addOns: [newAddon],
-            updatedAt: new Date().toISOString()
-          };
-
-          const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(errorText || 'Server error');
-          }
-
-          showAddonMessage('Add-on saved successfully!', 'success');
-
-          // Reload profile → refreshes list
-          const reloadToken = await auth.currentUser.getIdToken();
-          await loadProfile(reloadToken);
-
-          clearAddonForm();
-          addonForm.style.display = 'none';
-          createAddonBtn.style.display = 'block';
-
-        } catch (err) {
-          console.error('Save add-on failed:', err);
-          showAddonMessage('Failed to save add-on: ' + err.message, 'error');
-        }
-      });
-    }
-
-    function clearAddonForm() {
-      document.getElementById('addonName').value = '';
-      document.getElementById('addonDescription').value = '';
-      document.getElementById('addonPrice').value = '';
-      document.querySelector('input[name="addonPricingType"][value="m2"]').checked = true;
-      addonPriceLabel.textContent = 'Price (per m²)';
-      addonPriceInput.placeholder = 'e.g. 4.50';
-      requiresSiteQuote.checked = false;
-    }
-
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        localStorage.setItem('isLoggedIn', 'true');
         const token = await user.getIdToken();
         await loadProfile(token);
       } else {
-        window.location.href = 'login.html';
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html#final-cta';
       }
     });
 

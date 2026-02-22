@@ -832,6 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load data when user is authenticated
 auth.onAuthStateChanged(async (user) => {
   if (user) {
+    localStorage.setItem('isLoggedIn', 'true');
     await loadDashboardData();
     
     // Check profile and show onboarding if needed
@@ -925,6 +926,10 @@ auth.onAuthStateChanged(async (user) => {
     if (!isVerifying) {
       hideSplashScreen();
     }
+  } else {
+    // Not logged in - redirect to signup
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = 'index.html#final-cta';
   }
 });
 </script>

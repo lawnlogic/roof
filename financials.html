@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financials • Deep Edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./index-FsI4UGjo.css">
+  <script src="header.js" defer></script>
+  <style>
+    :root {
+      --purple: #7B2D8E;
+      --purple-dark: #662375;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --background: #f9fafb;
+      --text: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .financials-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .financials-header {
+      margin-bottom: 3rem;
+    }
+
+    .financials-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .financials-header p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .summary-card-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .summary-card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .summary-card-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .controls-section {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 300px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(123, 45, 142, 0.1);
+    }
+
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+    }
+
+    select, .filter-btn {
+      padding: 0.75rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-size: 0.95rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      font-weight: 500;
+    }
+
+    select:focus, .filter-btn:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(123, 45, 142, 0.1);
+    }
+
+    .filter-btn:hover {
+      background: var(--background);
+    }
+
+    .filter-btn.active {
+      background: var(--purple);
+      color: white;
+      border-color: var(--purple);
+    }
+
+    .export-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .export-btn:hover {
+      background: var(--purple-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.3);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tab {
+      padding: 1rem 2rem;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+    }
+
+    .tab-badge {
+      display: inline-block;
+      margin-left: 0.5rem;
+      padding: 0.2rem 0.6rem;
+      background: var(--background);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .tab.active .tab-badge {
+      background: rgba(123, 45, 142, 0.1);
+      color: var(--purple);
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .items-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+      border-color: var(--purple);
+    }
+
+    .item-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .item-card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .item-card-number {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .status-badge {
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-paid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-unpaid {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-sent {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-draft {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .status-manual {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+
+    .item-card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-info-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .item-info-value {
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .item-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .item-card-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .item-card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn-view {
+      background: var(--purple);
+      color: white;
+    }
+
+    .action-btn-view:hover {
+      background: var(--purple-dark);
+    }
+
+    .action-btn-secondary {
+      background: var(--background);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .action-btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      border: 3px solid var(--border);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .financials-header h1 {
+        font-size: 1.8rem;
+      }
+
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .controls-group {
+        width: 100%;
+      }
+
+      .search-box {
+        min-width: 100%;
+      }
+
+      .item-card-header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .item-card-body {
+        grid-template-columns: 1fr;
+      }
+
+      .item-card-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="financials-container">
+    <button onclick="window.history.back()" style="background: none; border: none; color: var(--purple); font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+
+    <div class="financials-header">
+      <h1>Financial Records</h1>
+      <p>View, filter, and export all your quotes and invoices</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-card-label">Total Revenue</div>
+        <div class="summary-card-value" id="total-revenue">$0.00</div>
+        <div class="summary-card-subtitle" id="paid-invoices-count">0 paid invoices</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Outstanding</div>
+        <div class="summary-card-value" id="outstanding-amount">$0.00</div>
+        <div class="summary-card-subtitle" id="unpaid-invoices-count">0 unpaid invoices</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Pending Quotes</div>
+        <div class="summary-card-value" id="pending-quotes-value">$0.00</div>
+        <div class="summary-card-subtitle" id="pending-quotes-count">0 pending quotes</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Total Items</div>
+        <div class="summary-card-value" id="total-items-count">0</div>
+        <div class="summary-card-subtitle" id="items-breakdown">0 invoices, 0 quotes</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-section">
+      <div class="controls-row">
+        <div class="controls-group">
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search by client, address, or number..." />
+          </div>
+          <select id="status-filter">
+            <option value="all">All Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="manual">Manual Payment</option>
+            <option value="pending">Pending</option>
+            <option value="sent">Sent</option>
+            <option value="draft">Draft</option>
+          </select>
+          <select id="sort-by">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Highest Amount</option>
+            <option value="amount-asc">Lowest Amount</option>
+            <option value="client">Client Name</option>
+          </select>
+        </div>
+        <button class="export-btn" id="export-csv-btn">📊 Export to CSV</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="all">
+        All <span class="tab-badge" id="all-count">0</span>
+      </button>
+      <button class="tab" data-tab="invoices">
+        Invoices <span class="tab-badge" id="invoices-count">0</span>
+      </button>
+      <button class="tab" data-tab="quotes">
+        Quotes <span class="tab-badge" id="quotes-count">0</span>
+      </button>
+    </div>
+
+    <!-- Content Sections -->
+    <div id="all-content" class="content-section active">
+      <div id="all-loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading financial records...</p>
+      </div>
+      <div id="all-items" class="items-grid" style="display: none;"></div>
+      <div id="all-empty" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📊</div>
+        <h3>No records found</h3>
+        <p>Start creating quotes and invoices to see them here</p>
+      </div>
+    </div>
+
+    <div id="invoices-content" class="content-section">
+      <div id="invoices-items" class="items-grid"></div>
+      <div id="invoices-empty" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">🧾</div>
+        <h3>No invoices found</h3>
+        <p>Your invoices will appear here once created</p>
+      </div>
+    </div>
+
+    <div id="quotes-content" class="content-section">
+      <div id="quotes-items" class="items-grid"></div>
+      <div id="quotes-empty" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📄</div>
+        <h3>No quotes found</h3>
+        <p>Your quotes will appear here once created</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
+      authDomain: "deep-edge-cc5bd.firebaseapp.com",
+      projectId: "deep-edge-cc5bd",
+      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
+      messagingSenderId: "23198790796",
+      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
+      measurementId: "G-GLYGPCHRXM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+    let allInvoices = [];
+    let allQuotes = [];
+    let filteredItems = [];
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+        
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.content-section').forEach(section => {
+          section.classList.remove('active');
+        });
+        document.getElementById(`${targetTab}-content`).classList.add('active');
+        
+        // Render appropriate content
+        applyFiltersAndRender();
+      });
+    });
+
+    // Search and filter listeners
+    document.getElementById('search-input').addEventListener('input', applyFiltersAndRender);
+    document.getElementById('status-filter').addEventListener('change', applyFiltersAndRender);
+    document.getElementById('sort-by').addEventListener('change', applyFiltersAndRender);
+
+    // Export CSV
+    document.getElementById('export-csv-btn').addEventListener('click', exportToCSV);
+
+    async function loadAllData(token) {
+      try {
+        // Fetch invoices
+        const invoicesRes = await fetch(`${WORKER_URL}/api/invoices`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (invoicesRes.ok) {
+          const data = await invoicesRes.json();
+          allInvoices = data.invoices || [];
+        }
+
+        // Fetch quotes
+        const quotesRes = await fetch(`${WORKER_URL}/api/quotes`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (quotesRes.ok) {
+          const data = await quotesRes.json();
+          allQuotes = data.quotes || [];
+        }
+
+        // Update UI
+        updateSummaryCards();
+        applyFiltersAndRender();
+        
+        // Hide loading
+        document.getElementById('all-loading').style.display = 'none';
+        document.getElementById('all-items').style.display = 'grid';
+
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        document.getElementById('all-loading').innerHTML = '<p>Failed to load data. Please refresh the page.</p>';
+      }
+    }
+
+    function updateSummaryCards() {
+      // Calculate totals
+      const paidInvoices = allInvoices.filter(inv => inv.status === 'paid' || inv.paid);
+      const unpaidInvoices = allInvoices.filter(inv => inv.status !== 'paid' && !inv.paid);
+      const pendingQuotes = allQuotes.filter(q => q.status !== 'accepted' && q.status !== 'rejected');
+      
+      const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (parseFloat(inv.totalInclGST) || 0), 0);
+      const outstandingAmount = unpaidInvoices.reduce((sum, inv) => sum + (parseFloat(inv.totalInclGST) || 0), 0);
+      const pendingQuotesValue = pendingQuotes.reduce((sum, q) => sum + (parseFloat(q.totalInclGST) || 0), 0);
+      
+      document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+      document.getElementById('paid-invoices-count').textContent = `${paidInvoices.length} paid invoice${paidInvoices.length !== 1 ? 's' : ''}`;
+      
+      document.getElementById('outstanding-amount').textContent = `$${outstandingAmount.toFixed(2)}`;
+      document.getElementById('unpaid-invoices-count').textContent = `${unpaidInvoices.length} unpaid invoice${unpaidInvoices.length !== 1 ? 's' : ''}`;
+      
+      document.getElementById('pending-quotes-value').textContent = `$${pendingQuotesValue.toFixed(2)}`;
+      document.getElementById('pending-quotes-count').textContent = `${pendingQuotes.length} pending quote${pendingQuotes.length !== 1 ? 's' : ''}`;
+      
+      document.getElementById('total-items-count').textContent = allInvoices.length + allQuotes.length;
+      document.getElementById('items-breakdown').textContent = `${allInvoices.length} invoice${allInvoices.length !== 1 ? 's' : ''}, ${allQuotes.length} quote${allQuotes.length !== 1 ? 's' : ''}`;
+      
+      // Update tab counts
+      document.getElementById('all-count').textContent = allInvoices.length + allQuotes.length;
+      document.getElementById('invoices-count').textContent = allInvoices.length;
+      document.getElementById('quotes-count').textContent = allQuotes.length;
+    }
+
+    function applyFiltersAndRender() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const statusFilter = document.getElementById('status-filter').value;
+      const sortBy = document.getElementById('sort-by').value;
+      const activeTab = document.querySelector('.tab.active').dataset.tab;
+
+      // Determine which items to filter
+      let items = [];
+      if (activeTab === 'all') {
+        items = [
+          ...allInvoices.map(inv => ({ ...inv, type: 'invoice' })),
+          ...allQuotes.map(q => ({ ...q, type: 'quote' }))
+        ];
+      } else if (activeTab === 'invoices') {
+        items = allInvoices.map(inv => ({ ...inv, type: 'invoice' }));
+      } else {
+        items = allQuotes.map(q => ({ ...q, type: 'quote' }));
+      }
+
+      // Apply search filter
+      if (searchTerm) {
+        items = items.filter(item => {
+          const clientName = item.clientName?.toLowerCase() || '';
+          const address = item.address?.toLowerCase() || '';
+          const number = item.invoiceNumber?.toLowerCase() || item.quoteNumber?.toLowerCase() || '';
+          return clientName.includes(searchTerm) || address.includes(searchTerm) || number.includes(searchTerm);
+        });
+      }
+
+      // Apply status filter
+      if (statusFilter !== 'all') {
+        items = items.filter(item => {
+          if (item.type === 'invoice') {
+            if (statusFilter === 'paid') return item.status === 'paid' || item.paid;
+            if (statusFilter === 'unpaid') return item.status !== 'paid' && !item.paid;
+            if (statusFilter === 'manual') return item.nextAction?.includes('Manual');
+          } else {
+            if (statusFilter === 'pending') return item.status === 'pending' || !item.status;
+            if (statusFilter === 'sent') return item.status === 'sent';
+            if (statusFilter === 'draft') return item.status === 'draft';
+          }
+          return false;
+        });
+      }
+
+      // Apply sorting
+      items.sort((a, b) => {
+        switch (sortBy) {
+          case 'date-desc':
+            return new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp);
+          case 'date-asc':
+            return new Date(a.createdAt || a.timestamp) - new Date(b.createdAt || b.timestamp);
+          case 'amount-desc':
+            return (parseFloat(b.totalInclGST) || 0) - (parseFloat(a.totalInclGST) || 0);
+          case 'amount-asc':
+            return (parseFloat(a.totalInclGST) || 0) - (parseFloat(b.totalInclGST) || 0);
+          case 'client':
+            return (a.clientName || '').localeCompare(b.clientName || '');
+          default:
+            return 0;
+        }
+      });
+
+      filteredItems = items;
+      renderItems(items, activeTab);
+    }
+
+    function renderItems(items, tab) {
+      const container = document.getElementById(`${tab}-items`);
+      const emptyState = document.getElementById(`${tab}-empty`);
+
+      if (items.length === 0) {
+        container.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = 'none';
+      
+      container.innerHTML = items.map(item => {
+        const isInvoice = item.type === 'invoice';
+        const status = getItemStatus(item);
+        const statusClass = getStatusClass(status);
+        
+        return `
+          <div class="item-card" onclick="window.location.href='${isInvoice ? 'invoice.html' : 'quote.html'}?${isInvoice ? 'invoice' : 'quote'}=${item.id}'">
+            <div class="item-card-header">
+              <div>
+                <div class="item-card-title">${item.clientName || 'No Client Name'}</div>
+                <div class="item-card-number">${isInvoice ? `Invoice #${item.invoiceNumber || 'N/A'}` : `Quote #${item.quoteNumber || 'N/A'}`}</div>
+              </div>
+              <span class="status-badge ${statusClass}">${status}</span>
+            </div>
+            <div class="item-card-body">
+              <div class="item-info">
+                <span class="item-info-label">Amount</span>
+                <span class="item-info-value">$${parseFloat(item.totalInclGST || 0).toFixed(2)}</span>
+              </div>
+              <div class="item-info">
+                <span class="item-info-label">Address</span>
+                <span class="item-info-value">${truncateAddress(item.address || 'N/A')}</span>
+              </div>
+              <div class="item-info">
+                <span class="item-info-label">Date</span>
+                <span class="item-info-value">${formatDate(item.invoiceDate || item.createdAt || item.timestamp)}</span>
+              </div>
+              ${isInvoice ? `
+                <div class="item-info">
+                  <span class="item-info-label">Due Date</span>
+                  <span class="item-info-value">${formatDate(item.dueDate)}</span>
+                </div>
+              ` : ''}
+            </div>
+            <div class="item-card-footer">
+              <span class="item-card-date">Created ${formatRelativeDate(item.createdAt || item.timestamp)}</span>
+              <div class="item-card-actions">
+                <button class="action-btn action-btn-view" onclick="event.stopPropagation(); window.location.href='${isInvoice ? 'invoice.html' : 'quote.html'}?${isInvoice ? 'invoice' : 'quote'}=${item.id}'">View</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getItemStatus(item) {
+      if (item.type === 'invoice') {
+        if (item.status === 'paid' || item.paid) {
+          if (item.nextAction?.includes('Manual')) return 'Paid (Manual)';
+          return 'Paid';
+        }
+        return 'Unpaid';
+      } else {
+        return item.status || 'Pending';
+      }
+    }
+
+    function getStatusClass(status) {
+      const lower = status.toLowerCase();
+      if (lower.includes('paid') && !lower.includes('unpaid')) return 'status-paid';
+      if (lower.includes('unpaid')) return 'status-unpaid';
+      if (lower.includes('manual')) return 'status-manual';
+      if (lower.includes('pending')) return 'status-pending';
+      if (lower.includes('sent')) return 'status-sent';
+      if (lower.includes('draft')) return 'status-draft';
+      return 'status-pending';
+    }
+
+    function truncateAddress(address) {
+      if (address.length > 30) {
+        return address.substring(0, 27) + '...';
+      }
+      return address;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      if (isNaN(date)) return 'N/A';
+      return date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function formatRelativeDate(dateStr) {
+      if (!dateStr) return 'unknown';
+      const date = new Date(dateStr);
+      if (isNaN(date)) return 'unknown';
+      
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return 'today';
+      if (diffDays === 1) return 'yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+      return `${Math.floor(diffDays / 365)} years ago`;
+    }
+
+    function exportToCSV() {
+      if (filteredItems.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // CSV headers
+      const headers = ['Type', 'Number', 'Client Name', 'Address', 'Amount (Incl GST)', 'Status', 'Date', 'Due Date', 'Created'];
+      
+      // CSV rows
+      const rows = filteredItems.map(item => {
+        const isInvoice = item.type === 'invoice';
+        return [
+          isInvoice ? 'Invoice' : 'Quote',
+          isInvoice ? item.invoiceNumber : item.quoteNumber,
+          item.clientName || '',
+          item.address || '',
+          parseFloat(item.totalInclGST || 0).toFixed(2),
+          getItemStatus(item),
+          formatDate(item.invoiceDate || item.createdAt || item.timestamp),
+          isInvoice ? formatDate(item.dueDate) : '',
+          formatDate(item.createdAt || item.timestamp)
+        ].map(field => `"${field}"`).join(',');
+      });
+
+      // Combine headers and rows
+      const csv = [headers.join(','), ...rows].join('\n');
+
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `financials-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+
+    // Auth state observer
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        await loadAllData(token);
+      } else {
+        window.location.href = 'index.html#final-cta';
+      }
+    });
+  </script>
+</body>
+</html>

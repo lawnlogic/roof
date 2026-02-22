@@ -1073,7 +1073,7 @@
           btn.style.color = '';
         }, 2000);
       }).catch(() => {
-        alert('Failed to copy link');
+        console.error('Failed to copy link');
       });
     };
 
@@ -1164,7 +1164,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html#final-cta';
         return;
       }
     });
@@ -1457,10 +1457,12 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = 'login.html';
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html#final-cta';
         return;
       }
 
+      localStorage.setItem('isLoggedIn', 'true');
       const token = await user.getIdToken();
 
       await loadQuoteSettingsAndPricing(token);
@@ -2170,7 +2172,7 @@
 
     btnNewShape.addEventListener('click', () => {
       if (!map) {
-        alert('Map not ready yet. Please load a property first.');
+        console.warn('Map not ready yet. Please load a property first.');
         return;
       }
       enterEditMode(true);
@@ -2178,7 +2180,7 @@
 
     btnEditShapes.addEventListener('click', () => {
       if (!map) {
-        alert('Map not ready yet. Please load a property first.');
+        console.warn('Map not ready yet. Please load a property first.');
         return;
       }
       enterEditMode(false);
@@ -2186,7 +2188,7 @@
 
     btnFinish.addEventListener('click', () => {
       if (!map) {
-        alert('Nothing to finish — map not loaded.');
+        console.warn('Nothing to finish — map not loaded.');
         return;
       }
       finishEditing();
@@ -2270,12 +2272,12 @@
 
     document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
       if (!currentData || currentLawnArea === 0) {
-        alert('Please load an address and measure the lawn area first.');
+        console.warn('Please load an address and measure the lawn area first.');
         return;
       }
       if (!auth.currentUser) {
-        alert('Please sign in to save quotes');
-        window.location.href = 'login.html';
+        console.warn('Please sign in to save quotes');
+        window.location.href = 'index.html#final-cta';
         return;
       }
 
@@ -2399,21 +2401,19 @@
         document.getElementById('quote-link').textContent = publicLink;
         document.getElementById('quote-link-box').classList.remove('hidden');
 
-        alert(isUpdate 
+        console.log(isUpdate 
           ? `Quote updated successfully!\n\nShare this link with your client:\n${publicLink}`
           : `Quote saved successfully!\n\nShare this link with your client:\n${publicLink}`
         );
 
         const targetJobId = jobId || (editingQuoteData?.jobId);
         if (targetJobId) {
-          setTimeout(() => {
-            window.location.href = `jobs.html?jobId=${targetJobId}`;
-          }, 1800);
+          window.location.href = `jobs.html?jobId=${targetJobId}`;
         }
 
       } catch (err) {
         console.error('Quote save failed:', err);
-        alert('Failed to save quote: ' + err.message);
+        console.error('Failed to save quote: ' + err.message);
       }
     });
 

@@ -615,15 +615,20 @@
 
                     <div style="width: 100%; max-width: 420px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);">
                         <div style="padding: 2rem;">
-                            <h3 style="color: #1B1B2F; font-weight: 600; font-size: 1.125rem; margin-bottom: 1.5rem; margin-top: 0;">Create your free account</h3>
-                            <form id="signupForm" style="display: flex; flex-direction: column; gap: 1rem;">
-                                <div id="formInputs">
+                            <!-- Logged Out View -->
+                            <div id="loggedOutView">
+                                <h3 style="color: #1B1B2F; font-weight: 600; font-size: 1.125rem; margin-bottom: 1.5rem; margin-top: 0;">Create your free account</h3>
+                                <form id="signupForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <div id="formInputs">
                                     <div>
                                         <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Email</label>
                                         <input type="email" id="email" placeholder="john@company.com" style="border-radius: 0.75rem;" required>
                                     </div>
                                     <div>
-                                        <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin-bottom: 0.375rem;">Password</label>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.375rem;">
+                                            <label style="color: #6E6E82; font-size: 0.75rem; display: block; margin: 0;">Password</label>
+                                            <a href="#" id="forgotPasswordLink" style="color: #7B2D8E; font-size: 0.75rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                                        </div>
                                         <input type="password" id="password" placeholder="••••••••" style="border-radius: 0.75rem;" required>
                                         <div class="password-requirements" id="passwordReqs" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; font-size: 0.75rem;">
                                             <div class="requirement" id="reqLength" style="display: flex; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: #6E6E82; transition: color 0.2s;">
@@ -659,6 +664,16 @@
                                     <p style="color: #6E6E82; font-size: 0.875rem; margin: 0;">Check your email to get started.</p>
                                 </div>
                             </form>
+                            </div>
+
+                            <!-- Logged In View -->
+                            <div id="loggedInView" style="display: none; text-align: center;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: #dcfce7; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin: 0 auto; margin-bottom: 1.5rem; font-size: 2rem;">✓</div>
+                                <h3 style="color: #1B1B2F; font-weight: 600; font-size: 1.125rem; margin: 0; margin-bottom: 0.5rem;">You're logged in!</h3>
+                                <p style="color: #6E6E82; font-size: 0.875rem; margin: 0; margin-bottom: 2rem;">Welcome to Deep Edge.</p>
+                                <button type="button" id="dashboardBtn" class="button-primary" style="width: 100%; margin-bottom: 0.75rem;">Go to Dashboard</button>
+                                <button type="button" id="logoutBtn" class="button-outline" style="width: 100%;">Sign Out</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -686,11 +701,12 @@
         // Show mobile menu button on small screens
         function updateMobileMenuButton() {
             const btn = document.getElementById('mobileMenuBtn');
+            if (!btn) return; // btn is injected by header.js, skip if not ready
             if (window.innerWidth < 1024) {
                 btn.style.display = 'block';
             } else {
                 btn.style.display = 'none';
-                closeMobileMenu();
+                if (typeof closeMobileMenu === 'function') closeMobileMenu();
             }
         }
 
@@ -700,6 +716,7 @@
         // Navigation scroll effect
         const nav = document.querySelector('nav');
         window.addEventListener('scroll', () => {
+            if (!nav) return; // nav is injected by header.js, skip if not ready
             if (window.scrollY > 50) {
                 nav.classList.remove('not-scrolled');
                 nav.classList.add('scrolled');
@@ -719,17 +736,6 @@
                 }
             });
         });
-
-        // Sign out function
-        function signOut() {
-            if (confirm('Sign out of Deep Edge?')) {
-                // Clear any stored auth data
-                localStorage.clear();
-                sessionStorage.clear();
-                // Redirect to login
-                window.location.href = 'login.html';
-            }
-        }
     </script>
 
     <script type="module">
@@ -750,6 +756,7 @@
             signInWithEmailAndPassword,
             onAuthStateChanged,
             sendEmailVerification,
+            sendPasswordResetEmail,
             reload
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
@@ -761,6 +768,7 @@
         const msgEl = document.getElementById('message');
         const btnSignUp = document.getElementById('btnSignUp');
         const btnSignIn = document.getElementById('btnSignIn');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
         const passwordReqs = document.getElementById('passwordReqs');
 
         const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
@@ -843,10 +851,33 @@
                 'auth/too-many-requests': 'Too many login attempts. Please try again later.',
                 'auth/operation-not-allowed': 'Sign up is currently disabled.',
                 'auth/network-request-failed': 'Network error. Please check your connection.',
+                'auth/user-not-found': 'No account found with this email address.',
+                'auth/invalid-email': 'Please enter a valid email address.',
             };
 
             return errorMap[code] || message || 'An error occurred. Please try again.';
         };
+
+        // Forgot Password Handler
+        forgotPasswordLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            const email = emailEl.value.trim();
+            
+            if (!email) {
+                showMessage('Please enter your email address first.', 'error');
+                emailEl.focus();
+                return;
+            }
+            
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showMessage('✓ Password reset email sent! Check your inbox (and spam folder).', 'success');
+            } catch (error) {
+                const friendlyError = parseFirebaseError(error);
+                showMessage(friendlyError, 'error');
+            }
+        });
 
         // Default profile created on sign-up
         const defaultProfile = {
@@ -960,6 +991,9 @@
 
         // Auth state observer
         onAuthStateChanged(auth, async (user) => {
+            const loggedOutView = document.getElementById('loggedOutView');
+            const loggedInView = document.getElementById('loggedInView');
+            
             if (user) {
                 await reload(user);
                 const verified = user.emailVerified;
@@ -973,6 +1007,7 @@
                 const justLoggedIn = sessionStorage.getItem('justLoggedIn');
                 if (verified && justLoggedIn) {
                     sessionStorage.removeItem('justLoggedIn');
+                    localStorage.setItem('isLoggedIn', 'true');
                     showMessage("✓ Email verified! Redirecting...", "success");
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
@@ -981,10 +1016,15 @@
                     showMessage("⏳ Please verify your email first. Check your inbox (and spam folder).", "info");
                 } else {
                     // User is logged in and verified, but didn't just log in
+                    localStorage.setItem('isLoggedIn', 'true');
                     msgEl.style.display = 'none';
+                    // Show logged-in view on page revisit
+                    if (loggedOutView) loggedOutView.style.display = 'none';
+                    if (loggedInView) loggedInView.style.display = 'block';
                 }
 
             } else {
+                localStorage.removeItem('isLoggedIn');
                 msgEl.style.display = 'none';
                 btnSignIn.style.display = 'block';
                 btnSignUp.style.display = 'block';
@@ -992,8 +1032,27 @@
                 passwordEl.disabled = false;
                 btnSignIn.disabled = false;
                 btnSignUp.disabled = false;
+                // Show form for logged out users
+                if (loggedOutView) loggedOutView.style.display = 'block';
+                if (loggedInView) loggedInView.style.display = 'none';
             }
         });
+
+        // Handle logged-in view buttons
+        const dashboardBtn = document.getElementById('dashboardBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        if (dashboardBtn) {
+            dashboardBtn.addEventListener('click', () => {
+                window.location.href = 'dashboard.html';
+            });
+        }
+        
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                signOut();
+            });
+        }
     </script>
 </body>
 </html>
