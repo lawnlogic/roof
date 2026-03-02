@@ -234,10 +234,21 @@ document.addEventListener("DOMContentLoaded", () => {
             button.h-nav-hamburger-mobile {
                 display: flex !important;
             }
+            .h-nav-hamburger,
+            button.h-nav-hamburger,
+            #hamburgerBtn {
+                display: none !important;
+            }
         }
         @media (min-width: 1024px) {
             .h-nav-hamburger-mobile,
-            button.h-nav-hamburger-mobile {
+            button.h-nav-hamburger-mobile,
+            #mobileMenuBtn {
+                display: none !important;
+            }
+            .h-nav-hamburger,
+            button.h-nav-hamburger,
+            #hamburgerBtn {
                 display: none !important;
             }
         }
@@ -430,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Are you sure you want to sign out of Deep Edge?
             </p>
             <div class="modal-buttons">
-                <button class="btn-modal btn-cancel" id="cancelSignOutBtn">Cancel</button>
+                <button class="btn-modal btn-cancel" id="cancelSignOutBtn" onclick="closeSignOutModal()">Cancel</button>
                 <button class="btn-modal btn-primary-modal" id="confirmSignOutBtn">Yes – Sign Out</button>
             </div>
         </div>
@@ -470,6 +481,11 @@ document.addEventListener("DOMContentLoaded", () => {
       nav.classList.remove('scrolled');
       nav.classList.add('not-scrolled');
     }
+  });
+
+  // Close mobile menu on window resize
+  window.addEventListener('resize', () => {
+    window.closeMobileMenu();
   });
 
   // Modal functions for sign out

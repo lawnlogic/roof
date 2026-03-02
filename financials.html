@@ -441,6 +441,38 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Shimmer skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .skeleton-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .skeleton-title { width: 60%; height: 20px; }
+    .skeleton-badge { width: 80px; height: 24px; border-radius: 12px; }
+    .skeleton-line-sm { width: 40%; height: 14px; }
+    .skeleton-line-md { width: 50%; height: 16px; }
+    .skeleton-amount { width: 100px; height: 28px; }
+
     @media (max-width: 768px) {
       .financials-header h1 {
         font-size: 1.8rem;
@@ -552,9 +584,30 @@
 
     <!-- Content Sections -->
     <div id="all-content" class="content-section active">
-      <div id="all-loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading financial records...</p>
+      <div id="all-loading" class="loading" style="padding: 1rem;">
+        <!-- Shimmer skeleton cards -->
+        <div class="items-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-row"><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-badge"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-sm"></div><div class="skeleton-line skeleton-line-sm"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-md"></div><div class="skeleton-line skeleton-amount"></div></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-row"><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-badge"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-sm"></div><div class="skeleton-line skeleton-line-sm"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-md"></div><div class="skeleton-line skeleton-amount"></div></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-row"><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-badge"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-sm"></div><div class="skeleton-line skeleton-line-sm"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-md"></div><div class="skeleton-line skeleton-amount"></div></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-row"><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-badge"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-sm"></div><div class="skeleton-line skeleton-line-sm"></div></div>
+            <div class="skeleton-row"><div class="skeleton-line skeleton-line-md"></div><div class="skeleton-line skeleton-amount"></div></div>
+          </div>
+        </div>
       </div>
       <div id="all-items" class="items-grid" style="display: none;"></div>
       <div id="all-empty" class="empty-state" style="display: none;">

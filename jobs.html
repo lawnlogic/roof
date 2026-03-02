@@ -66,19 +66,24 @@
         flex-wrap: wrap;
         gap: 16px;
     }
-    h1 { font-size: 2.25rem; font-weight: 800; color: #7B2D8E; letter-spacing: -0.5px; }
+    h1 { font-size: 2.25rem; font-weight: 800; color: #7B2D8E; letter-spacing: -0.5px; text-align: center; }
     .btn-new {
       background: #7B2D8E;
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 16px 28px;
       border-radius: 50px;
       font-weight: 600;
-      font-size: 0.98rem;
+      font-size: 1rem;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(123, 45, 142, 0.2);
+      box-shadow: 0 4px 20px rgba(123, 45, 142, 0.35);
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      transition: all 0.3s ease;
     }
-    .btn-new:hover { background: #662375; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(123, 45, 142, 0.3); }
+    .btn-new:hover { background: #662375; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(123, 45, 142, 0.45); }
     .job-card {
       background: hsl(var(--card));
       border: 1px solid hsl(var(--border));
@@ -134,9 +139,9 @@
     }
     .primary-action {
         display: block;
-        width: 100%;
+        width: auto;
         max-width: 300px;
-        margin: 24px auto;
+        margin: 24px 0 24px auto;
         padding: 16px 20px;
         background: var(--purple);
         color: white;
@@ -246,9 +251,9 @@
     }
     .notes-preview {
       margin-top: 16px;
-      padding: 12px;
+      padding: 16px 20px;
       background: hsl(var(--secondary));
-      border-radius: 8px;
+      border-radius: 24px;
       font-size: 0.92rem;
       color: hsl(var(--muted-foreground));
       line-height: 1.4;
@@ -266,9 +271,9 @@
     }
     .notes-textarea {
       width: 100%;
-      padding: 12px;
+      padding: 16px 20px;
       border: 1px solid hsl(var(--border));
-      border-radius: 8px;
+      border-radius: 24px;
       font-family: 'Manrope', system-ui, -apple-system, sans-serif;
       font-size: 0.92rem;
       color: hsl(var(--foreground));
@@ -922,7 +927,23 @@
     }
     .search-input::placeholder {
       color: hsl(var(--muted-foreground));
-
+    }
+    .filter-select {
+      padding: 12px 16px;
+      border: 1px solid hsl(var(--border));
+      border-radius: 999px;
+      font-size: 0.98rem;
+      background: hsl(var(--card));
+      color: hsl(var(--foreground));
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      min-width: 140px;
+    }
+    .filter-select:focus {
+      outline: none;
+      border-color: #7B2D8E;
+      box-shadow: 0 0 0 3px rgba(123, 45, 142, 0.1);
     }
     @media (max-width: 600px) {
       .calendar-grid {
@@ -1002,12 +1023,73 @@
       color: var(--muted);
       font-weight: 500;
     }
+    /* Shimmer skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-card {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      max-width: 960px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .skeleton-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .skeleton-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    .skeleton-address {
+      width: 180px;
+      height: 20px;
+    }
+    .skeleton-suburb {
+      width: 120px;
+      height: 18px;
+    }
+    .skeleton-activity {
+      width: 150px;
+      height: 14px;
+      margin-top: 4px;
+    }
+    .skeleton-status {
+      width: 100px;
+      height: 28px;
+      border-radius: 24px;
+    }
+    .skeleton-value {
+      width: 80px;
+      height: 26px;
+    }
+    @media (max-width: 640px) {
+      .skeleton-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .skeleton-right { width: 100%; flex-direction: row; justify-content: space-between; }
+    }
     /* Dropdown sections for On-Site and Admin */
     .jobs-section {
       margin-bottom: 24px;
     }
     .jobs-section details {
-      background: var(--card);
+      background: hsl(var(--card));
       border-radius: 999px;
       padding: 12px 20px;
       border: 1px solid rgba(229, 231, 235, 0.5);
@@ -1058,16 +1140,16 @@
       gap: 10px;
     }
     .jobs-section-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: white;
-      font-weight: 700;
-      font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #7B2D8E;
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
     }
     .jobs-section-content {
       animation: slideDown 0.3s ease;
@@ -1245,24 +1327,47 @@
 <div class="container">
   <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
 
-  <div class="header">
+  <div class="header" style="justify-content: center;">
     <h1>Your Jobs</h1>
-    <div style="display: flex; gap: 12px;">
-      <a href="#" class="btn-new" onclick="window.location.href='create_job.html'; return false;">
-        + New Job
-      </a>
-    </div>
   </div>
+  
+  <!-- Floating New Job Button -->
+  <a href="#" class="btn-new" onclick="window.location.href='create_job.html'; return false;">
+    + New Job
+  </a>
+  
   <h2>Today</h2>
   <div class="today-previews">
-    <!-- Dynamic today's jobs will be inserted here -->
+    <!-- Initial skeleton loading cards -->
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
   </div>
   <h2>Calendar</h2>
   <div class="calendar" id="calendarContainer">
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; justify-content: center;">
-      <button id="prevMonthBtn" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">← Prev</button>
+      <button id="prevMonthBtn" style="padding: 6px 12px; background: var(--accent); color: var(--accent); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">← Prev</button>
       <span id="calendarMonth" style="min-width: 150px; text-align: center; font-weight: 600;"></span>
-      <button id="nextMonthBtn" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Next →</button>
+      <button id="nextMonthBtn" style="padding: 6px 12px; background: var(--accent); color: var(--accent); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Next →</button>
     </div>
     <div class="calendar-grid" id="calendarGrid">
       <!-- Generated dynamically -->
@@ -1272,10 +1377,76 @@
     <h2 style="margin-bottom: 0;">All Jobs</h2>
     <div class="search-container" style="margin-bottom: 0; flex: 1;">
       <input type="text" id="jobSearch" class="search-input" placeholder="Search jobs (address, client, phone, etc)...">
+      <select id="stageFilter" class="filter-select">
+        <option value="all">All Stages</option>
+        <option value="lead">Lead</option>
+        <option value="quoted">Quote Created</option>
+        <option value="quoteSent">Quote Sent</option>
+        <option value="won">Job Won</option>
+        <option value="progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="invoiced">Invoiced</option>
+        <option value="paid">Paid</option>
+      </select>
     </div>
   </div>
   <div class="all-jobs" id="jobs-container">
-    <!-- Dynamic jobs will be inserted here -->
+    <!-- Initial skeleton loading cards -->
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-left">
+        <div class="skeleton-line skeleton-address"></div>
+        <div class="skeleton-line skeleton-suburb"></div>
+        <div class="skeleton-line skeleton-activity"></div>
+      </div>
+      <div class="skeleton-right">
+        <div class="skeleton-line skeleton-status"></div>
+        <div class="skeleton-line skeleton-value"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div id="modalOverlay" class="modal-overlay">
@@ -1295,6 +1466,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
+
+// ── Skeleton Loading Cards ─────────────────────────────────────────────
+function generateSkeletonCards(count = 5) {
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="skeleton-card">
+        <div class="skeleton-left">
+          <div class="skeleton-line skeleton-address"></div>
+          <div class="skeleton-line skeleton-suburb"></div>
+          <div class="skeleton-line skeleton-activity"></div>
+        </div>
+        <div class="skeleton-right">
+          <div class="skeleton-line skeleton-status"></div>
+          <div class="skeleton-line skeleton-value"></div>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
 
 // ── Toast Notification Function ────────────────────────────────────────
 function showToast(message, type = 'info') {
@@ -1395,45 +1587,6 @@ async function updateJobAndReload(jobId, updatePayload, card) {
   }
 }
 
-// ── PERIODIC SYNC (Every 5 minutes) ────────────────────────────────────
-async function startPeriodicSync() {
-  setInterval(async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const jobs = document.querySelectorAll('[data-job-id]');
-      
-      for (const jobCard of jobs) {
-        const jobId = jobCard.dataset.jobId;
-        const response = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) continue;
-        
-        const data = await response.json();
-        const job = data.job || data;
-        
-        // Update if server status differs from local (or other critical fields)
-        if (job.status && job.status !== jobCard.dataset.stage) {
-          console.log(`🔄 Status drift detected for ${jobId}: local=${jobCard.dataset.stage} server=${job.status}`);
-          
-          // Update all card attributes with fresh server data to ensure consistency
-          jobCard.dataset.stage = job.status;
-          jobCard.dataset.isRecurring = job.isRecurring ? 'true' : 'false';
-          jobCard.dataset.recurrence = job.recurrence || '';
-          jobCard.dataset.nextServiceDate = job.nextServiceDate || '';
-          jobCard.dataset.quoteId = job.activeQuoteId || '';
-          
-          // Re-render card with all fresh data
-          updateCard(jobCard);
-          showToast(`${jobCard.dataset.jobName} status synced: ${job.status}`, 'info');
-        }
-      }
-    } catch (err) {
-      console.log('Periodic sync check completed (errors are OK)', err.message);
-    }
-  }, 5 * 60 * 1000); // Every 5 minutes
-}
 // ── STAGES config (kept as-is) ──────────────────────────────────────────
 const STAGES = [
   {
@@ -1726,7 +1879,7 @@ function showJobDetailsModal(job, jobId) {
           </div>
           <div style="display: flex; gap: 8px; margin-top: 16px;">
             <button id="saveClientBtn" class="btn-modal btn-primary-modal" style="flex: 1;">Save</button>
-            <button id="cancelClientBtn" class="btn-modal btn-cancel" style="flex: 1;">Cancel</button>
+            <button id="cancelClientBtn" class="btn-modal btn-cancel" data-no-close style="flex: 1;">Cancel</button>
           </div>
         </div>
       </div>
@@ -2669,6 +2822,14 @@ function renderTodayJobs(jobs, selectedDate = null) {
       </div>
     `;
     todayContainer.insertAdjacentHTML('beforeend', onSiteHTML);
+  } else {
+    // No on-site jobs today
+    const noJobsHTML = `
+      <div class="jobs-section" style="background: hsl(var(--card)); border-radius: 8px; padding: 16px; margin: 12px 0; text-align: center;">
+        <h3 style="color: #6b7280; margin: 0; font-size: 1.1rem;">No jobs on-site today. ☕</h3>
+      </div>
+    `;
+    todayContainer.insertAdjacentHTML('beforeend', noJobsHTML);
   }
   
   // Render Admin section
@@ -2786,8 +2947,11 @@ function expandMiniCard(card, job, jobId, jobs) {
       <div class="job-address">
         ${job.address || 'No address'}${recurringBadge}
       </div>
+      <div style="margin: 8px 0 12px 0;">
+        <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
+      </div>
       <div class="job-client">
-        ${clientName} • ${job.client?.phone || "No phone"}${quoteTotalDisplay}
+        ${clientName}${quoteTotalDisplay}
         ${job.nextServiceDate ? `
           <div class="next-service">
             Next ${job.recurrence ?
@@ -2802,7 +2966,6 @@ function expandMiniCard(card, job, jobId, jobs) {
         ` : ''}
       </div>
       <div class="meta">
-        <span class="status-badge ${statusInfo.color}">${statusInfo.label}</span>
         <span class="last-activity" data-job-id="${jobId}" style="cursor:pointer; font-style:normal; color:#4b5563; font-weight:500;">
           Last activity: ${job.nextAction || "—"} ${job.activityLog && job.activityLog.length > 0 ? `<span style="color:var(--accent); font-size:0.8rem;">(${job.activityLog.length} logs)</span>` : ''}
         </span>
@@ -2818,7 +2981,6 @@ function expandMiniCard(card, job, jobId, jobs) {
       <div class="progress-bar">
         <div class="progress-fill"></div>
       </div>
-      <button class="primary-action">${statusInfo.primary}</button>
       <div class="notes-preview" data-job-id="${jobId}">
         <b>NOTES:</b> ${job.jobNotes ? job.jobNotes.substring(0, 120) + (job.jobNotes.length > 120 ? "..." : "") : "No notes added yet"}
       </div>
@@ -2829,6 +2991,7 @@ function expandMiniCard(card, job, jobId, jobs) {
           <button class="btn-cancel-notes">Cancel</button>
         </div>
       </div>
+      <button class="primary-action">${statusInfo.primary}</button>
     </div>
   `;
   
@@ -2847,15 +3010,21 @@ function expandMiniCard(card, job, jobId, jobs) {
   requestAnimationFrame(() => {
     const cardRect = expandedCard.getBoundingClientRect();
     const cardTop = cardRect.top + window.scrollY;
+    const cardHeight = cardRect.height;
+    const viewportHeight = window.innerHeight;
     const currentScrollY = window.scrollY;
-    const targetScroll = cardTop - 80;
+    
+    // Calculate scroll position to center the card vertically
+    const cardCenter = cardTop + (cardHeight / 2);
+    const viewportCenter = viewportHeight / 2;
+    const targetScroll = cardCenter - viewportCenter;
     
     const scrollTimestamp = new Date().toLocaleTimeString('en-NZ', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
-    console.log(`[${scrollTimestamp}] [SCROLL DETAILS] Card Height: ${cardRect.height} | Current Scroll Y: ${currentScrollY} | Card Top (absolute): ${cardTop} | Card Top (viewport): ${cardRect.top} | Target Scroll: ${targetScroll}`);
+    console.log(`[${scrollTimestamp}] [SCROLL DETAILS] Card Height: ${cardHeight} | Viewport Height: ${viewportHeight} | Current Scroll Y: ${currentScrollY} | Card Center: ${cardCenter} | Target Scroll: ${targetScroll}`);
     
-    // Scroll so the card's top is visible with 80px padding above
+    // Scroll so the card is vertically centered on screen
     window.scrollTo({
-      top: targetScroll,
+      top: Math.max(0, targetScroll),
       behavior: 'smooth'
     });
   });
@@ -3551,11 +3720,31 @@ function attachSingleCardEventListeners(card, jobs) {
         }
       }
       else if (action === 'delete-quote') {
-        if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
         if (!quoteId || quoteId.trim() === '') {
-          showToast('Cannot delete — no quote is associated with this job card');
+          // No quote associated - offer to delete the job instead
+          if (!confirm("No quote is associated with this job. Delete the entire job instead?")) return;
+          try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("Not signed in");
+            const token = await user.getIdToken();
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+              const errBody = await res.json().catch(() => ({}));
+              throw new Error(errBody.error || `Delete failed (${res.status})`);
+            }
+            if (currentMenu) currentMenu.classList.remove('show');
+            await loadAndRenderJobs();
+            showToast('Job deleted successfully', 'success');
+          } catch (err) {
+            console.error("Delete job failed:", err);
+            showToast('Failed to delete job:\n' + err.message, 'error');
+          }
           return;
         }
+        if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
         try {
           const user = auth.currentUser;
           if (!user) throw new Error("Not signed in");
@@ -4223,7 +4412,7 @@ async function loadAndRenderJobs() {
     console.error('❌ jobs-container not found!');
     return;
   }
-  container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:40px;">Loading jobs...</p>';
+  container.innerHTML = generateSkeletonCards(5);
   try {
     // Load from server
     const user = auth.currentUser;
@@ -4276,6 +4465,14 @@ async function loadAndRenderJobs() {
       return;
     }
     container.innerHTML = '';
+    
+    // Sort jobs by updatedAt (newest first), fallback to createdAt
+    jobs.sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || 0);
+      return dateB - dateA;
+    });
+    
     console.log(`🎴 Rendering ${jobs.length} job cards...`);
     jobs.forEach(job => {
       const statusInfo = STAGES.find(s => s.id === job.status)
@@ -4377,25 +4574,16 @@ async function loadAndRenderJobs() {
   }
 }
 
-// ── Search functionality ───────────────────────────────────────
+// ── Search and Filter functionality ───────────────────────────────────────
 function setupSearchListener() {
   const searchInput = document.getElementById('jobSearch');
-  if (!searchInput) return;
+  const stageFilter = document.getElementById('stageFilter');
   
-  searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
+  const applyFilters = () => {
+    const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+    const selectedStage = stageFilter?.value || 'all';
     const container = document.getElementById("jobs-container");
     
-    if (!searchTerm) {
-      // Show all jobs if search is empty
-      const allMiniCards = container.querySelectorAll('.mini-card:not(.expanded)');
-      allMiniCards.forEach(card => {
-        card.style.display = '';
-      });
-      return;
-    }
-    
-    // Filter jobs based on search
     const allMiniCards = container.querySelectorAll('.mini-card:not(.expanded)');
     allMiniCards.forEach(card => {
       const jobId = card.getAttribute('data-job-id');
@@ -4406,15 +4594,27 @@ function setupSearchListener() {
         return;
       }
       
-      // Create searchable string from job data (all lowercase)
-      const searchableText = JSON.stringify(job).toLowerCase();
+      // Check stage filter
+      const stageMatches = selectedStage === 'all' || job.status === selectedStage || job.displayStatus === selectedStage;
       
-      // Check if search term matches anything in the job
-      const matches = searchableText.includes(searchTerm);
+      // Check search filter
+      let searchMatches = true;
+      if (searchTerm) {
+        const searchableText = JSON.stringify(job).toLowerCase();
+        searchMatches = searchableText.includes(searchTerm);
+      }
       
-      card.style.display = matches ? '' : 'none';
+      card.style.display = (stageMatches && searchMatches) ? '' : 'none';
     });
-  });
+  };
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+  
+  if (stageFilter) {
+    stageFilter.addEventListener('change', applyFilters);
+  }
 }
 
 function showScheduleModal(card) {
@@ -5121,11 +5321,31 @@ function attachCardEventListeners() {
           }
         }
         else if (action === 'delete-quote') {
-          if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
           if (!quoteId || quoteId.trim() === '') {
-            showToast('Cannot delete — no quote is associated with this job card');
+            // No quote associated - offer to delete the job instead
+            if (!confirm("No quote is associated with this job. Delete the entire job instead?")) return;
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("Not signed in");
+              const token = await user.getIdToken();
+              const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (!res.ok) {
+                const errBody = await res.json().catch(() => ({}));
+                throw new Error(errBody.error || `Delete failed (${res.status})`);
+              }
+              if (currentMenu) currentMenu.classList.remove('show');
+              await loadAndRenderJobs();
+              showToast('Job deleted successfully', 'success');
+            } catch (err) {
+              console.error("Delete job failed:", err);
+              showToast('Failed to delete job:\n' + err.message, 'error');
+            }
             return;
           }
+          if (!confirm("Delete this quote? The job will revert to 'Lead' status.")) return;
           try {
             const user = auth.currentUser;
             if (!user) throw new Error("Not signed in");
@@ -5829,9 +6049,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Handle any pending invoice send action
       await handlePendingInvoiceSend();
       
-      // Start periodic sync to catch any data drift
-      startPeriodicSync();
-      
       // Hide loading splash screen
       const loadingSplash = document.getElementById('loading-splash');
       if (loadingSplash) {
@@ -5880,6 +6097,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Keep your existing modal close listener
   document.getElementById('modalOverlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal();
+  });
+  
+  // Global rule: Any btn-cancel inside modal closes the modal
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    const cancelBtn = e.target.closest('.btn-modal.btn-cancel');
+    if (cancelBtn && !cancelBtn.hasAttribute('data-no-close')) {
+      closeModal();
+    }
   });
   // Keep your mini-status class addition (if still needed)
   const miniStatuses = document.querySelectorAll('.mini-status');
