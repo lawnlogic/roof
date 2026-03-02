@@ -10,3 +10,24 @@
 -also when im updating TBD items, they should update the total price, currently the final price stays as it was so the user will get a huge discount?
 -add the ability to quote TBD items, just as the invoice works.
 -remove the alerts() anywhere, def on invoice, probqably on quote.
+-invice TBDs dont retain, when creating a new invoice from an existing one
+
+-add basnk account entry
+-put onboarding info in kv
+
+Notes for Deep Edge Website
+
+Get "Failed to save pricing: {"error":"Unauthorized"}" when updating pricing on 'company pricing' page
+Updating logo loads forever.
+Top dots button on job tab doesn't work.
+Says "Cannot delete — no quote is associated with this job card" when trying to delete job.
+Takes a while from entering information to load edit screen and seems awkward. maybe just cut to blank page would be better.
+Send quote page 'cancel' button doesn't work
+I think we should take 'start job' and 'completed job' out. Feel like its fluff
+The process of quoting a job to sending invoice takes ages. Feels like your clicking the button a bunch for no reason
+Estimated job time (hours) adjuster doesn't work or isn't supposed to be there
+Generate quote link doesn't generate a quote link just takes you to dashboard.
+All job hierarchy stack should be newest at the top oldest bottom.
+Can't scroll to next month on the calendar
+Call out fee on 'Create Invoice' page gets deleted on final sum under adjustments.
+-

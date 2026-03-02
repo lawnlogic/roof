@@ -760,10 +760,59 @@
       to { transform: rotate(360deg); }
     }
 
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
     #loading-splash p {
       font-size: 1.1rem;
       color: #6E6E82;
       font-weight: 500;
+    }
+
+    /* Shimmer skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-card {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 600px;
+      margin: 0 auto 16px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 8px;
+    }
+    .skeleton-title {
+      width: 200px;
+      height: 28px;
+      margin-bottom: 12px;
+    }
+    .skeleton-text {
+      width: 100%;
+      height: 18px;
+      margin-bottom: 8px;
+    }
+    .skeleton-text.short {
+      width: 60%;
+    }
+    .skeleton-map {
+      width: 100%;
+      height: 200px;
+      border-radius: 12px;
+      margin-top: 16px;
     }
 
     .mower-type-group {
@@ -903,8 +952,13 @@
 <body>
   <!-- Loading Splash Screen -->
   <div id="loading-splash">
-    <div class="spinner"></div>
-    <p>Loading property data...</p>
+    <div class="skeleton-card">
+      <div class="skeleton-line skeleton-title"></div>
+      <div class="skeleton-line skeleton-text"></div>
+      <div class="skeleton-line skeleton-text short"></div>
+      <div class="skeleton-line skeleton-map"></div>
+    </div>
+    <p style="text-align: center; color: #6E6E82; margin-top: 16px;">Loading property data...</p>
   </div>
 
   <div class="create-quote-container">
@@ -1123,7 +1177,7 @@
 
       <!-- Action Buttons -->
       <div style="grid-column: 1 / -1; text-align: right; margin-top: 24px;">
-        <button id="generate-pdf-btn" class="action-button">Generate Invoice</button>
+        <button id="generate-pdf-btn" class="action-button">Send Invoice</button>
       </div>
 
       <!-- Invoice Link Box -->
@@ -2110,7 +2164,10 @@
         addonsTotal += price;
       });
       
+      // Callout fee is explicitly included in the subtotal
       const totalRevenueEx  = adjustedMowing + callout + addonsTotal;
+      
+      console.log(`[PRICING] Mowing: $${adjustedMowing.toFixed(2)}, Callout: $${callout.toFixed(2)}, Addons: $${addonsTotal.toFixed(2)}, Total Ex GST: $${totalRevenueEx.toFixed(2)}`);
 
       const gst             = totalRevenueEx * 0.15;
       const totalIncl       = totalRevenueEx + gst;
@@ -2743,6 +2800,9 @@
     }
 
     document.getElementById('generate-pdf-btn').addEventListener('click', async () => {
+      const submitBtn = document.getElementById('generate-pdf-btn');
+      const originalText = submitBtn.textContent;
+      
       if (!currentData || currentLawnArea === 0) {
         console.warn('Please load an address and measure the lawn area first.');
         return;
@@ -2752,6 +2812,10 @@
         window.location.href = 'index.html#final-cta';
         return;
       }
+
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="btn-spinner"></span>Saving...</span>';
 
       const token = await auth.currentUser.getIdToken();
 
@@ -2877,10 +2941,6 @@
         // Stripe must redirect to where invoice.html is actually deployed
         const publicLink = `https://deepedge.co.nz/invoice.html?inv=${invoiceIdReturned}`;
 
-        document.getElementById('quote-link').href = publicLink;
-        document.getElementById('quote-link').textContent = publicLink;
-        document.getElementById('quote-link-box').classList.remove('hidden');
-
         // Create Stripe payment link
         let stripePaymentLink = null;
         try {
@@ -2937,11 +2997,16 @@
         const targetJobId = jobId || (prefillData?.jobId) || (editingInvoiceData?.data?.jobId);
         if (targetJobId) {
           window.location.href = `jobs.html?jobId=${targetJobId}`;
+        } else {
+          window.location.href = `invoice.html?inv=${invoiceIdReturned}`;
         }
 
       } catch (err) {
         console.error('Invoice save failed:', err);
         console.error('Failed to save invoice: ' + err.message);
+        // Reset button on error
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
     });
 

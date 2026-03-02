@@ -293,6 +293,31 @@
       color: #6b7280;
       font-weight: 500;
     }
+    
+    /* Shimmer skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    .skeleton-text-lg {
+      width: 120px;
+      height: 32px;
+    }
+    .skeleton-text-sm {
+      width: 80px;
+      height: 16px;
+    }
+    .skeleton-button {
+      width: 140px;
+      height: 44px;
+      border-radius: 9999px;
+    }
   </style>
 </head>
 <body>
@@ -376,7 +401,7 @@
       <h1>Welcome back, <span id="userFirstName">there</span></h1>
       <p style="font-size:1.1rem; color:var(--muted);">Here's your overview for today</p>
     </div>
-    <button class="btn-cta" id="jobsTodayBtn" onclick="window.location.href = `jobs.html`">Loading... →</button>
+    <button class="btn-cta" id="jobsTodayBtn" onclick="window.location.href = `jobs.html`"><span class="skeleton-line" style="width:100px; height:20px; display:inline-block;"></span></button>
   </div>
 
   <div class="stats-grid">
@@ -454,8 +479,8 @@
         ?
       </div>
       <div>
-        <div style="font-weight:600; font-size:1.2rem;" id="companyName">Loading...</div>
-        <div style="color:var(--muted);" id="companyLocation">Loading...</div>
+        <div style="font-weight:600; font-size:1.2rem;" id="companyName"><span class="skeleton-line" style="width:120px; height:20px; display:inline-block;"></span></div>
+        <div style="color:var(--muted);" id="companyLocation"><span class="skeleton-line" style="width:80px; height:16px; display:inline-block;"></span></div>
       </div>
     </div>
     <div style="color:var(--muted); line-height:1.6;">

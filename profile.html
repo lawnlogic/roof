@@ -20,9 +20,82 @@
     select {
       border-radius: 999px !important;
     }
+
+    /* Loading splash */
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #loading-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* Shimmer skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-card {
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto 16px;
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 8px;
+    }
+    .skeleton-title {
+      width: 180px;
+      height: 28px;
+      margin-bottom: 20px;
+    }
+    .skeleton-input {
+      width: 100%;
+      height: 48px;
+      margin-bottom: 16px;
+      border-radius: 999px;
+    }
+    .skeleton-button {
+      width: 100%;
+      height: 52px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Splash Screen -->
+  <div id="loading-splash">
+    <div class="skeleton-card">
+      <div class="skeleton-line skeleton-title"></div>
+      <div class="skeleton-line skeleton-input"></div>
+      <div class="skeleton-line skeleton-input"></div>
+      <div class="skeleton-line skeleton-input"></div>
+      <div class="skeleton-line skeleton-button"></div>
+    </div>
+    <p style="text-align: center; color: #6E6E82; margin-top: 16px;">Loading your profile...</p>
+  </div>
+
   <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 99; transition: all 0.3s ease; padding: 0 1.5rem; height: 5rem; font-family: 'Inter', sans-serif; pointer-events: none;"></div>
 
   <div class="profile-container">
@@ -304,8 +377,21 @@
         // Load and display add-ons
         renderAddOns(profile.addOns || []);
 
+        // Hide loading splash
+        const splash = document.getElementById('loading-splash');
+        if (splash) {
+          splash.classList.add('fade-out');
+          setTimeout(() => { if (splash) splash.style.display = 'none'; }, 500);
+        }
+
       } catch (e) {
         showMessage('Failed to load profile: ' + e.message, 'error');
+        // Hide loading splash even on error
+        const splash = document.getElementById('loading-splash');
+        if (splash) {
+          splash.classList.add('fade-out');
+          setTimeout(() => { if (splash) splash.style.display = 'none'; }, 500);
+        }
       }
     }
 
