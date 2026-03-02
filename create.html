@@ -8,7 +8,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <title>Create Quote • Deep Edge</title>
+  <title id="page-title-tag">Create • Deep Edge</title>
+  <script>
+    // Determine page mode from URL before page renders
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('type') || 'quote';
+      const isInvoice = mode === 'invoice';
+      document.title = isInvoice ? 'Create Invoice • Deep Edge' : 'Create Quote • Deep Edge';
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
   <script src="sms.js" defer></script>
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
@@ -117,6 +126,7 @@
     input[type="text"],
     input[type="number"],
     input[type="email"],
+    input[type="date"],
     select {
       padding: 14px 16px;
       border: 1px solid rgba(229, 231, 235, 0.5);
@@ -268,6 +278,64 @@
     .addon-item input[type="checkbox"]:checked {
       background-color: #7B2D8E;
       border-color: #7B2D8E;
+    }
+
+    /* Add-on items in pricing summary (matching quote.html) */
+    .pricing-addon-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.4);
+      font-size: 0.95rem;
+    }
+
+    .pricing-addon-item:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-addon-item span {
+      color: #6b7280;
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .pricing-addon-item strong {
+      color: #7B2D8E;
+      font-weight: 600;
+      text-align: right;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .pricing-addon-item strong:hover {
+      background: rgba(123, 45, 142, 0.05);
+    }
+
+    .pricing-addon-item input[type="number"] {
+      width: 110px;
+      padding: 6px 10px;
+      border: 1px solid rgba(229, 231, 235, 0.5);
+      border-radius: 6px;
+      text-align: right;
+      font-weight: 600;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: #1B1B2F;
+    }
+
+    .pricing-addon-item input[type="number"]:focus {
+      outline: none;
+      border-color: #7B2D8E;
+    }
+
+    .addon-section-header {
+      margin: 0 0 12px 0;
+      font-size: 0.95rem;
+      color: #1B1B2F;
+      font-weight: 600;
     }
 
     input[type="text"]:focus,
@@ -905,8 +973,8 @@
   <div class="create-quote-container">
     <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
     <div class="create-quote-header">
-      <h1>Create Quote</h1>
-      <p>Enter a property address to create a beautiful, professional quote. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
+      <h1 id="page-title">Create Invoice</h1>
+      <p id="page-description">Enter a property address to create a professional invoice. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.</p>
     </div>
 
     <!-- Address Input Section -->
@@ -943,14 +1011,35 @@
       </div>
     </div>
 
-    <!-- Quote Settings Card -->
+    <!-- Settings Card -->
     <div id="pricing-box" class="pricing-box hidden">
       <div class="pricing-box-left">
-        <h3>Quote Details</h3>
+        <h3 id="details-header">Details</h3>
 
-        <div class="input-group">
-          <label for="quote-number">Quote Number (optional)</label>
-          <input type="text" id="quote-number" placeholder="e.g. Q-042 or 2026-015" />
+        <!-- Quote-specific fields -->
+        <div id="quote-fields">
+          <div class="input-group">
+            <label for="quote-number">Quote Number (optional)</label>
+            <input type="text" id="quote-number" placeholder="e.g. Q-042 or 2026-015" />
+          </div>
+        </div>
+
+        <!-- Invoice-specific fields -->
+        <div id="invoice-fields">
+          <div class="input-group">
+            <label for="invoice-number">Invoice Number</label>
+            <input type="text" id="invoice-number" placeholder="e.g. INV-042 or 2026-015" />
+          </div>
+
+          <div class="input-group">
+            <label for="invoice-date">Invoice Date</label>
+            <input type="date" id="invoice-date" />
+          </div>
+
+          <div class="input-group">
+            <label for="due-date">Due Date</label>
+            <input type="date" id="due-date" />
+          </div>
         </div>
 
         <!-- Mower Type Selection -->
@@ -1027,6 +1116,24 @@
     <div class="pricing-box" style="margin-top: 40px;">
       <h3 style="margin-bottom: 24px; font-size: 1.2rem; grid-column: 1 / -1;">Pricing Summary</h3>
       
+      <!-- Invoice-specific displays -->
+      <div id="invoice-summary-fields">
+        <div class="pricing-row" style="grid-column: 1 / -1;">
+          <span>Invoice Number</span>
+          <strong id="invoice-number-display">-</strong>
+        </div>
+
+        <div class="pricing-row" style="grid-column: 1 / -1;">
+          <span>Invoice Date</span>
+          <strong id="invoice-date-display">-</strong>
+        </div>
+
+        <div class="pricing-row" style="grid-column: 1 / -1;">
+          <span>Due Date</span>
+          <strong id="due-date-display">-</strong>
+        </div>
+      </div>
+      
       <div class="pricing-row" style="grid-column: 1 / -1;">
         <span>Estimated Job Hours</span>
         <strong id="estimated-hours-display">0.0 hrs</strong>
@@ -1042,16 +1149,25 @@
         <strong style="color: #1B1B2F;" id="callout-display">$0.00</strong>
       </div>
 
-      <!-- Selected Add-ons Display -->
-      <div id="selected-addons-display" style="grid-column: 1 / -1; margin: 20px 0; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
-        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #666;">Selected add-ons:</p>
-        <div id="selected-addons-list" style="font-size: 0.9rem; color: #1B1B2F;"></div>
-        <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: #7B2D8E; font-weight: 500;">⚠️ Pricing to be quoted on site</p>
+      <!-- Quote-specific: Selected Add-ons Display (no prices, just "TBD") -->
+      <div id="quote-addons-display" style="grid-column: 1 / -1; display: none;">
+        <div id="selected-addons-display" style="margin: 20px 0; padding: 12px; background: rgba(123, 45, 142, 0.05); border-radius: 8px; display: none;">
+          <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #666;">Selected add-ons:</p>
+          <div id="selected-addons-list" style="font-size: 0.9rem; color: #1B1B2F;"></div>
+          <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: #7B2D8E; font-weight: 500;">⚠️ Pricing to be quoted on site</p>
+        </div>
+        <div class="pricing-row">
+          <span>Add-on Services (ex GST)</span>
+          <strong style="color: #7B2D8E;" id="addons-display-tbd">TBD</strong>
+        </div>
       </div>
 
-      <div class="pricing-row" style="grid-column: 1 / -1;">
-        <span>Add-on Services (ex GST)</span>
-        <strong style="color: #7B2D8E;" id="addons-display">TBD</strong>
+      <!-- Invoice-specific: Add-on Services Section with editable prices -->
+      <div id="addon-services-section" style="grid-column: 1 / -1; display: none; padding: 16px 0; border-bottom: 2px solid rgba(229, 231, 235, 0.4); margin-bottom: 16px;">
+        <h4 class="addon-section-header">Add-on Services</h4>
+        <div id="addon-services-display">
+          <!-- Individual add-on items will be inserted here -->
+        </div>
       </div>
 
       <div class="pricing-row" style="grid-column: 1 / -1;">
@@ -1070,7 +1186,7 @@
       </div>
 
       <div class="pricing-row" style="grid-column: 1 / -1;">
-        <span>Final Quote Price (incl GST)</span>
+        <span id="final-price-label">Final Amount (incl GST)</span>
         <input type="number" id="final-price-input" value="0.00" step="0.01" min="0" style="width: 120px; padding: 8px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 6px; text-align: right; font-weight: bold; font-family: monospace;" />
       </div>
 
@@ -1087,29 +1203,29 @@
         <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #6E6E82;">This is the estimated cost if mowing occurs every 2 weeks</p>
       </div>
 
-      <!-- Quote Notes -->
+      <!-- Document Notes -->
       <div style="grid-column: 1 / -1; margin-top: 24px; padding-top: 24px; border-top: 2px solid rgba(229, 231, 235, 0.4);">
         <div class="input-group">
-          <label for="quote-notes">Quote Notes (optional)</label>
-          <textarea id="quote-notes" placeholder="Enter any additional notes for this quote..." style="width: 100%; padding: 12px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px;"></textarea>
+          <label for="document-notes" id="notes-label">Notes (optional)</label>
+          <textarea id="document-notes" placeholder="Enter any additional notes..." style="width: 100%; padding: 12px; border: 1px solid rgba(229, 231, 235, 0.5); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 80px;"></textarea>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div style="grid-column: 1 / -1; text-align: right; margin-top: 24px;">
-        <button id="generate-pdf-btn" class="action-button">Send Quote</button>
+        <button id="generate-pdf-btn" class="action-button">Send</button>
       </div>
 
-      <!-- Quote Link Box -->
+      <!-- Document Link Box -->
       <div id="quote-link-box" class="hidden" style="grid-column: 1 / -1; margin-top: 24px; padding: 20px; background: rgba(123, 45, 142, 0.05); border-radius: 8px;">
-        <strong style="font-size: 0.95rem;">Share this quote with your client:</strong><br>
+        <strong style="font-size: 0.95rem;" id="link-box-title">Created successfully:</strong><br>
         <a id="quote-link" href="#" target="_blank" style="display: block; margin: 12px 0;"></a>
         <button onclick="copyQuoteLink()" class="action-button secondary" style="margin-top: 16px; width: auto; font-size: 0.9rem;">📋 Copy Link</button>
       </div>
     </div>
 
   <script type="module">
-    // Copy quote link function
+    // Copy document link function
     window.copyQuoteLink = function() {
       const quoteLink = document.getElementById('quote-link').href;
       navigator.clipboard.writeText(quoteLink).then(() => {
@@ -1171,13 +1287,85 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // UNIFIED URL PARAMETER HANDLING
+    // URL scheme:
+    //   ?type=quote              → New quote
+    //   ?type=quote&jobId=X      → New quote for job X
+    //   ?type=quote&id=Y&edit=true → Edit existing quote Y
+    //   ?type=invoice            → New invoice
+    //   ?type=invoice&jobId=X    → New invoice for job X
+    //   ?type=invoice&jobId=X&quoteId=Z → New invoice with quote prefill
+    //   ?type=invoice&id=Y&edit=true → Edit existing invoice Y
+    // ─────────────────────────────────────────────────────────────────────────
     const urlParams = new URLSearchParams(window.location.search);
+    const pageMode = urlParams.get('type') || 'quote';  // Default to quote
+    const isInvoice = pageMode === 'invoice';
     const jobId = urlParams.get('jobId');
+    const documentId = urlParams.get('id');  // Unified ID param for quote/invoice edit
+    const quoteIdForPrefill = urlParams.get('quoteId');  // For invoice prefill from quote
+    const isEditMode = urlParams.get('edit') === 'true' && documentId;
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
     // Show loading splash initially
     const loadingSplash = document.getElementById('loading-splash');
-    let loadedJobData = null; // Store job data for client info in quotes
+    let loadedJobData = null; // Store job data for client info
+    let editingDocumentId = null;  // Unified editing ID
+    let editingDocumentData = null;  // Unified editing data
+
+    // Aliases for backwards compatibility with existing code
+    let editingInvoiceId = null;
+    let editingInvoiceData = null;
+    let editingQuoteId = null;
+    let editingQuoteData = null;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // UPDATE PAGE UI BASED ON MODE
+    // ─────────────────────────────────────────────────────────────────────────
+    const pageTitle = document.getElementById('page-title');
+    const pageDescription = document.getElementById('page-description');
+    const submitBtn = document.getElementById('generate-pdf-btn');
+    const invoiceFieldsContainer = document.getElementById('invoice-fields');
+    const quoteFieldsContainer = document.getElementById('quote-fields');
+    const invoiceSummaryFields = document.getElementById('invoice-summary-fields');
+    const quoteAddonsDisplay = document.getElementById('quote-addons-display');
+    const detailsHeader = document.getElementById('details-header');
+    const finalPriceLabel = document.getElementById('final-price-label');
+    const notesLabel = document.getElementById('notes-label');
+    const documentNotesTextarea = document.getElementById('document-notes');
+
+    // Set initial page text based on mode
+    if (isInvoice) {
+      if (pageTitle) pageTitle.textContent = isEditMode ? "Edit Invoice" : "Create Invoice";
+      if (pageDescription) pageDescription.textContent = isEditMode 
+        ? "Update the invoice details below. All changes will be saved when you click Update Invoice."
+        : "Enter a property address to create a professional invoice. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.";
+      if (submitBtn) submitBtn.textContent = isEditMode ? "Update Invoice" : "Send Invoice";
+      // Show invoice fields, hide quote fields
+      if (invoiceFieldsContainer) invoiceFieldsContainer.style.display = 'block';
+      if (quoteFieldsContainer) quoteFieldsContainer.style.display = 'none';
+      if (invoiceSummaryFields) invoiceSummaryFields.style.display = 'block';
+      if (quoteAddonsDisplay) quoteAddonsDisplay.style.display = 'none';
+      if (detailsHeader) detailsHeader.textContent = 'Invoice Details';
+      if (finalPriceLabel) finalPriceLabel.textContent = 'Final Invoice Amount (incl GST)';
+      if (notesLabel) notesLabel.textContent = 'Invoice Notes (optional)';
+      if (documentNotesTextarea) documentNotesTextarea.placeholder = 'Enter any additional notes for this invoice...';
+    } else {
+      if (pageTitle) pageTitle.textContent = isEditMode ? "Edit Quote" : "Create Quote";
+      if (pageDescription) pageDescription.textContent = isEditMode
+        ? "Update the quote details below. All changes will be saved when you click Update Quote."
+        : "Enter a property address to create a beautiful, professional quote. We'll measure the lawn, show you the aerial view, and let you customize the pricing details.";
+      if (submitBtn) submitBtn.textContent = isEditMode ? "Update Quote" : "Send Quote";
+      // Show quote fields, hide invoice fields
+      if (invoiceFieldsContainer) invoiceFieldsContainer.style.display = 'none';
+      if (quoteFieldsContainer) quoteFieldsContainer.style.display = 'block';
+      if (invoiceSummaryFields) invoiceSummaryFields.style.display = 'none';
+      if (quoteAddonsDisplay) quoteAddonsDisplay.style.display = 'block';
+      if (detailsHeader) detailsHeader.textContent = 'Quote Details';
+      if (finalPriceLabel) finalPriceLabel.textContent = 'Final Quote Price (incl GST)';
+      if (notesLabel) notesLabel.textContent = 'Quote Notes (optional)';
+      if (documentNotesTextarea) documentNotesTextarea.placeholder = 'Enter any additional notes for this quote...';
+    }
     
     if (jobId) {
       onAuthStateChanged(auth, async (user) => {
@@ -1223,14 +1411,26 @@
       }
     });
 
-    //Detect edits
-    const quoteId = urlParams.get('quote');
-    const isEditMode = urlParams.get('edit') === 'true' && quoteId;
-    let editingQuoteId = null;
-    let editingQuoteData = null;
+    //Detect if prefilling from a job or quote
+    let prefillData = null;
 
-    if (isEditMode) {
-      document.getElementById('generate-pdf-btn').textContent = "Update Quote";
+    if (jobId || quoteId) {
+      // Hide lookup button when prefilling - we're loading from saved data
+      document.getElementById('lookup-btn').style.display = 'none';
+      // Make address field readonly when prefilling
+      document.getElementById('address').readOnly = true;
+    }
+
+    // Pre-fill invoice dates
+    const invoiceDateInput = document.getElementById('invoice-date');
+    const dueDateInput = document.getElementById('due-date');
+    if (invoiceDateInput) {
+      invoiceDateInput.valueAsDate = new Date();
+    }
+    if (dueDateInput) {
+      const due = new Date();
+      due.setDate(due.getDate() + 14);
+      dueDateInput.valueAsDate = due;
     }
 
     const btn = document.getElementById('lookup-btn');
@@ -1245,7 +1445,7 @@
     const calloutInput = document.getElementById('callout-input');
     const difficultySlider = document.getElementById('difficulty-slider');
     const difficultyValue = document.getElementById('difficulty-value');
-    const quoteNotesInput = document.getElementById('quote-notes');
+    const quoteNotesInput = document.getElementById('document-notes');
     const estimatedJobTimeInput = document.getElementById('estimated-job-time');
     const finalAreaDisplay = document.getElementById('final-area');
 
@@ -1300,6 +1500,8 @@
     const biweeklyEstimateDisplay = document.getElementById('biweekly-estimate-display');
     const biweeklyEstimateText = document.getElementById('biweekly-estimate-text');
     let originalTotalIncl = 0; // Track calculated price before user edits
+    let hasSavedFinalPrice = false; // Flag to prevent overwriting saved final price
+    const addonPrices = new Map(); // Store addon prices: Map<addonValue, price>
 
     timeSinceCutSelect.addEventListener('change', () => {
       const frequency = timeSinceCutSelect.value;
@@ -1435,6 +1637,40 @@
       }
     });
 
+    // Update invoice details display in pricing summary
+    const invoiceNumberInput = document.getElementById('invoice-number');
+    const invoiceNumberDisplay = document.getElementById('invoice-number-display');
+    const invoiceDateDisplay = document.getElementById('invoice-date-display');
+    const dueDateDisplay = document.getElementById('due-date-display');
+
+    function updateInvoiceDetailsDisplay() {
+      const invNum = invoiceNumberInput.value.trim() || '-';
+      invoiceNumberDisplay.textContent = invNum;
+
+      const invDate = invoiceDateInput.value;
+      if (invDate) {
+        const dateObj = new Date(invDate + 'T00:00:00');
+        invoiceDateDisplay.textContent = dateObj.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+      } else {
+        invoiceDateDisplay.textContent = '-';
+      }
+
+      const dueDate = dueDateInput.value;
+      if (dueDate) {
+        const dateObj = new Date(dueDate + 'T00:00:00');
+        dueDateDisplay.textContent = dateObj.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+      } else {
+        dueDateDisplay.textContent = '-';
+      }
+    }
+
+    invoiceNumberInput.addEventListener('change', updateInvoiceDetailsDisplay);
+    invoiceDateInput.addEventListener('change', updateInvoiceDetailsDisplay);
+    dueDateInput.addEventListener('change', updateInvoiceDetailsDisplay);
+
+    // Initial update
+    updateInvoiceDetailsDisplay();
+
     // Add-on Services Data
     const addonServicesData = [
       { value: 'edging', title: 'Edging and trimming', description: 'Clean lines along sidewalks, driveways, and flower beds' },
@@ -1459,8 +1695,6 @@
     const addonItemsContainer = document.getElementById('addon-items-container');
     const addonToggleBtn = document.getElementById('addon-toggle-btn');
     const addonServicesDropdown = document.getElementById('addon-services-dropdown');
-    const selectedAddonsDisplay = document.getElementById('selected-addons-display');
-    const selectedAddonsList = document.getElementById('selected-addons-list');
 
     addonServicesData.forEach(addon => {
       const item = document.createElement('label');
@@ -1494,14 +1728,95 @@
 
     function updateAddonSelection() {
       const selectedCheckboxes = addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked');
-      const selectedServices = Array.from(selectedCheckboxes).map(cb => cb.dataset.title);
+      const selectedServices = Array.from(selectedCheckboxes).map(cb => ({
+        label: cb.dataset.title,
+        value: cb.value
+      }));
 
-      if (selectedServices.length === 0) {
-        selectedAddonsDisplay.style.display = 'none';
-        selectedAddonsList.innerHTML = '';
+      // ─────────────────────────────────────────────────────────────────────
+      // INVOICE MODE: Show editable prices in addon-services-section
+      // ─────────────────────────────────────────────────────────────────────
+      if (isInvoice) {
+        const addonServicesSection = document.getElementById('addon-services-section');
+        const addonServicesDisplay = document.getElementById('addon-services-display');
+
+        if (selectedServices.length === 0) {
+          addonServicesSection.style.display = 'none';
+          addonServicesDisplay.innerHTML = '';
+        } else {
+          addonServicesSection.style.display = 'block';
+          // Display each addon as individual line item with TBD (click to edit)
+          addonServicesDisplay.innerHTML = selectedServices.map(service => {
+            const savedPrice = addonPrices.get(service.value);
+            const displayValue = savedPrice && savedPrice > 0 ? `$${savedPrice.toFixed(2)}` : 'TBD';
+            return `<div class="pricing-addon-item" data-addon="${service.value}">
+              <span>${service.label}</span>
+              <strong class="addon-price-display" style="color: #7B2D8E;">${displayValue}</strong>
+            </div>`;
+          }).join('');
+          
+          // Attach click-to-edit functionality
+          document.querySelectorAll('.pricing-addon-item').forEach(item => {
+            const addonValue = item.dataset.addon;
+            const displayElement = item.querySelector('.addon-price-display');
+            
+            displayElement.addEventListener('click', () => {
+              const currentPrice = addonPrices.get(addonValue) || 0;
+              const input = document.createElement('input');
+              input.type = 'number';
+              input.className = 'addon-price-input';
+              input.value = currentPrice.toFixed(2);
+              input.step = '0.01';
+              input.min = '0';
+              input.placeholder = '0.00';
+              
+              // Replace display with input
+              displayElement.replaceWith(input);
+              input.focus();
+              input.select();
+              
+              // Handle when user finishes editing
+              const finishEdit = () => {
+                const price = parseFloat(input.value) || 0;
+                addonPrices.set(addonValue, price);
+                
+                const newDisplay = document.createElement('strong');
+              newDisplay.className = 'addon-price-display';
+              newDisplay.style.color = '#7B2D8E';
+              newDisplay.style.cursor = 'pointer';
+              newDisplay.textContent = price > 0 ? `$${price.toFixed(2)}` : 'TBD';
+              
+              input.replaceWith(newDisplay);
+              
+              // Reattach click listener
+              newDisplay.addEventListener('click', () => displayElement.click.call(displayElement));
+              
+              updateLawnArea(); // Recalculate totals
+            };
+            
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') {
+                finishEdit();
+              }
+            });
+          });
+        });
+      }
+      // ─────────────────────────────────────────────────────────────────────
+      // QUOTE MODE: Show simple list with "TBD" in selected-addons-display
+      // ─────────────────────────────────────────────────────────────────────
       } else {
-        selectedAddonsDisplay.style.display = 'block';
-        selectedAddonsList.innerHTML = selectedServices.map(service => `<div style="margin-bottom: 6px;">✓ ${service}</div>`).join('');
+        const selectedAddonsDisplay = document.getElementById('selected-addons-display');
+        const selectedAddonsList = document.getElementById('selected-addons-list');
+
+        if (selectedServices.length === 0) {
+          selectedAddonsDisplay.style.display = 'none';
+          selectedAddonsList.innerHTML = '';
+        } else {
+          selectedAddonsDisplay.style.display = 'block';
+          selectedAddonsList.innerHTML = selectedServices.map(service => `• ${service.label}`).join('<br>');
+        }
       }
 
       if (auth.currentUser) {
@@ -1521,88 +1836,377 @@
 
       await loadQuoteSettingsAndPricing(token);
 
-      // ── Load quote if editing ─────────────────────────────────────
-      if (isEditMode && quoteId) {
+      // ─────────────────────────────────────────────────────────────────────────
+      // LOAD DOCUMENT DATA IN EDIT MODE (QUOTE OR INVOICE)
+      // ─────────────────────────────────────────────────────────────────────────
+      if (isEditMode && documentId) {
+        try {
+          const apiEndpoint = isInvoice 
+            ? `${WORKER_URL}/api/invoices/${documentId}`
+            : `${WORKER_URL}/api/quotes/${documentId}`;
+            
+          const res = await fetch(apiEndpoint, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (res.ok) {
+            const docData = await res.json();
+            editingDocumentData = docData;
+            editingDocumentId = documentId;
+            
+            // Set aliases for backwards compatibility
+            if (isInvoice) {
+              editingInvoiceData = docData;
+              editingInvoiceId = documentId;
+            } else {
+              editingQuoteData = docData;
+              editingQuoteId = documentId;
+            }
+
+            // Prefetch data in sessionStorage for prefilling
+            sessionStorage.setItem('editDocumentData', JSON.stringify(docData));
+
+            console.log(`📋 Loaded ${isInvoice ? 'invoice' : 'quote'} for editing:`, docData);
+            
+            // Get the data object (invoice wraps in .data, quote might not)
+            const dataObj = docData.data || docData;
+            
+            // Immediately prefill address field to trigger map load if needed
+            if (dataObj?.address) {
+              document.getElementById('address').value = dataObj.address;
+            }
+
+            // Restore pricing from pricingSummary
+            if (dataObj?.pricingSummary) {
+              const finalPrice = dataObj.pricingSummary.finalPrice || dataObj.pricingSummary.subtotalIncl || 0;
+              const subtotalIncl = dataObj.pricingSummary.subtotalIncl || finalPrice;
+              
+              // Set the original total for adjustment calculation
+              originalTotalIncl = subtotalIncl;
+              
+              // Set both display and input to finalPrice
+              document.getElementById('total-incl-display').textContent = `$${finalPrice.toFixed(2)}`;
+              finalPriceInput.value = finalPrice.toFixed(2);
+              
+              // Trigger change event to calculate adjustments automatically
+              finalPriceInput.dispatchEvent(new Event('change'));
+              console.log('✓ Prefilled from document: finalPrice=$' + finalPrice + ', originalTotal=$' + subtotalIncl);
+            }
+            
+            // Prefill document number
+            if (isInvoice) {
+              if (dataObj?.invoiceNumber) {
+                document.getElementById('invoice-number').value = dataObj.invoiceNumber;
+              }
+              if (dataObj?.invoiceDate) {
+                document.getElementById('invoice-date').value = dataObj.invoiceDate;
+              }
+              if (dataObj?.dueDate) {
+                document.getElementById('due-date').value = dataObj.dueDate;
+              }
+            } else {
+              if (dataObj?.quoteNumber) {
+                document.getElementById('quote-number').value = dataObj.quoteNumber;
+              }
+            }
+            
+            // Prefill notes
+            if (dataObj?.invoiceNotes || dataObj?.quoteNotes) {
+              document.getElementById('document-notes').value = dataObj.invoiceNotes || dataObj.quoteNotes || '';
+            }
+          } else {
+            console.warn(`Failed to load ${isInvoice ? 'invoice' : 'quote'} for editing:`, res.status);
+            if (loadingSplash) {
+              loadingSplash.classList.add('fade-out');
+              setTimeout(() => loadingSplash.style.display = 'none', 500);
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to load ${isInvoice ? 'invoice' : 'quote'}:`, err);
+          if (loadingSplash) {
+            loadingSplash.classList.add('fade-out');
+            setTimeout(() => loadingSplash.style.display = 'none', 500);
+          }
+        }
+      } else if (loadingSplash) {
+        // No document editing - hide splash if not already handled by jobId loading
+        if (!jobId) {
+          loadingSplash.classList.add('fade-out');
+          setTimeout(() => loadingSplash.style.display = 'none', 500);
+        }
+      }
+
+      // ── Load job or quote data for prefilling ─────────────────────────────────────
+      if (jobId || quoteIdForPrefill || (isEditMode && documentId)) {
         try {
           const token = await user.getIdToken();
 
-          let quote = null;
+          let quoteData = null;
+          let jobData = null;
           
-          // First, check if quote data was prefetched and stored in sessionStorage
-          const prefetchedData = sessionStorage.getItem('editQuoteData');
-          if (prefetchedData) {
-            quote = JSON.parse(prefetchedData);
-            sessionStorage.removeItem('editQuoteData'); // Clear it after using
-          } else {
-            // Fallback: fetch from API if not prefetched
-            const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteId}`, {
+          // Load from document in edit mode, or from quote if quoteIdForPrefill provided
+          if ((isEditMode && documentId) || quoteIdForPrefill) {
+            // Priority: editDocumentData (when editing) > editQuoteData (when creating from quote)
+            const prefetchedData = sessionStorage.getItem('editDocumentData') || sessionStorage.getItem('editQuoteData');
+            if (prefetchedData) {
+              quoteData = JSON.parse(prefetchedData);
+              sessionStorage.removeItem('editQuoteData');
+              sessionStorage.removeItem('editDocumentData');
+              console.log('✓ Loaded prefill data from sessionStorage');
+            } else if (quoteIdForPrefill) {
+              // Fallback: fetch quote from API if not in sessionStorage
+              const res = await fetch(`${WORKER_URL}/api/public/quote/${quoteIdForPrefill}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                quoteData = await res.json();
+                console.log('✓ Fetched quote from API for prefilling');
+              }
+            }
+          }
+          
+          // Also load job data if jobId provided (for additional fields like mowerType/difficultyMultiplier)
+          if (jobId) {
+            const res = await fetch(`${WORKER_URL}/api/jobs/${jobId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            if (!res.ok) {
-              const errText = await res.text();
-              throw new Error(errText || `Quote not found (status ${res.status})`);
+            if (res.ok) {
+              jobData = await res.json();
             }
-
-            quote = await res.json();
           }
 
-          editingQuoteData = quote;
-          editingQuoteId   = quoteId;
+          // Merge: quote data takes priority, job data fills gaps for missing fields
+          let data = quoteData || jobData;
+          
+          // If we have both, merge missing fields from job into quote
+          if (quoteData && jobData) {
+            // Use explicit undefined/null checks
+            if ((quoteData.mowerType === undefined || quoteData.mowerType === null) && jobData.mowerType) {
+              quoteData.mowerType = jobData.mowerType;
+              console.log('✓ Merged mowerType from job data');
+            }
+            if ((quoteData.difficultyMultiplier === undefined || quoteData.difficultyMultiplier === null) && jobData.difficultyMultiplier !== undefined && jobData.difficultyMultiplier !== null) {
+              quoteData.difficultyMultiplier = jobData.difficultyMultiplier;
+              console.log('✓ Merged difficultyMultiplier from job data');
+            }
+            if ((!quoteData.client?.firstName || !quoteData.client?.lastName) && jobData.client?.firstName) {
+              quoteData.client = jobData.client;
+              console.log('✓ Merged client info from job data');
+            }
+            data = quoteData;
+          }
 
-          // ── The rest stays exactly the same ──────────────────────────
-          // Populate fields
-          document.getElementById('quote-number').value = quote.quoteNumber || '';
-          document.getElementById('callout-input').value = quote.calloutFee ?? 80;
-          document.getElementById('difficulty-slider').value = quote.difficultyMultiplier ?? 1.0;
-          document.getElementById('difficulty-value').textContent = `${quote.difficultyMultiplier ?? 1.0}x`;
-          document.getElementById('quote-notes').value = quote.quoteNotes || '';
+          if (data) {
+            prefillData = data;
+            console.log('📋 Loaded prefill data:', data);
 
-          // Restore time since cut
-          if (quote.timeSinceCut) {
-            timeSinceCutSelect.value = quote.timeSinceCut;
-            currentTimeMultiplier = quote.timeMultiplier || 1.0;
-            const season = getCurrentSeason();
-            adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
-            const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
-            timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
-            timeCutoffInfo.style.display = 'block';
-            
-            // Show biweekly estimate if frequency > 2 weeks
-            const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
-            const frequencyIndex = frequencies.indexOf(quote.timeSinceCut);
-            if (frequencyIndex > 1) {
-              biweeklyEstimateDisplay.style.display = 'block';
+            // ── Populate invoice fields from loaded data ──────────────────────────
+            // For invoice edit mode, prefill the invoice number and dates
+            if (isEditMode && data.data) {
+              if (data.data.invoiceNumber) {
+                document.getElementById('invoice-number').value = data.data.invoiceNumber;
+              }
+              if (data.data.issueDate || data.data.invoiceDate) {
+                document.getElementById('invoice-date').value = data.data.issueDate || data.data.invoiceDate;
+              }
+              if (data.data.dueDate) {
+                document.getElementById('due-date').value = data.data.dueDate;
+              }
+              if (data.data.paymentTerms) {
+                const paymentTermsSelect = document.getElementById('payment-terms');
+                if (paymentTermsSelect) {
+                  paymentTermsSelect.value = data.data.paymentTerms;
+                }
+              }
+              console.log('✓ Prefilled invoice-specific fields (number, dates)');
             } else {
-              biweeklyEstimateDisplay.style.display = 'none';
+              // Don't prefill invoice number - let user create a new one
+              // But prefill the dates with defaults
+              if (!document.getElementById('invoice-date').value) {
+                document.getElementById('invoice-date').valueAsDate = new Date();
+              }
+              if (!document.getElementById('due-date').value) {
+                const due = new Date();
+                due.setDate(due.getDate() + 14);
+                document.getElementById('due-date').valueAsDate = due;
+              }
             }
-          }
 
-          // Restore addon services
-          if (Array.isArray(quote.addonServices) && quote.addonServices.length > 0) {
-            const addonValues = quote.addonServices.map(a => a.value);
-            addonItemsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-              cb.checked = addonValues.includes(cb.value);
-            });
-            // Trigger the update to display selected addons
-            updateAddonSelection();
-          }
+            // Extract the actual data (for quotes, it's at root; for invoices, it's in .data)
+            const actualData = data.data || data;
 
-          const mowerRadio = document.getElementById(`mower-${quote.mowerType || 'push'}`);
-          if (mowerRadio) mowerRadio.checked = true;
+            // Prefill other fields from quote/job data
+            console.log('calloutFee:', actualData.calloutFee, 'difficultyMultiplier:', actualData.difficultyMultiplier, 'mowerType:', actualData.mowerType);
+            console.log('timeSinceCut:', actualData.timeSinceCut, 'addonServices:', actualData.addonServices);
+            
+            if (actualData.calloutFee) document.getElementById('callout-input').value = actualData.calloutFee;
+            
+            // Use !== undefined to properly handle 0 and 1 values
+            if (actualData.difficultyMultiplier !== undefined && actualData.difficultyMultiplier !== null) {
+              document.getElementById('difficulty-slider').value = actualData.difficultyMultiplier;
+              document.getElementById('difficulty-value').textContent = `${actualData.difficultyMultiplier}x`;
+              console.log(`✓ Set difficulty multiplier from merged data: ${actualData.difficultyMultiplier}x`);
+            }
+            
+            if (actualData.notes || actualData.invoiceNotes || actualData.quoteNotes) {
+              document.getElementById('document-notes').value = actualData.notes || actualData.invoiceNotes || actualData.quoteNotes;
+            }
 
-          // UX hint
-          document.querySelector('h2').textContent = `Editing Quote ${quote.quoteNumber || quoteId}`;
+            // Restore time since cut
+            if (actualData.timeSinceCut) {
+              console.log('✓ Setting time since cut to:', actualData.timeSinceCut);
+              timeSinceCutSelect.value = actualData.timeSinceCut;
+              currentTimeMultiplier = actualData.timeMultiplier || 1.0;
+              const season = getCurrentSeason();
+              adjustmentFactorDisplay.textContent = currentTimeMultiplier.toFixed(2) + 'x';
+              const increasePercent = Math.round((currentTimeMultiplier - 1) * 100);
+              timeCutoffNotesDisplay.textContent = `${increasePercent > 0 ? '+' : ''}${increasePercent}% adjustment on job hours (${season} season)`;
+              timeCutoffInfo.style.display = 'block';
+              
+              const frequencies = ['1 Week', '2 Weeks', '1 Month', '2 Months', '3 Months', '6 Months'];
+              const frequencyIndex = frequencies.indexOf(actualData.timeSinceCut);
+              if (frequencyIndex > 1) {
+                biweeklyEstimateDisplay.style.display = 'block';
+              } else {
+                biweeklyEstimateDisplay.style.display = 'none';
+              }
+            } else {
+              console.log('⚠ No timeSinceCut found in data');
+            }
 
-          // Auto-load map + exclusions
-          if (quote.address) {
-            document.getElementById('address').value = quote.address;
-            setTimeout(() => document.getElementById('lookup-btn').click(), 300);
+            // Restore addon services
+            if (Array.isArray(actualData.addonServices) && actualData.addonServices.length > 0) {
+              console.log('✓ Setting addon services:', actualData.addonServices);
+              const addonValues = actualData.addonServices.map(a => a.value);
+              
+              // Restore addon prices from saved data
+              actualData.addonServices.forEach(addon => {
+                if (addon.price !== undefined) {
+                  addonPrices.set(addon.value, addon.price);
+                }
+              });
+              
+              addonItemsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = addonValues.includes(cb.value);
+              });
+              updateAddonSelection();
+            } else {
+              console.log('⚠ No addonServices found in data');
+            }
+
+            // Preselect mower type - default to 'push' if not specified
+            const mowerType = actualData.mowerType || 'push';
+            const mowerRadio = document.getElementById(`mower-${mowerType}`);
+            if (mowerRadio) {
+              mowerRadio.checked = true;
+              console.log(`✓ Selected mower type: ${mowerType}`);
+            }
+
+            // Preselect difficulty multiplier - use !== undefined to handle 0 or 1
+            if (actualData.difficultyMultiplier !== undefined) {
+              document.getElementById('difficulty-slider').value = actualData.difficultyMultiplier;
+              document.getElementById('difficulty-value').textContent = `${actualData.difficultyMultiplier}x`;
+              console.log(`✓ Set difficulty multiplier: ${actualData.difficultyMultiplier}x`);
+            }
+
+            // ── Display address and lawn area from saved data ──
+            if (actualData.address) {
+              document.getElementById('address').value = actualData.address;
+              addressDisplay.textContent = actualData.address;
+              resultDiv.classList.remove('hidden');
+              
+              if (actualData.lawnAreaM2) {
+                currentLawnArea = actualData.lawnAreaM2;
+                parcelAreaM2 = actualData.lawnAreaM2;
+                areaDisplay.innerHTML = `<strong>Lawn Area:</strong> ${Math.round(actualData.lawnAreaM2).toLocaleString()} m² (${(actualData.lawnAreaM2 / 10000).toFixed(2)} hectares)`;
+                finalAreaDisplay.textContent = `${Math.round(actualData.lawnAreaM2).toLocaleString()} m²`;
+                updateEstimatedJobTime();
+                
+                // Restore pricing from saved data - DELAYED until after splash screen and map load
+                if (actualData.pricingSummary) {
+                  setTimeout(() => {
+                    const finalPrice = actualData.pricingSummary.finalPrice || actualData.pricingSummary.subtotalIncl || 0;
+                    const subtotalIncl = actualData.pricingSummary.subtotalIncl || finalPrice;
+                    
+                    // Set the flag to prevent updateLawnArea from overwriting
+                    hasSavedFinalPrice = true;
+                    
+                    // Set the original total for adjustment calculation
+                    originalTotalIncl = subtotalIncl;
+                    
+                    // Set the saved final price
+                    finalPriceInput.value = finalPrice.toFixed(2);
+                    
+                    // Trigger updateLawnArea to recalculate with the saved price preserved
+                    updateLawnArea();
+                    
+                    console.log('✓ Prefilled: finalPrice=$' + finalPrice + ', originalTotal=$' + subtotalIncl);
+                  }, 1500);
+                }
+            }
+            }
+
+            // ── Load the aerial map directly with saved mapState ──
+            if (actualData.mapState) {
+              aerialContainer.classList.remove('hidden');
+              if (map) map.remove();
+              
+              const ms = actualData.mapState;
+              currentData = {
+                parcel_area_m2: actualData.lawnAreaM2 || 0,
+                parcel_geometry: ms.parcelGeometry,
+                buildings_geometries: [],
+                aerial: {
+                  center: [ms.center.lat, ms.center.lng],
+                  zoom: ms.zoom
+                }
+              };
+
+              // Initialize map with saved center and zoom
+              map = L.map('aerial-map').setView([ms.center.lat, ms.center.lng], ms.zoom);
+
+              L.tileLayer(LINZ_AERIAL_URL, {
+                attribution: '© <a href="https://www.linz.govt.nz/data/licensing-and-using-data/attributing-linz-data">LINZ</a> Aerial Imagery',
+                maxZoom: 24,
+                tileSize: 256,
+                zoomOffset: 0,
+                noWrap: true
+              }).addTo(map);
+
+              // Add parcel boundary
+              if (ms.parcelGeometry) {
+                parcelLayer = L.geoJSON(ms.parcelGeometry, {
+                  style: { color: "#0066ff", weight: 2, fillOpacity: 0 }
+                }).addTo(map);
+              }
+
+              // Add buildings
+              if (ms.buildingsGeoJSON && ms.buildingsGeoJSON.features.length > 0) {
+                clippedBuildingsGeoJSON = ms.buildingsGeoJSON;
+                clippedBuildingsLayer = L.geoJSON(ms.buildingsGeoJSON, {
+                  style: { color: "#8B4513", weight: 1, fillColor: "#A0522D", fillOpacity: 0.7 }
+                }).addTo(map);
+              }
+
+              // Add saved exclusions (negative areas)
+              ensureNegativeLayer();
+              if (ms.negativeGeoJSON && ms.negativeGeoJSON.features && ms.negativeGeoJSON.features.length > 0) {
+                const exclusionLayer = L.geoJSON(ms.negativeGeoJSON, {
+                  style: { color: "#ff4444", weight: 2, fillColor: "#ff4444", fillOpacity: 0.6 }
+                });
+                exclusionLayer.eachLayer(layer => {
+                  negativeLayer.addLayer(layer);
+                });
+              }
+
+              // Show pricing and buttons
+              pricingBox.classList.remove('hidden');
+            }
           }
 
         } catch (err) {
-          console.error("Failed to load quote for editing", err);
-          showError("Could not load quote for editing: " + err.message);
+          console.error("Failed to load prefill data", err);
+          // Continue without prefill data - user can use address lookup
         }
       }
     });
@@ -1704,10 +2308,18 @@
 
       const adjustedMowing  = mowingRevenue * difficulty;
       
-      // Callout fee is explicitly included in the subtotal
-      const totalRevenueEx  = adjustedMowing + callout;
+      // Calculate add-on services total (only for invoice mode)
+      let addonsTotal = 0;
+      if (isInvoice) {
+        addonPrices.forEach(price => {
+          addonsTotal += price;
+        });
+      }
       
-      console.log(`[PRICING] Mowing: $${adjustedMowing.toFixed(2)}, Callout: $${callout.toFixed(2)}, Total Ex GST: $${totalRevenueEx.toFixed(2)}`);
+      // Callout fee is explicitly included in the subtotal
+      const totalRevenueEx  = adjustedMowing + callout + addonsTotal;
+      
+      console.log(`[PRICING] Mowing: $${adjustedMowing.toFixed(2)}, Callout: $${callout.toFixed(2)}, Addons: $${addonsTotal.toFixed(2)}, Total Ex GST: $${totalRevenueEx.toFixed(2)}`);
 
       const gst             = totalRevenueEx * 0.15;
       const totalIncl       = totalRevenueEx + gst;
@@ -1739,11 +2351,22 @@
       document.getElementById('total-incl-display').textContent     = '$' + totalIncl.toFixed(2);
       document.getElementById('estimated-hours-display').textContent = billedHours.toFixed(2) + ' hrs';
       
-      // Set the editable final price to the calculated value
-      finalPriceInput.value = totalIncl.toFixed(2);
-      
-      // Reset adjustments display
-      adjustmentsRow.style.display = 'none';
+      // Only set the editable final price if we don't have a saved price loaded
+      if (!hasSavedFinalPrice) {
+        finalPriceInput.value = totalIncl.toFixed(2);
+        adjustmentsRow.style.display = 'none';
+      }
+      // If we have saved price, keep it and recalculate adjustments
+      else {
+        const savedFinalPrice = parseFloat(finalPriceInput.value) || 0;
+        const difference = savedFinalPrice - totalIncl;
+        if (Math.abs(difference) > 0.01) {
+          adjustmentsRow.style.display = 'flex';
+          adjustmentsAmount.textContent = (difference > 0 ? '+$' : '-$') + Math.abs(difference).toFixed(2);
+        } else {
+          adjustmentsRow.style.display = 'none';
+        }
+      }
       
       // Only update if elements exist
       const estCostEl = document.getElementById('est-cost');
@@ -2337,7 +2960,7 @@
         return;
       }
       if (!auth.currentUser) {
-        console.warn('Please sign in to save quotes');
+        console.warn(`Please sign in to save ${isInvoice ? 'invoices' : 'quotes'}`);
         window.location.href = 'index.html#final-cta';
         return;
       }
@@ -2365,120 +2988,259 @@
           };
         }
       } catch (e) {
-        console.warn('Could not fetch company profile for quote', e);
+        console.warn('Could not fetch company profile', e);
       }
 
       const negativeGeoJSON = negativeLayer ? negativeLayer.toGeoJSON() : { type: "FeatureCollection", features: [] };
 
       // Get final price from the editable input field
       const finalPrice = parseFloat(finalPriceInput.value) || 0;
-
-      let quoteNumber = document.getElementById('quote-number')?.value?.trim() || '';
-      if (!quoteNumber) {
-          const year = new Date().getFullYear();
-          const timestampPart = Date.now().toString().slice(-6);
-          quoteNumber = `Q-${year}-${timestampPart}`;
-      }
-
-      const quoteData = {
-        quoteNumber: quoteNumber,
-        address: addressDisplay.textContent,
-        lawnAreaM2: currentLawnArea,
-        calloutFee: parseFloat(calloutInput.value) || 0,
-        difficultyMultiplier: parseFloat(difficultySlider.value),
-        estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
-        totalInclGst: finalPrice,
-        quoteNotes: quoteNotesInput.value.trim() || null,
-        pricingSummary: {
-          estimatedHours: parseFloat(document.getElementById('estimated-hours-display').textContent) || 0,
-          lawnAreaM2: currentLawnArea,
-          calloutFee: parseFloat(calloutInput.value) || 0,
-          subtotalEx: parseFloat(document.getElementById('total-revenue').textContent.replace('$', '').replace(',', '')) || 0,
-          gst: parseFloat(document.getElementById('gst').textContent.replace('$', '').replace(',', '')) || 0,
-          subtotalIncl: parseFloat(document.getElementById('total-incl-display').textContent.replace('$', '').replace(',', '')) || 0,
-          finalPrice: finalPrice,
-          adjustmentAmount: document.getElementById('adjustments-amount').textContent || '-$0.00',
-          biweeklyEstimate: document.getElementById('biweekly-estimate-text').textContent || null
-        },
-        client: loadedJobData?.client ? {
-          firstName: loadedJobData.client.firstName || '',
-          lastName: loadedJobData.client.lastName || '',
-          email: loadedJobData.client.email || '',
-          phone: loadedJobData.client.phone || ''
-        } : {},
-        company: companyProfile,
-        mapState: {
-          center: map.getCenter(),
-          zoom: map.getZoom(),
-          parcelGeometry: currentData.parcel_geometry,
-          buildingsGeoJSON: clippedBuildingsGeoJSON,
-          negativeGeoJSON: negativeGeoJSON
-        },
-        generatedAt: new Date().toISOString(),
-        jobId: jobId || null,
-        mowerType: getSelectedMowerType(),
-        timeSinceCut: timeSinceCutSelect.value || null,
-        timeMultiplier: currentTimeMultiplier,
-        addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
-          value: cb.value,
-          label: cb.dataset.title
-        })),
-        addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
-          ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
-          : null
-      };
+      const documentNotes = document.getElementById('document-notes')?.value?.trim() || null;
 
       try {
-        const isUpdate = isEditMode && editingQuoteId;
-        const method   = isUpdate ? 'PATCH' : 'POST';
-        const url      = isUpdate 
-          ? `${WORKER_URL}/api/quotes/${editingQuoteId}`
-          : `${WORKER_URL}/api/quotes`;
+        let res;
+        let returnedId;
+        let publicLink;
 
-        const res = await fetch(url, {
-          method: method,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(quoteData)
-        });
+        // ─────────────────────────────────────────────────────────────────────
+        // INVOICE MODE
+        // ─────────────────────────────────────────────────────────────────────
+        if (isInvoice) {
+          let invoiceNumber = document.getElementById('invoice-number')?.value?.trim() || '';
+          if (!invoiceNumber) {
+            const year = new Date().getFullYear();
+            const timestampPart = Date.now().toString().slice(-6);
+            invoiceNumber = `INV-${year}-${timestampPart}`;
+          }
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || (isUpdate ? 'Failed to update quote' : 'Failed to save quote'));
-        }
+          const invoiceDateVal = document.getElementById('invoice-date')?.value || new Date().toISOString().split('T')[0];
+          const dueDateVal = document.getElementById('due-date')?.value || '';
 
-        let quoteIdReturned;
-        if (isUpdate) {
-          // For PUT/update your backend might return 200/204 with no body,
-          // or return the updated quote object — handle both cases
-          quoteIdReturned = editingQuoteId;
-          // Optional: if your PUT returns the full updated quote, you could do:
-          // const updated = await res.json();
-          // quoteIdReturned = updated.id || editingQuoteId;
+          const invoiceData = {
+            invoiceNumber: invoiceNumber,
+            invoiceDate: invoiceDateVal,
+            dueDate: dueDateVal,
+            address: addressDisplay.textContent,
+            lawnAreaM2: currentLawnArea,
+            calloutFee: parseFloat(calloutInput.value) || 0,
+            difficultyMultiplier: parseFloat(difficultySlider.value),
+            estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
+            totalInclGst: finalPrice,
+            invoiceNotes: documentNotes,
+            pricingSummary: {
+              estimatedHours: parseFloat(document.getElementById('estimated-hours-display').textContent) || 0,
+              lawnAreaM2: currentLawnArea,
+              calloutFee: parseFloat(calloutInput.value) || 0,
+              subtotalEx: parseFloat(document.getElementById('total-revenue').textContent.replace('$', '').replace(',', '')) || 0,
+              gst: parseFloat(document.getElementById('gst').textContent.replace('$', '').replace(',', '')) || 0,
+              subtotalIncl: parseFloat(document.getElementById('total-incl-display').textContent.replace('$', '').replace(',', '')) || 0,
+              finalPrice: finalPrice,
+              adjustmentAmount: document.getElementById('adjustments-amount').textContent || '-$0.00',
+              biweeklyEstimate: document.getElementById('biweekly-estimate-text').textContent || null
+            },
+            client: loadedJobData?.client ? {
+              firstName: loadedJobData.client.firstName || '',
+              lastName: loadedJobData.client.lastName || ''
+            } : {},
+            company: companyProfile,
+            mapState: {
+              center: map.getCenter(),
+              zoom: map.getZoom(),
+              parcelGeometry: currentData.parcel_geometry,
+              buildingsGeoJSON: clippedBuildingsGeoJSON,
+              negativeGeoJSON: negativeGeoJSON
+            },
+            generatedAt: new Date().toISOString(),
+            jobId: jobId || null,
+            mowerType: getSelectedMowerType(),
+            timeSinceCut: timeSinceCutSelect.value || null,
+            timeMultiplier: currentTimeMultiplier,
+            addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
+              value: cb.value,
+              label: cb.dataset.title,
+              price: addonPrices.get(cb.value) || 0
+            })),
+            addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
+              ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
+              : null
+          };
+
+          if (isEditMode && documentId) {
+            // UPDATE existing invoice
+            res = await fetch(`${WORKER_URL}/api/invoices/${documentId}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ data: invoiceData })
+            });
+            returnedId = documentId;
+          } else {
+            // CREATE new invoice
+            res = await fetch(`${WORKER_URL}/api/invoices`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(invoiceData)
+            });
+            const data = await res.json();
+            returnedId = data.invoiceId || data.quoteId || data.id;
+          }
+
+          if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || 'Failed to save invoice');
+          }
+
+          publicLink = `https://deepedge.co.nz/invoice.html?inv=${returnedId}`;
+
+          // Create Stripe payment link (invoice only)
+          try {
+            const clientEmail = loadedJobData?.client?.email || '';
+            const paymentRes = await fetch(`${WORKER_URL}/api/invoices/${returnedId}/payment-link`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                totalInclGst: finalPrice,
+                customerEmail: clientEmail,
+                successUrl: publicLink + '&paid=true'
+              })
+            });
+            if (paymentRes.ok) {
+              const paymentData = await paymentRes.json();
+              console.log('Stripe payment link created:', paymentData.paymentLink?.final_url);
+            }
+          } catch (err) {
+            console.warn('Error creating payment link:', err);
+          }
+
+          // Check for pending send action (invoice only)
+          try {
+            const pendingStr = localStorage.getItem('pendingInvoiceSend');
+            if (pendingStr) {
+              const pending = JSON.parse(pendingStr);
+              pending.invoiceId = returnedId;
+              pending.publicLink = publicLink;
+              localStorage.setItem('pendingInvoiceSend', JSON.stringify(pending));
+              console.log(`✓ Updated pendingInvoiceSend with invoiceId: ${returnedId}`);
+            }
+          } catch (e) {
+            console.warn('Could not update pendingInvoiceSend in localStorage', e);
+          }
+
+          console.log(isEditMode ? 'Invoice updated successfully!' : 'Invoice saved successfully!');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // QUOTE MODE
+        // ─────────────────────────────────────────────────────────────────────
         } else {
-          const data = await res.json();
-          quoteIdReturned = data.quoteId;   // assuming your POST returns { quoteId: "..." }
+          let quoteNumber = document.getElementById('quote-number')?.value?.trim() || '';
+          if (!quoteNumber) {
+            const year = new Date().getFullYear();
+            const timestampPart = Date.now().toString().slice(-6);
+            quoteNumber = `Q-${year}-${timestampPart}`;
+          }
+
+          const quoteData = {
+            quoteNumber: quoteNumber,
+            address: addressDisplay.textContent,
+            lawnAreaM2: currentLawnArea,
+            calloutFee: parseFloat(calloutInput.value) || 0,
+            difficultyMultiplier: parseFloat(difficultySlider.value),
+            estimatedHours: parseFloat(estimatedJobTimeInput.value) || 0,
+            totalInclGst: finalPrice,
+            quoteNotes: documentNotes,
+            pricingSummary: {
+              estimatedHours: parseFloat(document.getElementById('estimated-hours-display').textContent) || 0,
+              lawnAreaM2: currentLawnArea,
+              calloutFee: parseFloat(calloutInput.value) || 0,
+              subtotalEx: parseFloat(document.getElementById('total-revenue').textContent.replace('$', '').replace(',', '')) || 0,
+              gst: parseFloat(document.getElementById('gst').textContent.replace('$', '').replace(',', '')) || 0,
+              subtotalIncl: parseFloat(document.getElementById('total-incl-display').textContent.replace('$', '').replace(',', '')) || 0,
+              finalPrice: finalPrice,
+              adjustmentAmount: document.getElementById('adjustments-amount').textContent || '-$0.00',
+              biweeklyEstimate: document.getElementById('biweekly-estimate-text').textContent || null
+            },
+            client: loadedJobData?.client ? {
+              firstName: loadedJobData.client.firstName || '',
+              lastName: loadedJobData.client.lastName || ''
+            } : {},
+            company: companyProfile,
+            mapState: {
+              center: map.getCenter(),
+              zoom: map.getZoom(),
+              parcelGeometry: currentData.parcel_geometry,
+              buildingsGeoJSON: clippedBuildingsGeoJSON,
+              negativeGeoJSON: negativeGeoJSON
+            },
+            generatedAt: new Date().toISOString(),
+            jobId: jobId || null,
+            mowerType: getSelectedMowerType(),
+            timeSinceCut: timeSinceCutSelect.value || null,
+            timeMultiplier: currentTimeMultiplier,
+            addonServices: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => ({
+              value: cb.value,
+              label: cb.dataset.title
+            })),
+            addonServicesNote: Array.from(addonItemsContainer.querySelectorAll('input[type="checkbox"]:checked')).length > 0 
+              ? 'Unless otherwise specified, on-site quote required for selected add-on services' 
+              : null
+          };
+
+          if (isEditMode && documentId) {
+            // UPDATE existing quote
+            res = await fetch(`${WORKER_URL}/api/quotes/${documentId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(quoteData)
+            });
+            returnedId = documentId;
+          } else {
+            // CREATE new quote
+            res = await fetch(`${WORKER_URL}/api/quotes`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(quoteData)
+            });
+            const data = await res.json();
+            returnedId = data.quoteId || data.id;
+          }
+
+          if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || 'Failed to save quote');
+          }
+
+          publicLink = `${window.location.origin}/roof/quote.html?quote=${returnedId}`;
+          console.log(isEditMode ? 'Quote updated successfully!' : 'Quote saved successfully!');
         }
 
-        const publicLink = `${window.location.origin}/roof/quote.html?quote=${quoteIdReturned}`;
-
-        console.log(isUpdate 
-          ? `Quote updated successfully!\n\nShare this link with your client:\n${publicLink}`
-          : `Quote saved successfully!\n\nShare this link with your client:\n${publicLink}`
-        );
-
-        const targetJobId = jobId || (editingQuoteData?.jobId);
+        // ─────────────────────────────────────────────────────────────────────
+        // REDIRECT AFTER SAVE
+        // ─────────────────────────────────────────────────────────────────────
+        const targetJobId = jobId || (loadedJobData?.id) || (editingDocumentData?.jobId);
         if (targetJobId) {
           window.location.href = `jobs.html?jobId=${targetJobId}`;
+        } else if (isInvoice) {
+          window.location.href = `invoice.html?inv=${returnedId}`;
         } else {
-          window.location.href = `quote.html?quote=${quoteIdReturned}`;
+          window.location.href = `quote.html?quote=${returnedId}`;
         }
 
       } catch (err) {
-        console.error('Quote save failed:', err);
-        console.error('Failed to save quote: ' + err.message);
+        console.error(`${isInvoice ? 'Invoice' : 'Quote'} save failed:`, err);
         // Reset button on error
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
