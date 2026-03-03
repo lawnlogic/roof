@@ -837,7 +837,6 @@ details[open] {
 
 /* Optional: make summary look more card-header-like */
 details summary {
-  padding: 18px 24px;
   background: rgba(var(--accent), 0.04);
   font-weight: 600;
   cursor: pointer;
