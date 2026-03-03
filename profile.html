@@ -81,6 +81,47 @@
       border-radius: 999px;
       margin-top: 8px;
     }
+    
+    /* Onboarding status badges */
+    .onboarding-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+    .onboarding-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .onboarding-badge.complete {
+      background: #d1fae5;
+      color: #059669;
+    }
+    .onboarding-banner {
+      background: linear-gradient(135deg, #7B2D8E 0%, #9333ea 100%);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .onboarding-banner.show {
+      display: block;
+    }
+    .onboarding-banner h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+    }
+    .onboarding-banner p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -105,10 +146,18 @@
       <h1>Company Settings</h1>
       <p>Manage your company profile, pricing, and add-on services</p>
     </div>
+    
+    <!-- Onboarding Banner -->
+    <div class="onboarding-banner" id="onboardingBanner">
+      <h3>👋 Complete your setup</h3>
+      <p>Fill in your company profile and pricing to start creating quotes.</p>
+    </div>
 
     <!-- Company Profile Section -->
     <details>
-      <summary><h2>👤 Company Profile</h2></summary>
+      <summary>
+        <h2>👤 Company Profile <span id="profileBadge" class="onboarding-badge pending">To Do</span></h2>
+      </summary>
       <div class="profile-pricing-box">
         <div class="profile-input-group">
           <label for="companyName">Company Name</label>
@@ -147,7 +196,9 @@
 
     <!-- Company Pricing (Push + Ride-on) Section -->
     <details>
-      <summary><h2>💰 Company Pricing</h2></summary>
+      <summary>
+        <h2>💰 Company Pricing <span id="pricingBadge" class="onboarding-badge pending">To Do</span></h2>
+      </summary>
       <div class="mower-pricing-container">
         <!-- Push Mower Pricing -->
         <div class="mower-section">
@@ -245,6 +296,58 @@
       const el = document.getElementById('pricing-message');
       el.textContent = text;
       el.className = type;
+    }
+
+    // Update onboarding badges based on status
+    function updateOnboardingBadges(onboarding) {
+      const profileBadge = document.getElementById('profileBadge');
+      const pricingBadge = document.getElementById('pricingBadge');
+      const banner = document.getElementById('onboardingBanner');
+      
+      if (profileBadge) {
+        if (onboarding.companyProfile) {
+          profileBadge.className = 'onboarding-badge complete';
+          profileBadge.textContent = '✓ Done';
+        } else {
+          profileBadge.className = 'onboarding-badge pending';
+          profileBadge.textContent = 'To Do';
+        }
+      }
+      
+      if (pricingBadge) {
+        if (onboarding.pricing) {
+          pricingBadge.className = 'onboarding-badge complete';
+          pricingBadge.textContent = '✓ Done';
+        } else {
+          pricingBadge.className = 'onboarding-badge pending';
+          pricingBadge.textContent = 'To Do';
+        }
+      }
+      
+      // Show banner if onboarding not complete
+      if (banner) {
+        if (!onboarding.completed && (!onboarding.companyProfile || !onboarding.pricing)) {
+          banner.classList.add('show');
+        } else {
+          banner.classList.remove('show');
+        }
+      }
+    }
+    
+    // Load onboarding status from API
+    async function loadOnboardingStatus(token) {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/user/onboarding`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const onboarding = data.onboarding || { companyProfile: false, pricing: false, completed: false };
+          updateOnboardingBadges(onboarding);
+        }
+      } catch (e) {
+        console.error('Failed to load onboarding status:', e);
+      }
     }
 
     function renderAddOns(addOns) {
@@ -376,6 +479,9 @@
 
         // Load and display add-ons
         renderAddOns(profile.addOns || []);
+        
+        // Load onboarding status and update badges
+        await loadOnboardingStatus(token);
 
         // Hide loading splash
         const splash = document.getElementById('loading-splash');
@@ -438,8 +544,21 @@
         });
         if (res.ok) {
           showMessage('Profile updated successfully!', 'success');
-          localStorage.setItem('onboarding_companyProfile', 'true');
-          window.dispatchEvent(new Event('storage'));
+          // Mark company profile onboarding task as complete via API
+          await fetch(`${WORKER_URL}/api/user/onboarding`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyProfile: true })
+          });
+          // Update badges immediately
+          await loadOnboardingStatus(token);
+          // Notify dashboard if open
+          window.dispatchEvent(new Event('onboardingUpdated'));
+          // Collapse the section after save
+          const profileDetails = document.getElementById('profile-update-btn').closest('details');
+          if (profileDetails) {
+            setTimeout(() => { profileDetails.open = false; }, 500);
+          }
         } else {
           throw new Error(await res.text());
         }
@@ -480,8 +599,21 @@
         });
         if (res.ok) {
           showPricingMessage('Company pricing updated successfully!', 'success');
-          localStorage.setItem('onboarding_pricing', 'true');
-          window.dispatchEvent(new Event('storage'));
+          // Mark pricing onboarding task as complete via API
+          await fetch(`${WORKER_URL}/api/user/onboarding`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pricing: true })
+          });
+          // Update badges immediately
+          await loadOnboardingStatus(token);
+          // Notify dashboard if open
+          window.dispatchEvent(new Event('onboardingUpdated'));
+          // Collapse the section after save
+          const pricingDetails = document.querySelector('.mower-pricing-container')?.closest('details');
+          if (pricingDetails) {
+            setTimeout(() => { pricingDetails.open = false; }, 500);
+          }
         } else {
           throw new Error(await res.text());
         }
