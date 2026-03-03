@@ -860,90 +860,146 @@ auth.onAuthStateChanged(async (user) => {
     localStorage.setItem('isLoggedIn', 'true');
     await loadDashboardData();
     
-    // Check profile and show onboarding if needed
+    // Check profile and onboarding status
     try {
       const token = await user.getIdToken();
-      const response = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/profile', {
+      
+      // Fetch profile
+      const profileResponse = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const profile = await response.json();
+      const profileData = await profileResponse.json();
+      const profile = profileData.profile || {};
       
-      // If company name is not set, show onboarding (but not if verification is being processed)
+      // Fetch onboarding status
+      const onboardingResponse = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/onboarding', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const onboardingData = await onboardingResponse.json();
+      let onboarding = onboardingData.onboarding || { companyProfile: false, pricing: false, completed: false };
+      console.log('[Onboarding] Status:', onboarding);
+      
+      // TESTING OVERRIDE: Set localStorage.setItem('reset_onboarding', 'true') to force reset
+      if (localStorage.getItem('reset_onboarding') === 'true') {
+        console.log('[Onboarding] RESET OVERRIDE - resetting onboarding via API');
+        await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/onboarding', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyProfile: false, pricing: false, completed: false })
+        });
+        onboarding = { companyProfile: false, pricing: false, completed: false };
+        localStorage.removeItem('reset_onboarding');
+        console.log('[Onboarding] Reset complete, flag cleared');
+      }
+      
+      // If onboarding not completed, show onboarding modal
       const verificationModal = document.getElementById('verificationModal');
       const isVerifying = verificationModal && verificationModal.style.display === 'flex';
+      console.log('[Onboarding] isVerifying:', isVerifying, 'completed:', onboarding.completed);
       
-      if (!isVerifying && (!profile.companyName || profile.companyName === 'My Lawn Business')) {
+      if (!isVerifying && !onboarding.completed) {
         const modal = document.getElementById('onboardingModal');
+        console.log('[Onboarding] Showing modal:', modal);
         if (modal) {
           modal.style.display = 'flex';
         }
       }
+      
+      // Onboarding task handling
+      const task1Icon = document.getElementById('task1Icon');
+      const task2Icon = document.getElementById('task2Icon');
+      const task3Icon = document.getElementById('task3Icon');
+      const completeBtn = document.getElementById('completeOnboardingBtn');
+      const onboardingModalEl = document.getElementById('onboardingModal');
+      const progressFill = document.getElementById('onboardingProgressFill');
+
+      // Function to update task icons based on onboarding data
+      function updateTaskIconsFromData(onboardingData) {
+        const task1 = onboardingData.companyProfile || false;
+        const task2 = onboardingData.pricing || false;
+        const task3 = true; // Bank account always complete
+        
+        const completedCount = (task1 ? 1 : 0) + (task2 ? 1 : 0) + (task3 ? 1 : 0);
+        const progressPercent = (completedCount / 3) * 100;
+
+        // Update icons
+        if (task1Icon) {
+          task1Icon.style.background = task1 ? '#7B2D8E' : '#e5e7eb';
+        }
+
+        if (task2Icon) {
+          task2Icon.style.background = task2 ? '#7B2D8E' : '#e5e7eb';
+        }
+
+        if (task3Icon) {
+          task3Icon.style.background = '#7B2D8E'; // Always complete
+        }
+
+        // Update progress bar
+        if (progressFill) {
+          progressFill.style.width = progressPercent + '%';
+        }
+
+        // If all tasks are done, show complete button
+        if (task1 && task2 && task3) {
+          if (completeBtn) completeBtn.style.display = 'inline-block';
+        } else {
+          if (completeBtn) completeBtn.style.display = 'none';
+        }
+      }
+
+      // Update icons with fetched onboarding data
+      updateTaskIconsFromData(onboarding);
+
+      // Complete button closes modal and marks onboarding as completed via API
+      if (completeBtn) {
+        completeBtn.addEventListener('click', async () => {
+          if (onboardingModalEl) {
+            onboardingModalEl.style.display = 'none';
+          }
+          // Mark onboarding as completed via API
+          try {
+            const currentToken = await user.getIdToken();
+            await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/onboarding', {
+              method: 'POST',
+              headers: { 
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ completed: true })
+            });
+          } catch (e) {
+            console.error('Failed to save onboarding completion:', e);
+          }
+        });
+      }
+
+      // Function to refresh onboarding status from API
+      async function refreshOnboardingStatus() {
+        try {
+          const currentToken = await user.getIdToken();
+          const res = await fetch('https://firebase-protected-backend.jamesisarad.workers.dev/api/user/onboarding', {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+          });
+          const data = await res.json();
+          updateTaskIconsFromData(data.onboarding || {});
+        } catch (e) {
+          console.error('Failed to refresh onboarding:', e);
+        }
+      }
+
+      // Listen for custom onboarding update events (fired from profile.html)
+      window.addEventListener('onboardingUpdated', () => {
+        refreshOnboardingStatus();
+      });
+      
+      // Also listen for focus to catch updates from other tabs
+      window.addEventListener('focus', () => {
+        refreshOnboardingStatus();
+      });
     } catch (err) {
       console.error('Profile check error:', err);
     }
-
-    // Onboarding task handling
-    const task1Icon = document.getElementById('task1Icon');
-    const task2Icon = document.getElementById('task2Icon');
-    const task3Icon = document.getElementById('task3Icon');
-    const completeBtn = document.getElementById('completeOnboardingBtn');
-    const onboardingModal = document.getElementById('onboardingModal');
-    const progressFill = document.getElementById('onboardingProgressFill');
-
-    // Function to update task icons based on localStorage
-    function updateTaskIcons() {
-      const task1 = localStorage.getItem('onboarding_companyProfile') === 'true';
-      const task2 = localStorage.getItem('onboarding_pricing') === 'true';
-      const task3 = true; // Bank account always complete
-      
-      const completedCount = (task1 ? 1 : 0) + (task2 ? 1 : 0) + (task3 ? 1 : 0);
-      const progressPercent = (completedCount / 3) * 100;
-
-      // Update icons
-      if (task1Icon) {
-        task1Icon.style.background = task1 ? '#7B2D8E' : '#e5e7eb';
-      }
-
-      if (task2Icon) {
-        task2Icon.style.background = task2 ? '#7B2D8E' : '#e5e7eb';
-      }
-
-      if (task3Icon) {
-        task3Icon.style.background = '#7B2D8E'; // Always complete
-      }
-
-      // Update progress bar
-      if (progressFill) {
-        progressFill.style.width = progressPercent + '%';
-      }
-
-      // If all tasks are done, show complete button
-      if (task1 && task2 && task3) {
-        if (completeBtn) completeBtn.style.display = 'inline-block';
-      } else {
-        if (completeBtn) completeBtn.style.display = 'none';
-      }
-    }
-
-    // Update icons on initial load
-    updateTaskIcons();
-
-    // Complete button closes modal
-    if (completeBtn) {
-      completeBtn.addEventListener('click', () => {
-        if (onboardingModal) {
-          onboardingModal.style.display = 'none';
-        }
-        localStorage.setItem('onboarding_completed', 'true');
-      });
-    }
-
-    // Listen for task completions (fire from profile.html when user updates data)
-    window.addEventListener('storage', (e) => {
-      if (e.key && e.key.startsWith('onboarding_')) {
-        updateTaskIcons();
-      }
-    });
     
     // Hide loading splash screen (only if not verifying email)
     const params = new URLSearchParams(window.location.search);
