@@ -58,6 +58,9 @@
         .ring-decoration {
             border: 2px solid rgba(255, 255, 255, 0.75);
             border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            position: absolute;
         }
         .grain-overlay {
             position: fixed;
@@ -68,7 +71,7 @@
             pointer-events: none;
             opacity: 0.04;
             mix-blend-mode: multiply;
-            z-index: 50;
+            z-index: 10 !important;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
         .button-primary {
@@ -106,6 +109,8 @@
         .section-content {
             width: 100%;
             padding: 0 1.25rem;
+            position: relative;
+            z-index: 10;
         }
         @media (min-width: 640px) {
             .section-content { padding: 0 1.5rem; }
@@ -181,16 +186,16 @@
                             <button class="button-primary" onclick="smoothScroll('final-cta')" style="font-size: 1rem; padding: 1.25rem 2rem;">
                                 Create free account
                             </button>
-                            <p style="color: #6E6E82; font-size: 0.875rem;">No card required.</p>
+                            <p style="color: #6E6E82; font-size: 0.875rem;"><b>No card required</b></p>
                         </div>
                     </div>
 
                     <div style="width: 100%; max-width: 480px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12); margin-top: 2rem;">
                         <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 0.75rem;">
                             <span style="color: #6E6E82;">🔍</span>
-                            <span style="color: #6E6E82; font-size: 0.875rem;">Search properties...</span>
+                            <span style="color: #6E6E82; font-size: 0.875rem;">Search an Address...</span>
                         </div>
-                        <div style="position: relative; height: 300px; background: url('/Images/Hero.png') center/cover no-repeat; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: relative; height: 300px; background: url('Images/Hero.png') center/cover no-repeat; display: flex; align-items: center; justify-content: center;">
                         </div>
                         <div style="padding: 1.25rem; border-top: 1px solid #f3f4f6;">
                             <button class="button-primary" style="width: 100%; font-size: 1rem;">Create Quote</button>
@@ -210,7 +215,7 @@
                     <div style="width: 100%; text-align: center; max-width: 500px;">
                         <h2 style="color: #1B1B2F; font-weight: 700; margin-bottom: 1.5rem; font-size: clamp(28px, 7vw, 52px);">Quote in minutes, not hours.</h2>
                         <p style="color: #6E6E82; margin-bottom: 1.5rem; font-size: 1.125rem; line-height: 1.6;">
-                            Build accurate quotes on-site. Auto-calculate materials, labor, and tax—then send before you leave the driveway.
+                            Satellite-powered quotes. Auto labour + GST calc — send via email/text & clients approve instantly via our simple system.
                         </p>
                         <button class="button-outline" style="font-size: 1rem; padding: 1rem 1.5rem;">See how quoting works</button>
                     </div>
@@ -686,7 +691,7 @@
     </main>
 
     <script>
-        // Navigation scrolling
+        // Navigation scrolling - used by page content buttons
         function smoothScroll(elementId) {
             const element = document.getElementById(elementId);
             if (element) {
@@ -697,34 +702,6 @@
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
-        // Show mobile menu button on small screens
-        function updateMobileMenuButton() {
-            const btn = document.getElementById('mobileMenuBtn');
-            if (!btn) return; // btn is injected by header.js, skip if not ready
-            if (window.innerWidth < 1024) {
-                btn.style.display = 'block';
-            } else {
-                btn.style.display = 'none';
-                if (typeof closeMobileMenu === 'function') closeMobileMenu();
-            }
-        }
-
-        window.addEventListener('resize', updateMobileMenuButton);
-        updateMobileMenuButton();
-
-        // Navigation scroll effect
-        const nav = document.querySelector('nav');
-        window.addEventListener('scroll', () => {
-            if (!nav) return; // nav is injected by header.js, skip if not ready
-            if (window.scrollY > 50) {
-                nav.classList.remove('not-scrolled');
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.add('not-scrolled');
-                nav.classList.remove('scrolled');
-            }
-        });
 
         // Smooth scroll behavior for all internal links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

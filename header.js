@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Inject viewport meta tag to prevent zooming on mobile
+  const viewport = document.createElement('meta');
+  viewport.name = 'viewport';
+  viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+  document.head.appendChild(viewport);
+
   // Inject favicon
   const favicon = document.createElement('link');
   favicon.rel = 'icon';
@@ -38,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
         nav[id="mainNav"].not-scrolled,
         body > nav.not-scrolled {
             background-color: transparent !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
         }
         nav#mainNav > .container,
         nav[id="mainNav"] > .container,
