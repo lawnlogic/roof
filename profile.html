@@ -3,129 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Company Profile • Deep Edge</title>
+  <title>Company Profile &bull; Deep Edge</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="sms.js" defer></script>
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
   <script src="header.js" defer></script>
+  <script src="sms.js" defer></script>
   <style>
-    input[type="text"],
-    input[type="tel"],
-    input[type="number"],
-    input[type="file"],
-    textarea,
-    select {
-      border-radius: 999px !important;
+    :root {
+      --purple: #7B2D8E; --purple-dark: #662375; --green: #10b981;
+      --text: #1B1B2F; --muted: #6b7280; --border: #e5e7eb; --card: #ffffff;
     }
-
-    /* Loading splash */
-    #loading-splash {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
+      color: var(--text); min-height: 100vh;
     }
-    #loading-splash.fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
+    h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; line-height: 1.2; }
+    .profile-container { max-width: 1200px; width: 90%; margin: 0 auto; padding: 24px 20px 80px; }
+    .profile-header { margin-bottom: 40px; padding-bottom: 32px; border-bottom: 2px solid var(--border); }
+    .profile-header h1 { font-size: 2.2rem; font-weight: 800; color: var(--text); margin: 0 0 8px 0; }
+    .profile-header p { font-size: 1.05rem; color: var(--muted); margin: 0; font-weight: 500; }
 
-    /* Shimmer skeleton loading */
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+    input[type="text"], input[type="tel"], input[type="number"], input[type="file"], textarea, select {
+      border-radius: 999px !important;
+      width: 100%; padding: 14px 16px;
+      border: 1px solid rgba(229,231,235,0.6);
+      font-family: 'Inter', sans-serif; font-size: 0.95rem;
+      background: rgba(255,255,255,0.8); color: var(--text);
+      transition: all 0.25s ease;
     }
+    textarea { border-radius: 12px !important; min-height: 100px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--purple); background: white;
+      box-shadow: 0 0 0 5px rgba(123,45,142,0.08);
+    }
+    input:disabled { background: #e5e5e5; color: #aaa; }
+
+    .back-btn { background: none; border: none; color: var(--purple); font-size: 0.95rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+    .back-btn:hover { opacity: 0.7; }
+
+    details {
+      margin-bottom: 32px; border-radius: 14px; overflow: hidden;
+      background: var(--card); box-shadow: 0 4px 20px rgba(27,27,47,0.08);
+      border: 1px solid rgba(229,231,235,0.6);
+      transition: box-shadow 0.25s ease, transform 0.15s ease;
+    }
+    details:hover { box-shadow: 0 8px 24px rgba(123,45,142,0.1); transform: translateY(-2px); }
+    details[open] { box-shadow: 0 12px 32px rgba(123,45,142,0.12); }
+    details summary {
+      background: rgba(247,242,252,0.5); font-weight: 600; cursor: pointer; user-select: none;
+      padding: 20px 28px; display: flex; justify-content: space-between; align-items: center;
+      list-style: none; border-bottom: 1px solid rgba(229,231,235,0.3);
+    }
+    details summary::-webkit-details-marker, details summary::marker { display: none; }
+    details summary h2 { margin: 0; font-size: 1.2rem; color: var(--purple); }
+    details summary::after { content: "\25BC"; color: var(--purple); font-size: 1rem; transition: transform 0.3s ease; }
+    details[open] summary::after { transform: rotate(180deg); }
+
+    .profile-pricing-box {
+      padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      background: white; border-radius: 0 0 14px 14px;
+    }
+    @media (max-width: 900px) { .profile-pricing-box { grid-template-columns: 1fr; } }
+    .profile-pricing-box > p, .profile-pricing-box > button, .profile-pricing-box > div[id*="message"], .profile-pricing-box > div[id*="list"] { grid-column: 1 / -1; }
+    .profile-input-group { margin-bottom: 0; }
+    .profile-input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.9rem; }
+
+    .mower-pricing-container { display: flex; flex-wrap: wrap; gap: 32px; padding: 28px; }
+    .mower-section { flex: 1; min-width: 320px; }
+    .mower-section h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0 0 16px 0; }
+    @media (max-width: 900px) { .mower-pricing-container { flex-direction: column; gap: 40px; } .mower-section { min-width: 100%; } }
+
+    .pricing-update-btn {
+      margin-top: 24px !important; padding: 14px 28px !important;
+      background: var(--green) !important; color: white !important;
+      font-size: 16px !important; font-weight: 600 !important;
+      border: none !important; border-radius: 50px !important;
+      cursor: pointer !important; width: 100% !important; transition: all 0.2s !important;
+    }
+    .pricing-update-btn:hover { background: #059669 !important; transform: translateY(-2px); }
+
+    .onboarding-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; margin-left: 12px;
+    }
+    .onboarding-badge.pending { background: #fef3c7; color: #92400e; }
+    .onboarding-badge.complete { background: #d1fae5; color: #059669; }
+    .onboarding-banner {
+      background: linear-gradient(135deg, var(--purple) 0%, #9333ea 100%);
+      color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 24px; display: none;
+    }
+    .onboarding-banner.show { display: block; }
+    .onboarding-banner h3 { margin: 0 0 8px 0; font-size: 1.1rem; }
+    .onboarding-banner p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+
+    #logo-preview { max-width: 150px; margin-top: 15px; border-radius: 8px; border: 2px dashed #d1d5db; display: block; }
+
+    #loading-splash {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; opacity: 1; visibility: visible; transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #loading-splash.fade-out { opacity: 0; visibility: hidden; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     .skeleton-card {
-      background: white;
-      border: 1px solid rgba(229, 231, 235, 0.5);
-      border-radius: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto 16px;
-      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
+      background: white; border: 1px solid rgba(229,231,235,0.5); border-radius: 20px;
+      padding: 24px; width: 100%; max-width: 600px; margin: 0 auto 16px;
+      box-shadow: 0 24px 70px rgba(27,27,47,0.12);
     }
     .skeleton-line {
       background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s ease-in-out infinite;
-      border-radius: 8px;
+      background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: 8px;
     }
-    .skeleton-title {
-      width: 180px;
-      height: 28px;
-      margin-bottom: 20px;
-    }
-    .skeleton-input {
-      width: 100%;
-      height: 48px;
-      margin-bottom: 16px;
-      border-radius: 999px;
-    }
-    .skeleton-button {
-      width: 100%;
-      height: 52px;
-      border-radius: 999px;
-      margin-top: 8px;
-    }
-    
-    /* Onboarding status badges */
-    .onboarding-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-left: 12px;
-      vertical-align: middle;
-    }
-    .onboarding-badge.pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .onboarding-badge.complete {
-      background: #d1fae5;
-      color: #059669;
-    }
-    .onboarding-banner {
-      background: linear-gradient(135deg, #7B2D8E 0%, #9333ea 100%);
-      color: white;
-      padding: 16px 20px;
-      border-radius: 12px;
-      margin-bottom: 24px;
-      display: none;
-    }
-    .onboarding-banner.show {
-      display: block;
-    }
-    .onboarding-banner h3 {
-      margin: 0 0 8px 0;
-      font-size: 1.1rem;
-    }
-    .onboarding-banner p {
-      margin: 0;
-      font-size: 0.9rem;
-      opacity: 0.9;
+    .skeleton-title { width: 180px; height: 28px; margin-bottom: 20px; }
+    .skeleton-input { width: 100%; height: 48px; margin-bottom: 16px; border-radius: 999px; }
+    .skeleton-button { width: 100%; height: 52px; border-radius: 999px; margin-top: 8px; }
+
+    @media (max-width: 768px) {
+      .profile-container { width: 100%; padding: 16px; }
+      .profile-header h1 { font-size: 1.7rem; }
+      details summary { padding: 16px 20px; }
+      .profile-pricing-box { padding: 20px; }
     }
   </style>
 </head>
 <body>
-  <!-- Loading Splash Screen -->
   <div id="loading-splash">
     <div class="skeleton-card">
       <div class="skeleton-line skeleton-title"></div>
@@ -134,509 +141,74 @@
       <div class="skeleton-line skeleton-input"></div>
       <div class="skeleton-line skeleton-button"></div>
     </div>
-    <p style="text-align: center; color: #6E6E82; margin-top: 16px;">Loading your profile...</p>
+    <p style="text-align:center;color:#6E6E82;margin-top:16px;">Loading your profile...</p>
   </div>
 
-  <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 99; transition: all 0.3s ease; padding: 0 1.5rem; height: 5rem; font-family: 'Inter', sans-serif; pointer-events: none;"></div>
+  <div style="position:fixed;top:0;left:0;right:0;z-index:99;padding:0 1.5rem;height:5rem;font-family:'Inter',sans-serif;pointer-events:none;"></div>
 
   <div class="profile-container">
-    <button onclick="window.history.back()" style="background: none; border: none; color: #7B2D8E; font-size: 1rem; cursor: pointer; padding: 8px 0; margin-bottom: 24px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">← Back</button>
+    <button class="back-btn" onclick="window.history.back()">&#8592; Back</button>
+    <div class="profile-header"><h1>Company Settings</h1><p>Manage your company profile, pricing, and add-on services</p></div>
+    <div class="onboarding-banner" id="onboardingBanner"><h3>&#x1F44B; Complete your setup</h3><p>Fill in your company profile and pricing to start creating quotes.</p></div>
 
-    <div class="profile-header">
-      <h1>Company Settings</h1>
-      <p>Manage your company profile, pricing, and add-on services</p>
-    </div>
-    
-    <!-- Onboarding Banner -->
-    <div class="onboarding-banner" id="onboardingBanner">
-      <h3>👋 Complete your setup</h3>
-      <p>Fill in your company profile and pricing to start creating quotes.</p>
-    </div>
-
-    <!-- Company Profile Section -->
     <details>
-      <summary>
-        <h2>👤 Company Profile <span id="profileBadge" class="onboarding-badge pending">To Do</span></h2>
-      </summary>
+      <summary><h2>&#x1F464; Company Profile <span id="profileBadge" class="onboarding-badge pending">To Do</span></h2></summary>
       <div class="profile-pricing-box">
-        <div class="profile-input-group">
-          <label for="companyName">Company Name</label>
-          <input type="text" id="companyName" />
-        </div>
-        <div class="profile-input-group">
-          <label for="nzbn">NZBN</label>
-          <input type="text" id="nzbn" placeholder="e.g. 90233829" />
-        </div>
-        <div class="profile-input-group">
-          <label for="address">Company Address</label>
-          <input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" />
-        </div>
-        <div class="profile-input-group">
-          <label for="phone">Phone</label>
-          <input type="tel" id="phone" placeholder="021 123 4567" />
-        </div>
-        <div class="profile-input-group">
-          <label for="gstNumber">GST Number</label>
-          <input type="text" id="gstNumber" placeholder="123-456-789" />
-        </div>
-        <div class="profile-input-group">
-          <label>Email (cannot be changed)</label>
-          <input type="text" id="email" disabled />
-        </div>
-        <div class="profile-input-group">
-          <label for="logo">Company Logo</label>
-          <input type="file" id="logo" accept="image/*" />
-          <img id="logo-preview" src="" alt="Logo preview" style="display:none;" />
-        </div>
-
-        <button id="profile-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Profile</button>
+        <div class="profile-input-group"><label for="companyName">Company Name</label><input type="text" id="companyName" /></div>
+        <div class="profile-input-group"><label for="nzbn">NZBN</label><input type="text" id="nzbn" placeholder="e.g. 90233829" /></div>
+        <div class="profile-input-group"><label for="address">Company Address</label><input type="text" id="address" placeholder="123 Queen St, Auckland, 1010" /></div>
+        <div class="profile-input-group"><label for="phone">Phone</label><input type="tel" id="phone" placeholder="021 123 4567" /></div>
+        <div class="profile-input-group"><label for="gstNumber">GST Number</label><input type="text" id="gstNumber" placeholder="123-456-789" /></div>
+        <div class="profile-input-group"><label>Email (cannot be changed)</label><input type="text" id="email" disabled /></div>
+        <div class="profile-input-group"><label for="logo">Company Logo</label><input type="file" id="logo" accept="image/*" /><img id="logo-preview" src="" alt="Logo preview" style="display:none;" /></div>
+        <button id="profile-update-btn" class="pricing-update-btn">Update Profile</button>
         <div id="profile-message"></div>
       </div>
     </details>
 
-    <!-- Company Pricing (Push + Ride-on) Section -->
     <details>
-      <summary>
-        <h2>💰 Company Pricing <span id="pricingBadge" class="onboarding-badge pending">To Do</span></h2>
-      </summary>
+      <summary><h2>&#x1F4B0; Company Pricing <span id="pricingBadge" class="onboarding-badge pending">To Do</span></h2></summary>
       <div class="mower-pricing-container">
-        <!-- Push Mower Pricing -->
         <div class="mower-section">
           <h3>Push Mower Pricing</h3>
           <div class="profile-pricing-box">
-            <div class="profile-input-group">
-              <label for="pushM2PerHour">m² per hour</label>
-              <small style="color: var(--text);">E.g. I can mow 1,000m² per hour.</small>
-              <input type="number" id="pushM2PerHour" min="0" step="any" placeholder="e.g. 1000" />
-            </div>
-            <div class="profile-input-group">
-              <label for="pushChargeOutRate">Charge Out Rate Per Hour</label>
-              <small style="color: var(--text);">How much do you charge per hour?</small>
-              <input type="number" id="pushChargeOutRate" min="0" step="0.01" placeholder="e.g. 85.00" />
-            </div>
-            <div class="profile-input-group">
-              <label for="pushHourlyExpenses">Hourly Expenses</label>
-              <small style="color: var(--text);">Hourly expenses, petrol, staff etc.</small>
-              <input type="number" id="pushHourlyExpenses" min="0" step="0.01" placeholder="e.g. 15.00" />
-            </div>
-            <button id="pricing-update-push-btn" class="pricing-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Pricing</button>
+            <div class="profile-input-group"><label for="pushM2PerHour">m&sup2; per hour</label><small style="color:var(--text);display:block;margin-bottom:4px;">E.g. I can mow 1,000m&sup2; per hour.</small><input type="number" id="pushM2PerHour" min="0" step="any" placeholder="e.g. 1000" /></div>
+            <div class="profile-input-group"><label for="pushChargeOutRate">Charge Out Rate Per Hour</label><small style="color:var(--text);display:block;margin-bottom:4px;">How much do you charge per hour?</small><input type="number" id="pushChargeOutRate" min="0" step="0.01" placeholder="e.g. 85.00" /></div>
+            <div class="profile-input-group"><label for="pushHourlyExpenses">Hourly Expenses</label><small style="color:var(--text);display:block;margin-bottom:4px;">Hourly expenses, petrol, staff etc.</small><input type="number" id="pushHourlyExpenses" min="0" step="0.01" placeholder="e.g. 15.00" /></div>
+            <button id="pricing-update-push-btn" class="pricing-update-btn">Update Pricing</button>
           </div>
         </div>
-        <!-- Ride-on Mower Pricing -->
         <div class="mower-section">
           <h3>Ride-on Mower Pricing</h3>
           <div class="profile-pricing-box">
-            <div class="profile-input-group">
-              <label for="rideonM2PerHour">m² per hour</label>
-              <small style="color: var(--text);">E.g. I can mow 4,000m² per hour.</small>
-              <input type="number" id="rideonM2PerHour" min="0" step="any" placeholder="e.g. 4000" />
-            </div>
-            <div class="profile-input-group">
-              <label for="rideonChargeOutRate">Charge Out Rate Per Hour</label>
-              <small style="color: var(--text);">How much do you charge per hour?</small>
-              <input type="number" id="rideonChargeOutRate" min="0" step="0.01" placeholder="e.g. 120.00" />
-            </div>
-            <div class="profile-input-group">
-              <label for="rideonHourlyExpenses">Hourly Expenses</label>
-              <small style="color: var(--text);">Hourly expenses, petrol, staff etc.</small>
-              <input type="number" id="rideonHourlyExpenses" min="0" step="0.01" placeholder="e.g. 35.00" />
-            </div>
-            <button id="pricing-update-rideon-btn" class="pricing-update-btn" style="margin-top: 24px; padding: 14px 28px; background: #10b981; color: white; padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.2s;">Update Pricing</button>
+            <div class="profile-input-group"><label for="rideonM2PerHour">m&sup2; per hour</label><small style="color:var(--text);display:block;margin-bottom:4px;">E.g. I can mow 4,000m&sup2; per hour.</small><input type="number" id="rideonM2PerHour" min="0" step="any" placeholder="e.g. 4000" /></div>
+            <div class="profile-input-group"><label for="rideonChargeOutRate">Charge Out Rate Per Hour</label><small style="color:var(--text);display:block;margin-bottom:4px;">How much do you charge per hour?</small><input type="number" id="rideonChargeOutRate" min="0" step="0.01" placeholder="e.g. 120.00" /></div>
+            <div class="profile-input-group"><label for="rideonHourlyExpenses">Hourly Expenses</label><small style="color:var(--text);display:block;margin-bottom:4px;">Hourly expenses, petrol, staff etc.</small><input type="number" id="rideonHourlyExpenses" min="0" step="0.01" placeholder="e.g. 35.00" /></div>
+            <button id="pricing-update-rideon-btn" class="pricing-update-btn">Update Pricing</button>
           </div>
         </div>
       </div>
-      <div id="pricing-message" style="margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 16px; text-align: center;"></div>
+      <div id="pricing-message" style="margin-top:20px;padding:15px;border-radius:8px;font-size:16px;text-align:center;"></div>
     </details>
-
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",
-      authDomain: "deep-edge-cc5bd.firebaseapp.com",
-      projectId: "deep-edge-cc5bd",
-      storageBucket: "deep-edge-cc5bd.firebasestorage.app",
-      messagingSenderId: "23198790796",
-      appId: "1:23198790796:web:616de764b8a8db2ae1f7a9",
-      measurementId: "G-GLYGPCHRXM"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
-
-    const els = {
-      companyName: document.getElementById('companyName'),
-      nzbn: document.getElementById('nzbn'),
-      address: document.getElementById('address'),
-      phone: document.getElementById('phone'),
-      gstNumber: document.getElementById('gstNumber'),
-      email: document.getElementById('email'),
-      logoInput: document.getElementById('logo'),
-      logoPreview: document.getElementById('logo-preview'),
-      message: document.getElementById('profile-message'),
-      pushM2PerHour: document.getElementById('pushM2PerHour'),
-      pushChargeOutRate: document.getElementById('pushChargeOutRate'),
-      pushHourlyExpenses: document.getElementById('pushHourlyExpenses'),
-      rideonM2PerHour: document.getElementById('rideonM2PerHour'),
-      rideonChargeOutRate: document.getElementById('rideonChargeOutRate'),
-      rideonHourlyExpenses: document.getElementById('rideonHourlyExpenses'),
-    };
-
-    function showMessage(text, type = 'success') {
-      els.message.textContent = text;
-      els.message.className = type;
-    }
-
-    function showPricingMessage(text, type = 'success') {
-      const el = document.getElementById('pricing-message');
-      el.textContent = text;
-      el.className = type;
-    }
-
-    // Update onboarding badges based on status
-    function updateOnboardingBadges(onboarding) {
-      const profileBadge = document.getElementById('profileBadge');
-      const pricingBadge = document.getElementById('pricingBadge');
-      const banner = document.getElementById('onboardingBanner');
-      
-      if (profileBadge) {
-        if (onboarding.companyProfile) {
-          profileBadge.className = 'onboarding-badge complete';
-          profileBadge.textContent = '✓ Done';
-        } else {
-          profileBadge.className = 'onboarding-badge pending';
-          profileBadge.textContent = 'To Do';
-        }
-      }
-      
-      if (pricingBadge) {
-        if (onboarding.pricing) {
-          pricingBadge.className = 'onboarding-badge complete';
-          pricingBadge.textContent = '✓ Done';
-        } else {
-          pricingBadge.className = 'onboarding-badge pending';
-          pricingBadge.textContent = 'To Do';
-        }
-      }
-      
-      // Show banner if onboarding not complete
-      if (banner) {
-        if (!onboarding.completed && (!onboarding.companyProfile || !onboarding.pricing)) {
-          banner.classList.add('show');
-        } else {
-          banner.classList.remove('show');
-        }
-      }
-    }
-    
-    // Load onboarding status from API
-    async function loadOnboardingStatus(token) {
-      try {
-        const res = await fetch(`${WORKER_URL}/api/user/onboarding`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const onboarding = data.onboarding || { companyProfile: false, pricing: false, completed: false };
-          updateOnboardingBadges(onboarding);
-        }
-      } catch (e) {
-        console.error('Failed to load onboarding status:', e);
-      }
-    }
-
-    function renderAddOns(addOns) {
-      const listEl = document.getElementById('addons-list');
-      if (!listEl) {
-        console.error("addons-list element not found");
-        return;
-      }
-
-      listEl.innerHTML = '';
-
-      if (!Array.isArray(addOns) || addOns.length === 0) {
-        listEl.innerHTML = '<p style="color: var(--muted); text-align: center; font-style: italic;">No add-ons created yet.</p>';
-        return;
-      }
-
-      console.log("Rendering", addOns.length, "add-ons");
-
-      const ul = document.createElement('ul');
-      ul.style.listStyle = 'none';
-      ul.style.padding = '0';
-      ul.style.margin = '0';
-
-      addOns.forEach((addon, index) => {
-        if (!addon || !addon.id || !addon.name) {
-          console.warn("Invalid add-on at index", index, addon);
-          return;
-        }
-
-        const li = document.createElement('li');
-        li.style.padding = '20px';
-        li.style.borderBottom = '1px solid #e5e7eb';
-        li.style.background = 'white';
-        li.style.borderRadius = '8px';
-        li.style.marginBottom = '12px';
-        li.style.position = 'relative';
-        li.style.border = '1px solid #e5e7eb';
-
-        li.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-              <strong style="font-size: 1.1rem; color: #1f2937;">${addon.name}</strong><br>
-              <small style="color: #6b7280;">${addon.description || 'No description'}</small><br>
-              <div style="margin-top: 12px;">
-                <span style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500;">
-                  ${addon.pricingType === 'm2' ? 'Per m²' : 'Per Hour'}: $${Number(addon.price || 0).toFixed(2)}
-                </span>
-                ${addon.requiresSiteQuote ? 
-                  '<span style="margin-left: 10px; background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;">Site quote required</span>' 
-                  : ''}
-              </div>
-            </div>
-            <button 
-              class="delete-addon-btn" 
-              data-id="${addon.id}"
-              style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;"
-            >
-              Delete
-            </button>
-          </div>
-        `;
-
-        ul.appendChild(li);
-      });
-
-      listEl.appendChild(ul);
-
-      // Attach delete handlers
-      document.querySelectorAll('.delete-addon-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const id = btn.dataset.id;
-          if (!id || !confirm('Delete this add-on permanently?')) return;
-
-          try {
-            const token = await auth.currentUser.getIdToken();
-            const payload = {
-              deleteAddOnId: id,
-              updatedAt: new Date().toISOString()
-            };
-
-            const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-              method: 'POST',
-              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) throw new Error(await res.text());
-
-            await loadProfile(await auth.currentUser.getIdToken());
-          } catch (err) {
-            console.error("Delete failed:", err);
-            console.error('Failed to delete: ' + err.message);
-          }
-        });
-      });
-    }
-
-    async function loadProfile(token) {
-      try {
-        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const { profile } = await res.json();
-
-        els.companyName.value = profile.companyName || '';
-        els.nzbn.value = profile.nzbn || '';
-        els.address.value = profile.address || '';
-        els.phone.value = profile.phone || '';
-        els.gstNumber.value = profile.gstNumber || '';
-        els.email.value = profile.email || '';
-
-        if (profile.logoUrl) {
-          els.logoPreview.src = profile.logoUrl;
-          els.logoPreview.style.display = 'block';
-        }
-
-        // Load pricing
-        const pricing = profile.mowingPricing || {};
-        const push = pricing.push || {};
-        const rideon = pricing.rideon || {};
-
-        els.pushM2PerHour.value      = push.m2PerHour ?? 100;
-        els.pushChargeOutRate.value  = push.chargeOutRate ?? 50;
-        els.pushHourlyExpenses.value = push.hourlyExpenses ?? 25;
-        els.rideonM2PerHour.value     = rideon.m2PerHour ?? 4000;
-        els.rideonChargeOutRate.value = rideon.chargeOutRate ?? 70;
-        els.rideonHourlyExpenses.value = rideon.hourlyExpenses ?? 35;
-
-        // Load and display add-ons
-        renderAddOns(profile.addOns || []);
-        
-        // Load onboarding status and update badges
-        await loadOnboardingStatus(token);
-
-        // Hide loading splash
-        const splash = document.getElementById('loading-splash');
-        if (splash) {
-          splash.classList.add('fade-out');
-          setTimeout(() => { if (splash) splash.style.display = 'none'; }, 500);
-        }
-
-      } catch (e) {
-        showMessage('Failed to load profile: ' + e.message, 'error');
-        // Hide loading splash even on error
-        const splash = document.getElementById('loading-splash');
-        if (splash) {
-          splash.classList.add('fade-out');
-          setTimeout(() => { if (splash) splash.style.display = 'none'; }, 500);
-        }
-      }
-    }
-
-    document.getElementById('profile-update-btn').addEventListener('click', async () => {
-      if (!auth.currentUser) return showMessage('Not logged in', 'error');
-
-      const token = await auth.currentUser.getIdToken();
-      let logoUrl = els.logoPreview.src;
-
-      const file = els.logoInput.files[0];
-      if (file) {
-        showMessage('Uploading logo...', 'info');
-        const res = await fetch(`${WORKER_URL}/api/r2/logo`, {
-          method: 'PUT',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': file.type || 'image/jpeg' },
-          body: file
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Upload failed');
-        }
-        const { logoUrl: newLogoUrl } = await res.json();
-        els.logoPreview.src = newLogoUrl + '?t=' + Date.now();
-        els.logoPreview.style.display = 'block';
-        logoUrl = newLogoUrl;
-      }
-
-      const profile = {
-        companyName: els.companyName.value.trim(),
-        nzbn: els.nzbn.value.trim(),
-        address: els.address.value.trim(),
-        phone: els.phone.value.trim(),
-        gstNumber: els.gstNumber.value.trim(),
-        email: els.email.value,
-        logoUrl,
-        updatedAt: new Date().toISOString()
-      };
-
-      try {
-        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(profile)
-        });
-        if (res.ok) {
-          showMessage('Profile updated successfully!', 'success');
-          // Mark company profile onboarding task as complete via API
-          await fetch(`${WORKER_URL}/api/user/onboarding`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ companyProfile: true })
-          });
-          // Update badges immediately
-          await loadOnboardingStatus(token);
-          // Notify dashboard if open
-          window.dispatchEvent(new Event('onboardingUpdated'));
-          // Collapse the section after save
-          const profileDetails = document.getElementById('profile-update-btn').closest('details');
-          if (profileDetails) {
-            setTimeout(() => { profileDetails.open = false; }, 500);
-          }
-        } else {
-          throw new Error(await res.text());
-        }
-      } catch (e) {
-        showMessage('Failed to save profile: ' + e.message, 'error');
-      }
-    });
-
-    // Pricing save function for both buttons
-    const savePricing = async () => {
-      if (!auth.currentUser) {
-        showPricingMessage('Not logged in', 'error');
-        return;
-      }
-      showPricingMessage('Saving pricing...', 'info');
-      const token = await auth.currentUser.getIdToken();
-
-      const mowingPricing = {
-        push: {
-          m2PerHour: Number(els.pushM2PerHour.value) || 0,
-          chargeOutRate: Number(els.pushChargeOutRate.value) || 0,
-          hourlyExpenses: Number(els.pushHourlyExpenses.value) || 0,
-        },
-        rideon: {
-          m2PerHour: Number(els.rideonM2PerHour.value) || 0,
-          chargeOutRate: Number(els.rideonChargeOutRate.value) || 0,
-          hourlyExpenses: Number(els.rideonHourlyExpenses.value) || 0,
-        }
-      };
-
-      const payload = { mowingPricing, updatedAt: new Date().toISOString() };
-
-      try {
-        const res = await fetch(`${WORKER_URL}/api/user/profile`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          showPricingMessage('Company pricing updated successfully!', 'success');
-          // Mark pricing onboarding task as complete via API
-          await fetch(`${WORKER_URL}/api/user/onboarding`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pricing: true })
-          });
-          // Update badges immediately
-          await loadOnboardingStatus(token);
-          // Notify dashboard if open
-          window.dispatchEvent(new Event('onboardingUpdated'));
-          // Collapse the section after save
-          const pricingDetails = document.querySelector('.mower-pricing-container')?.closest('details');
-          if (pricingDetails) {
-            setTimeout(() => { pricingDetails.open = false; }, 500);
-          }
-        } else {
-          throw new Error(await res.text());
-        }
-      } catch (e) {
-        showPricingMessage('Failed to save pricing: ' + e.message, 'error');
-      }
-    };
-
-    // Attach pricing save to both buttons
-    document.getElementById('pricing-update-push-btn').addEventListener('click', savePricing);
-    document.getElementById('pricing-update-rideon-btn').addEventListener('click', savePricing);
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        localStorage.setItem('isLoggedIn', 'true');
-        const token = await user.getIdToken();
-        await loadProfile(token);
-      } else {
-        localStorage.removeItem('isLoggedIn');
-        window.location.href = 'index.html#final-cta';
-      }
-    });
-
+    const firebaseConfig={apiKey:"AIzaSyAzS6a2JbgFxSJLPi2-sWyflOfrE7jd73g",authDomain:"deep-edge-cc5bd.firebaseapp.com",projectId:"deep-edge-cc5bd",storageBucket:"deep-edge-cc5bd.firebasestorage.app",messagingSenderId:"23198790796",appId:"1:23198790796:web:616de764b8a8db2ae1f7a9",measurementId:"G-GLYGPCHRXM"};
+    const app=initializeApp(firebaseConfig),auth=getAuth(app),WORKER_URL="https://firebase-protected-backend.jamesisarad.workers.dev";
+    const els={companyName:document.getElementById('companyName'),nzbn:document.getElementById('nzbn'),address:document.getElementById('address'),phone:document.getElementById('phone'),gstNumber:document.getElementById('gstNumber'),email:document.getElementById('email'),logoInput:document.getElementById('logo'),logoPreview:document.getElementById('logo-preview'),message:document.getElementById('profile-message'),pushM2PerHour:document.getElementById('pushM2PerHour'),pushChargeOutRate:document.getElementById('pushChargeOutRate'),pushHourlyExpenses:document.getElementById('pushHourlyExpenses'),rideonM2PerHour:document.getElementById('rideonM2PerHour'),rideonChargeOutRate:document.getElementById('rideonChargeOutRate'),rideonHourlyExpenses:document.getElementById('rideonHourlyExpenses')};
+    function showMessage(text,type='success'){els.message.textContent=text;els.message.className=type}
+    function showPricingMessage(text,type='success'){let el=document.getElementById('pricing-message');el.textContent=text;el.className=type}
+    function updateOnboardingBadges(onboarding){let pb=document.getElementById('profileBadge'),prb=document.getElementById('pricingBadge'),banner=document.getElementById('onboardingBanner');if(pb){if(onboarding.companyProfile){pb.className='onboarding-badge complete';pb.textContent='\u2713 Done'}else{pb.className='onboarding-badge pending';pb.textContent='To Do'}}if(prb){if(onboarding.pricing){prb.className='onboarding-badge complete';prb.textContent='\u2713 Done'}else{prb.className='onboarding-badge pending';prb.textContent='To Do'}}if(banner){if(!onboarding.completed&&(!onboarding.companyProfile||!onboarding.pricing)){banner.classList.add('show')}else{banner.classList.remove('show')}}}
+    async function loadOnboardingStatus(token){try{let res=await fetch(WORKER_URL+'/api/user/onboarding',{headers:{'Authorization':'Bearer '+token}});if(res.ok){let data=await res.json();updateOnboardingBadges(data.onboarding||{companyProfile:!1,pricing:!1,completed:!1})}}catch(e){console.error('Failed to load onboarding status:',e)}}
+    function renderAddOns(addOns){let listEl=document.getElementById('addons-list');if(!listEl){console.error("addons-list element not found");return}listEl.innerHTML='';if(!Array.isArray(addOns)||addOns.length===0){listEl.innerHTML='<p style="color:var(--muted);text-align:center;font-style:italic;">No add-ons created yet.</p>';return}console.log("Rendering",addOns.length,"add-ons");let ul=document.createElement('ul');ul.style.listStyle='none';ul.style.padding='0';ul.style.margin='0';addOns.forEach((addon,index)=>{if(!addon||!addon.id||!addon.name){console.warn("Invalid add-on at index",index,addon);return}let li=document.createElement('li');li.style.padding='20px';li.style.borderBottom='1px solid #e5e7eb';li.style.background='white';li.style.borderRadius='8px';li.style.marginBottom='12px';li.style.position='relative';li.style.border='1px solid #e5e7eb';li.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><strong style="font-size:1.1rem;color:#1f2937;">'+addon.name+'</strong><br><small style="color:#6b7280;">'+(addon.description||'No description')+'</small><br><div style="margin-top:12px;"><span style="background:#f3f4f6;color:#374151;padding:6px 12px;border-radius:6px;font-size:0.9rem;font-weight:500;">'+(addon.pricingType==='m2'?'Per m\u00b2':'Per Hour')+': $'+Number(addon.price||0).toFixed(2)+'</span>'+(addon.requiresSiteQuote?'<span style="margin-left:10px;background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:0.85rem;font-weight:500;">Site quote required</span>':'')+'</div></div><button class="delete-addon-btn" data-id="'+addon.id+'" style="background:#ef4444;color:white;border:none;padding:8px 16px;border-radius:6px;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">Delete</button></div>';ul.appendChild(li)});listEl.appendChild(ul);document.querySelectorAll('.delete-addon-btn').forEach(btn=>{btn.addEventListener('click',async()=>{let id=btn.dataset.id;if(!id||!confirm('Delete this add-on permanently?'))return;try{let token=await auth.currentUser.getIdToken(),payload={deleteAddOnId:id,updatedAt:new Date().toISOString()},res=await fetch(WORKER_URL+'/api/user/profile',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(await res.text());await loadProfile(await auth.currentUser.getIdToken())}catch(err){console.error("Delete failed:",err);console.error('Failed to delete: '+err.message)}})})}
+    async function loadProfile(token){try{let res=await fetch(WORKER_URL+'/api/user/profile',{headers:{'Authorization':'Bearer '+token}});if(!res.ok)throw new Error(await res.text());let{profile}=await res.json();els.companyName.value=profile.companyName||'';els.nzbn.value=profile.nzbn||'';els.address.value=profile.address||'';els.phone.value=profile.phone||'';els.gstNumber.value=profile.gstNumber||'';els.email.value=profile.email||'';if(profile.logoUrl){els.logoPreview.src=profile.logoUrl;els.logoPreview.style.display='block'}let pricing=profile.mowingPricing||{},push=pricing.push||{},rideon=pricing.rideon||{};els.pushM2PerHour.value=push.m2PerHour??100;els.pushChargeOutRate.value=push.chargeOutRate??50;els.pushHourlyExpenses.value=push.hourlyExpenses??25;els.rideonM2PerHour.value=rideon.m2PerHour??4000;els.rideonChargeOutRate.value=rideon.chargeOutRate??70;els.rideonHourlyExpenses.value=rideon.hourlyExpenses??35;renderAddOns(profile.addOns||[]);await loadOnboardingStatus(token);let splash=document.getElementById('loading-splash');if(splash){splash.classList.add('fade-out');setTimeout(()=>{if(splash)splash.style.display='none'},500)}}catch(e){showMessage('Failed to load profile: '+e.message,'error');let splash=document.getElementById('loading-splash');if(splash){splash.classList.add('fade-out');setTimeout(()=>{if(splash)splash.style.display='none'},500)}}}
+    document.getElementById('profile-update-btn').addEventListener('click',async()=>{if(!auth.currentUser)return showMessage('Not logged in','error');let token=await auth.currentUser.getIdToken(),logoUrl=els.logoPreview.src,file=els.logoInput.files[0];if(file){showMessage('Uploading logo...','info');let res=await fetch(WORKER_URL+'/api/r2/logo',{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':file.type||'image/jpeg'},body:file});if(!res.ok){let err=await res.json();throw new Error(err.error||'Upload failed')}let{logoUrl:newLogoUrl}=await res.json();els.logoPreview.src=newLogoUrl+'?t='+Date.now();els.logoPreview.style.display='block';logoUrl=newLogoUrl}let profile={companyName:els.companyName.value.trim(),nzbn:els.nzbn.value.trim(),address:els.address.value.trim(),phone:els.phone.value.trim(),gstNumber:els.gstNumber.value.trim(),email:els.email.value,logoUrl,updatedAt:new Date().toISOString()};try{let res=await fetch(WORKER_URL+'/api/user/profile',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(profile)});if(res.ok){showMessage('Profile updated successfully!','success');await fetch(WORKER_URL+'/api/user/onboarding',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({companyProfile:!0})});await loadOnboardingStatus(token);window.dispatchEvent(new Event('onboardingUpdated'));let details=document.getElementById('profile-update-btn').closest('details');if(details){setTimeout(()=>{details.open=!1},500)}}else{throw new Error(await res.text())}}catch(e){showMessage('Failed to save profile: '+e.message,'error')}});
+    const savePricing=async()=>{if(!auth.currentUser){showPricingMessage('Not logged in','error');return}showPricingMessage('Saving pricing...','info');let token=await auth.currentUser.getIdToken(),mowingPricing={push:{m2PerHour:Number(els.pushM2PerHour.value)||0,chargeOutRate:Number(els.pushChargeOutRate.value)||0,hourlyExpenses:Number(els.pushHourlyExpenses.value)||0},rideon:{m2PerHour:Number(els.rideonM2PerHour.value)||0,chargeOutRate:Number(els.rideonChargeOutRate.value)||0,hourlyExpenses:Number(els.rideonHourlyExpenses.value)||0}},payload={mowingPricing,updatedAt:new Date().toISOString()};try{let res=await fetch(WORKER_URL+'/api/user/profile',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){showPricingMessage('Company pricing updated successfully!','success');await fetch(WORKER_URL+'/api/user/onboarding',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({pricing:!0})});await loadOnboardingStatus(token);window.dispatchEvent(new Event('onboardingUpdated'));let details=document.querySelector('.mower-pricing-container')?.closest('details');if(details){setTimeout(()=>{details.open=!1},500)}}else{throw new Error(await res.text())}}catch(e){showPricingMessage('Failed to save pricing: '+e.message,'error')}};
+    document.getElementById('pricing-update-push-btn').addEventListener('click',savePricing);
+    document.getElementById('pricing-update-rideon-btn').addEventListener('click',savePricing);
+    onAuthStateChanged(auth,async(user)=>{if(user){localStorage.setItem('isLoggedIn','true');let token=await user.getIdToken();await loadProfile(token)}else{localStorage.removeItem('isLoggedIn');window.location.href='index.html#final-cta'}});
   </script>
 </body>
 </html>

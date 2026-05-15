@@ -5,38 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="sms.js" defer></script>
   <link rel="stylesheet" href="./index-FsI4UGjo.css">
   <script src="header.js" defer></script>
+  <script src="sms.js" defer></script>
   <title>Sign In / Sign Up • Deep Edge</title>
   <style>
     :root {
-      --bg: #f8f9fc;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --accent: #7c3aed;
+      --purple: #7B2D8E;
+      --purple-dark: #662375;
       --green: #10b981;
       --green-dark: #059669;
-      --yellow: #d97706;
-      --blue: #2563eb;
-      --red: #dc2626;
+      --text: #1B1B2F;
+      --muted: #6b7280;
       --border: #e5e7eb;
-      --radius: 14px;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 16px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #F3EEF9 0%, #F7F2FC 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -44,43 +35,39 @@
       justify-content: center;
       padding: 20px;
       color: var(--text);
-      padding-top: 0 !important;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
     }
 
     .login-container {
       width: 100%;
       max-width: 420px;
-      background: var(--card);
-      border-radius: var(--radius);
+      background: white;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 24px 70px rgba(27, 27, 47, 0.12);
       animation: slideUp 0.4s ease-out;
-      margin: auto;
-      margin-top: 100px;
     }
 
     @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
       font-size: 2rem;
       font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 8px;
-      letter-spacing: -0.5px;
+      color: var(--purple);
+      margin-bottom: 6px;
     }
 
     .subtitle {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       margin-bottom: 32px;
       font-weight: 500;
     }
@@ -93,27 +80,27 @@
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: var(--text);
     }
 
     input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      padding: 14px 16px;
+      border: 1px solid rgba(229, 231, 235, 0.6);
+      border-radius: 999px;
       font-size: 0.95rem;
-      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', sans-serif;
       color: var(--text);
-      background: #fafbfc;
+      background: rgba(255, 255, 255, 0.8);
       transition: all 0.25s;
     }
 
     input:focus {
       outline: none;
-      border-color: var(--accent);
+      border-color: var(--purple);
       background: white;
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      box-shadow: 0 0 0 5px rgba(123, 45, 142, 0.08);
     }
 
     input:disabled {
@@ -122,12 +109,12 @@
       cursor: not-allowed;
     }
 
-    /* Password Requirements */
     .password-requirements {
       margin-top: 12px;
-      padding: 12px;
-      background: #f9fafb;
-      border-radius: 6px;
+      padding: 14px 16px;
+      background: rgba(247, 242, 252, 0.5);
+      border: 1px solid rgba(229, 231, 235, 0.4);
+      border-radius: 12px;
       font-size: 0.85rem;
     }
 
@@ -156,45 +143,45 @@
 
     button {
       flex: 1;
-      padding: 12px 16px;
+      padding: 14px 16px;
       font-size: 0.95rem;
       font-weight: 600;
       border: none;
-      border-radius: 8px;
+      border-radius: 999px;
       cursor: pointer;
       transition: all 0.25s;
-      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', sans-serif;
       min-height: 44px;
     }
 
     #btnSignUp {
-      background: var(--accent);
+      background: var(--purple);
       color: white;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+      box-shadow: 0 4px 15px rgba(123, 45, 142, 0.25);
     }
 
     #btnSignUp:hover:not(:disabled) {
-      background: #6d28d9;
+      background: var(--purple-dark);
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+      box-shadow: 0 8px 20px rgba(123, 45, 142, 0.35);
     }
 
     #btnSignIn {
       background: white;
-      color: var(--accent);
-      border: 2px solid var(--accent);
+      color: var(--purple);
+      border: 2px solid var(--purple);
     }
 
     #btnSignIn:hover:not(:disabled) {
-      background: #f3f0ff;
+      background: rgba(247, 242, 252, 0.9);
       transform: translateY(-2px);
     }
 
     #btnSignOut {
-      background: var(--red);
+      background: #dc2626;
       color: white;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
     }
 
     #btnSignOut:hover:not(:disabled) {
@@ -207,46 +194,37 @@
       cursor: not-allowed;
     }
 
-    button:active:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
     #message {
       min-height: 1.4em;
       padding: 14px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 0.9rem;
       line-height: 1.5;
       margin-top: 16px;
-      border: 1px solid transparent;
       animation: fadeIn 0.3s ease-out;
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .success {
       background: #ecfdf5;
       color: #047857;
-      border-color: #a7f3d0;
+      border: 1px solid #a7f3d0;
     }
 
     .error {
       background: #fef2f2;
       color: #b91c1c;
-      border-color: #fecaca;
+      border: 1px solid #fecaca;
     }
 
     .info {
       background: #eff6ff;
       color: #1e40af;
-      border-color: #bfdbfe;
+      border: 1px solid #bfdbfe;
     }
 
     .hidden {
@@ -261,7 +239,7 @@
     }
 
     .form-footer a {
-      color: var(--accent);
+      color: var(--purple);
       text-decoration: none;
       font-weight: 600;
     }
@@ -274,47 +252,10 @@
       .login-container {
         padding: 32px 20px;
       }
-
-      h1 {
-        font-size: 1.75rem;
-      }
-
-      .buttons {
-        flex-direction: column;
-      }
-    }
-
-    /* Override styles.css header for login page */
-    .header-overlay {
-      background: var(--bg) !important;
-    }
-
-    .header-nav {
-      background: var(--bg) !important;
-    }
-
-  </style>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Override styles.css header for login page */
-    .header-overlay {
-      background: var(--bg) !important;
-    }
-
-    .header-nav {
-      background: var(--bg) !important;
-    }
-
-    .menu-hamburger {
-      width: auto !important;
-      flex: 0 0 auto !important;
-    }
-
-    .header-content {
-      flex-wrap: wrap !important;
+      h1 { font-size: 1.75rem; }
+      .buttons { flex-direction: column; }
     }
   </style>
-  <script src="header.js" defer></script>
 </head>
 <body>
   <div class="login-container">
@@ -396,7 +337,6 @@
 
     const WORKER_URL = "https://firebase-protected-backend.jamesisarad.workers.dev";
 
-    // Password validation helper
     const validatePassword = (password) => {
       return {
         length: password.length >= 6,
@@ -411,7 +351,6 @@
       return rules.length && rules.lower && rules.upper && rules.number;
     };
 
-    // Update password requirements display
     passwordEl.addEventListener('input', () => {
       const password = passwordEl.value;
       if (password.length > 0) {
@@ -419,9 +358,7 @@
       } else {
         passwordReqs.style.display = 'none';
       }
-
       const rules = validatePassword(password);
-
       updateRequirement('reqLength', rules.length);
       updateRequirement('reqLower', rules.lower);
       updateRequirement('reqUpper', rules.upper);
@@ -432,10 +369,10 @@
       const el = document.getElementById(id);
       if (met) {
         el.classList.add('met');
-        el.querySelector('.requirement-icon').textContent = '✓';
+        el.querySelector('.requirement-icon').textContent = '\u2713';
       } else {
         el.classList.remove('met');
-        el.querySelector('.requirement-icon').textContent = '○';
+        el.querySelector('.requirement-icon').textContent = '\u25CB';
       }
     };
 
@@ -444,11 +381,9 @@
       msgEl.className = type;
     }
 
-    // Improved error message parsing
     const parseFirebaseError = (error) => {
       const code = error.code;
       const message = error.message;
-
       const errorMap = {
         'auth/email-already-in-use': 'This email is already registered. Please sign in instead.',
         'auth/invalid-email': 'Please enter a valid email address.',
@@ -459,11 +394,9 @@
         'auth/operation-not-allowed': 'Sign up is currently disabled.',
         'auth/network-request-failed': 'Network error. Please check your connection.',
       };
-
       return errorMap[code] || message || 'An error occurred. Please try again.';
     };
 
-    // Default profile created on sign-up
     const defaultProfile = {
       companyName: "My Lawn Business",
       nzbn: "",
@@ -474,7 +407,6 @@
       updatedAt: new Date().toISOString()
     };
 
-    // Create user profile in USERS_KV after sign-up
     async function createUserProfile(user) {
       const token = await user.getIdToken();
       const profile = {
@@ -502,41 +434,25 @@
       }
     }
 
-    // Sign Up
     btnSignUp.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-
-      if (!email) {
-        showMessage("Please enter your email address.", "error");
-        return;
-      }
-
-      if (!pass) {
-        showMessage("Please enter a password.", "error");
-        return;
-      }
-
+      if (!email) { showMessage("Please enter your email address.", "error"); return; }
+      if (!pass) { showMessage("Please enter a password.", "error"); return; }
       if (!isPasswordValid(pass)) {
         showMessage("Password must contain at least 6 characters, including uppercase, lowercase, and a number.", "error");
         return;
       }
-
       btnSignUp.disabled = true;
-
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const user = cred.user;
-
         await sendEmailVerification(user);
-        showMessage("✓ Account created! Please check your email to verify your address (check spam folder).", "success");
-
+        showMessage("\u2713 Account created! Please check your email to verify your address (check spam folder).", "success");
         await createUserProfile(user);
-
         emailEl.value = '';
         passwordEl.value = '';
         passwordReqs.style.display = 'none';
-
       } catch (error) {
         const friendlyError = parseFirebaseError(error);
         showMessage(friendlyError, "error");
@@ -545,23 +461,12 @@
       }
     });
 
-    // Sign In
     btnSignIn.addEventListener('click', async () => {
       const email = emailEl.value.trim();
       const pass = passwordEl.value;
-
-      if (!email) {
-        showMessage("Please enter your email address.", "error");
-        return;
-      }
-
-      if (!pass) {
-        showMessage("Please enter your password.", "error");
-        return;
-      }
-
+      if (!email) { showMessage("Please enter your email address.", "error"); return; }
+      if (!pass) { showMessage("Please enter your password.", "error"); return; }
       btnSignIn.disabled = true;
-
       try {
         await signInWithEmailAndPassword(auth, email, pass);
       } catch (error) {
@@ -571,7 +476,6 @@
       }
     });
 
-    // Sign Out
     btnSignOut.addEventListener('click', async () => {
       btnSignOut.disabled = true;
       try {
@@ -584,28 +488,22 @@
       }
     });
 
-    // Auth state observer
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         await reload(user);
         const verified = user.emailVerified;
-
         btnSignOut.classList.remove('hidden');
         btnSignIn.classList.add('hidden');
         btnSignUp.classList.add('hidden');
         emailEl.disabled = true;
         passwordEl.disabled = true;
-
         if (verified) {
-          showMessage("✓ Email verified! Redirecting...", "success");
+          showMessage("\u2713 Email verified! Redirecting...", "success");
           localStorage.setItem('isLoggedIn', 'true');
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 800);
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
         } else {
-          showMessage("⏳ Please verify your email first. Check your inbox (and spam folder).", "info");
+          showMessage("\u23F3 Please verify your email first. Check your inbox (and spam folder).", "info");
         }
-
       } else {
         showMessage("Enter your email and password to continue", "info");
         btnSignOut.classList.add('hidden');
