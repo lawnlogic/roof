@@ -251,7 +251,8 @@
   position:relative;
   animation:fadeInUp 0.6s 0.08s var(--ease-out) both;
   }
-  .hero-visual svg{
+  .hero-visual svg,
+  .hero-visual img{
   display:block;
   width:100%;
   height:auto;
@@ -1269,100 +1270,7 @@
 
   <!-- Hero image with price badge -->
   <div class="hero-visual">
-    <svg viewBox="0 0 700 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Sky gradient -->
-    <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-0">
-      <stop offset="0%" stop-color="#1a1e2e"></stop>
-      <stop offset="100%" stop-color="#0f172a"></stop>
-    </linearGradient>
-    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-1">
-      <stop offset="0%" stop-color="#1a3a2a"></stop>
-      <stop offset="100%" stop-color="#0d2818"></stop>
-    </linearGradient>
-    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-2">
-      <stop offset="0%" stop-color="#2a2a35"></stop>
-      <stop offset="100%" stop-color="#1a1a24"></stop>
-    </linearGradient>
-    <filter id="glow" data-od-id="path-1-0-4-0-0-3">
-      <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
-      <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
-    </filter>
-    <!-- Scanning line pattern -->
-    <pattern id="scanLines" width="6" height="6" patternUnits="userSpaceOnUse" data-od-id="path-1-0-4-0-0-4">
-      <rect width="6" height="3" fill="rgba(192,132,252,0.04)"></rect>
-    </pattern>
-    </defs>
-
-    <!-- Sky -->
-    <rect width="700" height="420" fill="url(#sky)"></rect>
-
-    <!-- Distant hills -->
-    <ellipse cx="200" cy="240" rx="280" ry="60" fill="#1a2a20" opacity="0.5"></ellipse>
-    <ellipse cx="550" cy="250" rx="250" ry="50" fill="#162420" opacity="0.4"></ellipse>
-
-    <!-- Property boundary highlight -->
-    <rect x="120" y="200" width="460" height="180" rx="6" fill="none" stroke="rgba(192,132,252,0.12)" stroke-width="2" stroke-dasharray="8 4"></rect>
-
-    <!-- House body -->
-    <rect x="260" y="230" width="180" height="130" rx="2" fill="url(#roof)" stroke="#3a3a45" stroke-width="1"></rect>
-    <!-- Roof -->
-    <polygon points="240,235 350,175 460,235" fill="#3a3a45" stroke="#4a4a55" stroke-width="1"></polygon>
-    <!-- Chimney -->
-    <rect x="300" y="180" width="14" height="30" fill="#2a2a35" stroke="#3a3a45" stroke-width="0.5"></rect>
-
-    <!-- Windows -->
-    <rect x="278" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-    <rect x="310" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-    <rect x="370" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-    <!-- Door -->
-    <rect x="340" y="300" width="30" height="60" rx="2" fill="#2a2a35" stroke="#3a3a45" stroke-width="1"></rect>
-
-    <!-- Driveway -->
-    <path d="M370 360 L320 420" stroke="rgba(255,255,255,0.04)" stroke-width="18"></path>
-
-    <!-- Lawn area scan overlay -->
-    <rect x="140" y="210" width="420" height="170" rx="10" fill="url(#scanLines)" opacity="0.6"></rect>
-
-    <!-- Scan beam -->
-    <rect x="140" y="225" width="420" height="3" fill="rgba(192,132,252,0.15)" filter="url(#glow)" opacity="0.8">
-    <animate attributeName="y" from="210" to="370" dur="2.5s" repeatCount="indefinite"></animate>
-    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2.5s" repeatCount="indefinite"></animate>
-    </rect>
-
-    <!-- Measurement lines on lawn -->
-    <line x1="145" y1="260" x2="555" y2="260" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
-    <line x1="145" y1="300" x2="555" y2="300" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
-    <line x1="145" y1="340" x2="555" y2="340" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
-
-    <!-- Dimension labels -->
-    <text x="560" y="270" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">42.3m</text>
-    <text x="560" y="310" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">18.7m</text>
-
-    <!-- Area label -->
-    <rect x="300" y="280" width="80" height="20" rx="4" fill="rgba(123,45,142,0.12)" stroke="rgba(123,45,142,0.2)" stroke-width="0.5"></rect>
-    <text x="340" y="294" fill="#c084fc" font-size="9" font-family="monospace" font-weight="600" text-anchor="middle">342m²</text>
-
-    <!-- Fence line -->
-    <rect x="600" y="215" width="2" height="170" fill="rgba(255,255,255,0.06)"></rect>
-
-    <!-- Trees -->
-    <circle cx="100" cy="230" r="18" fill="rgba(16,185,129,0.08)"></circle>
-    <circle cx="100" cy="230" r="10" fill="rgba(16,185,129,0.06)"></circle>
-
-    <!-- Small satellite icon top right -->
-    <circle cx="620" cy="60" r="8" fill="none" stroke="rgba(192,132,252,0.15)" stroke-width="1" stroke-dasharray="3 2">
-    <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"></animate>
-    </circle>
-    <circle cx="620" cy="60" r="2" fill="rgba(192,132,252,0.2)"></circle>
-
-    <!-- Grid lines -->
-    <line x1="0" y1="400" x2="700" y2="400" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"></line>
-    <line x1="0" y1="380" x2="700" y2="380" stroke="rgba(255,255,255,0.01)" stroke-width="0.5"></line>
-
-    <!-- Ground fill -->
-    <rect x="0" y="390" width="700" height="30" fill="url(#grass)"></rect>
-    </svg>
+    <img src="hero_lawn.png" alt="Deep Edge lawn measurement">
 
     <!-- Overlaid price badge -->
     <div class="price-badge">
