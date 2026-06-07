@@ -1,787 +1,770 @@
 <!doctype html>
 <html lang="en"><head><script data-od-sandbox-shim="">(function(){
   function makeStore(){
-    var data = {};
-    var api = {
-      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
-      setItem: function(k, v){ data[k] = String(v); },
-      removeItem: function(k){ delete data[k]; },
-      clear: function(){ data = {}; },
-      key: function(i){ return Object.keys(data)[i] || null; }
-    };
-    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
-    return api;
+  var data = {};
+  var api = {
+  getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+  setItem: function(k, v){ data[k] = String(v); },
+  removeItem: function(k){ delete data[k]; },
+  clear: function(){ data = {}; },
+  key: function(i){ return Object.keys(data)[i] || null; }
+  };
+  Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+  return api;
   }
   function tryShim(name){
-    var works = false;
-    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
-    catch (_) { works = false; }
-    if (works) return;
-    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
-    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  var works = false;
+  try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+  catch (_) { works = false; }
+  if (works) return;
+  try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+  catch (_) { try { window[name] = makeStore(); } catch (__) {} }
   }
   tryShim('localStorage');
   tryShim('sessionStorage');
   document.addEventListener('click', (e) => {
-    if (!e.target || !(e.target instanceof Element)) return;
-    var link = e.target.closest('a[href]');
-    if (!link) return;
-    var href = link.getAttribute('href');
-    if (href === null) return;
-    var isAnchor = href.startsWith('#') || href === '';
-    if (isAnchor) {
-      e.preventDefault();
-      if (href === '' || href === '#') {
-        window.scrollTo({ top: 0 });
-        history.replaceState(null, '', ' ');
-      } else {
-        var targetId = href.slice(1);
-        var target = targetId ? document.getElementById(targetId) : null;
-        if (target) {
-          target.scrollIntoView();
-          location.hash === href && history.replaceState(null, '', ' ');
-          location.hash = href;
-        }
-      }
-    } else if (link.getAttribute('target') === '_blank') {
-      e.preventDefault();
-      let safe = false;
-      try {
-        var url = new URL(href, location.href);
-        safe =
-          url.protocol === 'http:' ||
-          url.protocol === 'https:' ||
-          url.protocol === 'mailto:';
-      } catch (_) {}
-      safe && window.open(href, '_blank', 'noopener,noreferrer');
+  if (!e.target || !(e.target instanceof Element)) return;
+  var link = e.target.closest('a[href]');
+  if (!link) return;
+  var href = link.getAttribute('href');
+  if (href === null) return;
+  var isAnchor = href.startsWith('#') || href === '';
+  if (isAnchor) {
+  e.preventDefault();
+  if (href === '' || href === '#') {
+    window.scrollTo({ top: 0 });
+    history.replaceState(null, '', ' ');
+  } else {
+    var targetId = href.slice(1);
+    var target = targetId ? document.getElementById(targetId) : null;
+    if (target) {
+    target.scrollIntoView();
+    location.hash === href && history.replaceState(null, '', ' ');
+    location.hash = href;
     }
+  }
+  } else if (link.getAttribute('target') === '_blank') {
+  e.preventDefault();
+  let safe = false;
+  try {
+    var url = new URL(href, location.href);
+    safe =
+    url.protocol === 'http:' ||
+    url.protocol === 'https:' ||
+    url.protocol === 'mailto:';
+  } catch (_) {}
+  safe && window.open(href, '_blank', 'noopener,noreferrer');
+  }
   });
 })();</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Deep Edge — The only tool Kiwi lawn operators need</title>
+  <title>Deep Edge The only tool Kiwi lawn operators need</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:            #08090d;
-      --surface:       #111318;
-      --surface-alt:   #16181e;
-      --fg:            #f1f5f9;
-      --fg-dim:        #94a3b8;
-      --fg-muted:      #64748b;
-      --border:        rgba(255,255,255,0.06);
-      --border-strong: rgba(255,255,255,0.10);
+  :root {
+  color-scheme:only dark;`n --bg:    #08090d;
+  --surface:   #111318;
+  --surface-alt: #16181e;
+  --fg:    #f1f5f9;
+  --fg-dim:    #94a3b8;
+  --fg-muted:  #64748b;
+  --border:    rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.10);
 
-      --accent:        #7B2D8E;
-      --accent-hover:  #9b3db0;
-      --accent-soft:   rgba(123,45,142,0.14);
-      --accent-glow:   rgba(123,45,142,0.28);
-      --accent-ring:   rgba(123,45,142,0.45);
-      --accent-text:   #c084fc;
+  --accent:    #7B2D8E;
+  --accent-hover:  #9b3db0;
+  --accent-soft: rgba(123,45,142,0.14);
+  --accent-glow: rgba(123,45,142,0.28);
+  --accent-ring: rgba(123,45,142,0.45);
+  --accent-text: #c084fc;
 
-      --success:       #10b981;
-      --success-soft:  rgba(16,185,129,0.12);
+  --success:   #10b981;
+  --success-soft:  rgba(16,185,129,0.12);
 
-      --radius-sm:   8px;
-      --radius-md:   14px;
-      --radius-lg:   20px;
-      --radius-xl:   24px;
-      --radius-full: 999px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
 
-      --space-xs:  6px;
-      --space-sm:  12px;
-      --space-md:  20px;
-      --space-lg:  32px;
-      --space-xl:  48px;
-      --space-2xl: 72px;
-      --space-3xl: 96px;
+  --space-xs:  6px;
+  --space-sm:  12px;
+  --space-md:  20px;
+  --space-lg:  32px;
+  --space-xl:  48px;
+  --space-2xl: 72px;
+  --space-3xl: 96px;
 
-      --ease-out:    cubic-bezier(0.16,1,0.3,1);
-      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-      --ease-smooth: cubic-bezier(0.4,0,0.2,1);
-    }
+  --ease-out:  cubic-bezier(0.16,1,0.3,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+  }
 
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    html{
-      scroll-behavior:smooth;
-      background:var(--bg);
-      color:var(--fg);
-      font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
-      font-size:16px;
-      line-height:1.6;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+  html{
+  scroll-behavior:smooth;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  }
 
-    body{
-      min-height:100vh;
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(123,45,142,0.10) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 20% 50%,  rgba(6,182,212,0.03)  0%, transparent 50%),
-        radial-gradient(ellipse 40% 50% at 85% 80%,  rgba(123,45,142,0.05) 0%, transparent 50%),
-        var(--bg);
-      overflow-x:hidden;
-    }
+  body{
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(123,45,142,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 50%,  rgba(6,182,212,0.03)  0%, transparent 50%),
+    radial-gradient(ellipse 40% 50% at 85% 80%,  rgba(123,45,142,0.05) 0%, transparent 50%),
+    var(--bg);
+  overflow-x:hidden;
+  }
 
-    /* ── Ambient orbs ──────────────────────────────── */
-    .ambient-orbs{
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      overflow:hidden;
-    }
-    .ambient-orbs .orb{
-      position:absolute;
-      border-radius:50%;
-      filter:blur(120px);
-      opacity:0.18;
-      animation:orbDrift 20s ease-in-out infinite;
-    }
-    .ambient-orbs .orb:nth-child(1){
-      width:600px;height:600px;
-      background:rgba(123,45,142,0.25);
-      top:-200px;left:-150px;
-      animation-delay:0s;
-    }
-    .ambient-orbs .orb:nth-child(2){
-      width:500px;height:500px;
-      background:rgba(6,182,212,0.12);
-      bottom:-150px;right:-150px;
-      animation-delay:-8s;
-      animation-duration:24s;
-    }
-    .ambient-orbs .orb:nth-child(3){
-      width:400px;height:400px;
-      background:rgba(123,45,142,0.15);
-      top:50%;left:60%;
-      animation-delay:-14s;
-      animation-duration:28s;
-    }
-    @keyframes orbDrift{
-      0%,100%{transform:translate(0,0) scale(1)}
-      25%{transform:translate(80px,-40px) scale(1.12)}
-      50%{transform:translate(-30px,60px) scale(0.94)}
-      75%{transform:translate(-60px,-20px) scale(1.06)}
-    }
+  /* ── Ambient orbs ──────────────────────────────── */
+  .ambient-orbs{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  overflow:hidden;
+  }
+  .ambient-orbs .orb{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(120px);
+  opacity:0.18;
+  animation:orbDrift 20s ease-in-out infinite;
+  }
+  .ambient-orbs .orb:nth-child(1){
+  width:600px;height:600px;
+  background:rgba(123,45,142,0.25);
+  top:-200px;left:-150px;
+  animation-delay:0s;
+  }
+  .ambient-orbs .orb:nth-child(2){
+  width:500px;height:500px;
+  background:rgba(6,182,212,0.12);
+  bottom:-150px;right:-150px;
+  animation-delay:-8s;
+  animation-duration:24s;
+  }
+  .ambient-orbs .orb:nth-child(3){
+  width:400px;height:400px;
+  background:rgba(123,45,142,0.15);
+  top:50%;left:60%;
+  animation-delay:-14s;
+  animation-duration:28s;
+  }
+  @keyframes orbDrift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(80px,-40px) scale(1.12)}
+  50%{transform:translate(-30px,60px) scale(0.94)}
+  75%{transform:translate(-60px,-20px) scale(1.06)}
+  }
 
-    /* ── Typography ─────────────────────────────────── */
-    .display{
-      font-family:'Space Grotesk','Inter',system-ui,sans-serif;
-      font-weight:700;
-      letter-spacing:-0.025em;
-      line-height:1.08;
-    }
-    h1.display{font-size:clamp(2rem,5.5vw,3.5rem)}
-    h2.display{font-size:clamp(1.6rem,3.5vw,2.3rem)}
-    h3.display{font-size:clamp(1.1rem,2.5vw,1.4rem)}
+  /* ── Typography ─────────────────────────────────── */
+  .display{
+  font-family:'Space Grotesk','Inter',system-ui,sans-serif;
+  font-weight:700;
+  letter-spacing:-0.025em;
+  line-height:1.08;
+  }
+  h1.display{font-size:clamp(2rem,5.5vw,3.5rem)}
+  h2.display{font-size:clamp(1.6rem,3.5vw,2.3rem)}
+  h3.display{font-size:clamp(1.1rem,2.5vw,1.4rem)}
 
-    .body-lg  {font-size:1.05rem;line-height:1.7;color:var(--fg-dim)}
-    .body-base{font-size:0.95rem;line-height:1.65;color:var(--fg-dim)}
-    .body-sm  {font-size:0.85rem;line-height:1.6;color:var(--fg-muted)}
-    .caption  {font-size:0.78rem;color:var(--fg-muted);letter-spacing:0.02em}
+  .body-lg  {font-size:1.05rem;line-height:1.7;color:var(--fg-dim)}
+  .body-base{font-size:0.95rem;line-height:1.65;color:var(--fg-dim)}
+  .body-sm  {font-size:0.85rem;line-height:1.6;color:var(--fg-muted)}
+  .caption  {font-size:0.78rem;color:var(--fg-muted);letter-spacing:0.02em}
 
-    /* ── Layout ─────────────────────────────────────── */
-    section{
-      padding:var(--space-2xl) var(--space-md);
-      position:relative;
-      z-index:1;
-    }
-    .container{
-      max-width:1100px;
-      margin:0 auto;
-      width:100%;
-    }
-    .container-narrow{
-      max-width:680px;
-      margin:0 auto;
-      width:100%;
-      text-align:center;
-    }
-    .section-label{
-      display:inline-block;
-      text-transform:uppercase;
-      letter-spacing:0.1em;
-      font-size:0.72rem;
-      font-weight:600;
-      color:var(--accent-text);
-      margin-bottom:var(--space-sm);
-    }
+  /* ── Layout ─────────────────────────────────────── */
+  section{
+  padding:var(--space-2xl) var(--space-md);
+  position:relative;
+  z-index:1;
+  }
+  .container{
+  max-width:1100px;
+  margin:0 auto;
+  width:100%;
+  }
+  .container-narrow{
+  max-width:680px;
+  margin:0 auto;
+  width:100%;
+  text-align:center;
+  }
+  .section-label{
+  display:inline-block;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  font-size:0.72rem;
+  font-weight:600;
+  color:var(--accent-text);
+  margin-bottom:var(--space-sm);
+  }
 
-    /* ── Logo ───────────────────────────────────────── */
-    .logo-wrap{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:12px;
-      margin-bottom:var(--space-lg);
-      animation:fadeInUp 0.6s var(--ease-out) forwards;
-    }
-    .logo-wrap img{
-      height:clamp(40px,7vw,58px);
-      width:auto;
-      display:block;
-      animation:logoFloat 5s ease-in-out infinite;
-    }
-    .logo-text{
-      font-family:'Space Grotesk',sans-serif;
-      font-weight:700;
-      font-size:clamp(1.6rem,3.5vw,2.6rem);
-      letter-spacing:-0.03em;
-      background:linear-gradient(135deg,#f1f5f9 0%,#d8b4fe 60%);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      background-clip:text;
-      animation:logoFloat 5s ease-in-out 0.3s infinite;
-    }
-    @keyframes logoFloat{
-      0%,100%{transform:translateY(0)}
-      50%{transform:translateY(-6px)}
-    }
+  /* ── Logo ───────────────────────────────────────── */
+  .logo-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:var(--space-lg);
+  animation:fadeInUp 0.6s var(--ease-out) forwards;
+  }
+  .logo-wrap img{
+  height:clamp(40px,7vw,58px);
+  width:auto;
+  display:block;
+  animation:logoFloat 5s ease-in-out infinite;
+  }
+  .logo-text{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:clamp(1.6rem,3.5vw,2.6rem);
+  letter-spacing:-0.03em;
+  background:linear-gradient(135deg,#f1f5f9 0%,#d8b4fe 60%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:logoFloat 5s ease-in-out 0.3s infinite;
+  }
+  @keyframes logoFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+  }
 
-    /* ── Hero Image ─────────────────────────────────── */
-    .hero-visual{
-      max-width:700px;
-      margin:0 auto var(--space-xl);
-      border-radius:var(--radius-xl);
-      overflow:hidden;
-      position:relative;
-      animation:fadeInUp 0.6s 0.08s var(--ease-out) both;
-    }
-    .hero-visual svg{
-      display:block;
-      width:100%;
-      height:auto;
-    }
+  /* ── Hero Image ─────────────────────────────────── */
+  .hero-visual{
+  max-width:700px;
+  margin:0 auto var(--space-xl);
+  border-radius:var(--radius-xl);
+  overflow:hidden;
+  position:relative;
+  animation:fadeInUp 0.6s 0.08s var(--ease-out) both;
+  }
+  .hero-visual svg{
+  display:block;
+  width:100%;
+  height:auto;
+  }
 
-    /* Overlaid price badge on hero image */
-    .price-badge{
-      position:absolute;
-      top:12%;
-      right:8%;
-      background:rgba(8,9,13,0.82);
-      backdrop-filter:blur(12px);
-      -webkit-backdrop-filter:blur(12px);
-      border:1px solid rgba(123,45,142,0.25);
-      border-radius:var(--radius-md);
-      padding:10px 18px;
-      text-align:center;
-      animation:fadeInUp 0.6s 0.4s var(--ease-out) both;
-    }
-    .price-badge .amount{
-      font-family:'Space Grotesk',sans-serif;
-      font-weight:700;
-      font-size:1.6rem;
-      color:var(--accent-text);
-      line-height:1;
-    }
-    .price-badge .label{
-      font-size:0.65rem;
-      color:var(--fg-muted);
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      margin-top:2px;
-    }
-    .price-badge .tag{
-      display:inline-block;
-      margin-top:4px;
-      padding:2px 8px;
-      background:rgba(16,185,129,0.15);
-      color:#34d399;
-      font-size:0.6rem;
-      border-radius:4px;
-      font-weight:500;
-    }
+  /* Overlaid price badge on hero image */
+  .price-badge{
+  position:absolute;
+  top:12%;
+  right:8%;
+  background:rgba(8,9,13,0.82);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(123,45,142,0.25);
+  border-radius:var(--radius-md);
+  padding:10px 18px;
+  text-align:center;
+  animation:fadeInUp 0.6s 0.4s var(--ease-out) both;
+  }
+  .price-badge .amount{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:1.6rem;
+  color:var(--accent-text);
+  line-height:1;
+  }
+  .price-badge .label{
+  font-size:0.65rem;
+  color:var(--fg-muted);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin-top:2px;
+  }
+  .price-badge .tag{
+  display:inline-block;
+  margin-top:4px;
+  padding:2px 8px;
+  background:rgba(16,185,129,0.15);
+  color:#34d399;
+  font-size:0.6rem;
+  border-radius:4px;
+  font-weight:500;
+  }
 
-    /* ── Hero ───────────────────────────────────────── */
-    .hero{
-      min-height:90vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding-top:var(--space-2xl);
-      padding-bottom:var(--space-2xl);
-    }
-    .hero-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:5px 16px;
-      background:var(--accent-soft);
-      border:1px solid rgba(123,45,142,0.22);
-      border-radius:var(--radius-full);
-      font-size:0.78rem;
-      color:var(--accent-text);
-      font-weight:500;
-      margin-bottom:var(--space-sm);
-      animation:fadeInUp 0.5s 0.08s var(--ease-out) both;
-    }
-    .pulse-dot{
-      width:7px;height:7px;
-      border-radius:50%;
-      background:var(--accent-text);
-      display:inline-block;
-      animation:pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse{
-      0%,100%{opacity:1;transform:scale(1)}
-      50%{opacity:0.35;transform:scale(1.7)}
-    }
-    .hero h1{
-      margin-bottom:var(--space-sm);
-      background:linear-gradient(135deg,#f1f5f9 0%,#d8b4fe 40%,#67e8f9 85%,#f1f5f9 100%);
-      background-size:200% 200%;
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      background-clip:text;
-      animation:fadeInUp 0.5s 0.14s var(--ease-out) both, shimmer 6s ease-in-out infinite;
-      max-width:720px;
-      margin-left:auto;
-      margin-right:auto;
-    }
-    @keyframes shimmer{
-      0%,100%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-    }
-    .hero .sub{
-      max-width:500px;
-      margin:0 auto var(--space-lg);
-      animation:fadeInUp 0.5s 0.22s var(--ease-out) both;
-    }
+  /* ── Hero ───────────────────────────────────────── */
+  .hero{
+  min-height:90vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding-top:var(--space-2xl);
+  padding-bottom:var(--space-2xl);
+  }
+  .hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 16px;
+  background:var(--accent-soft);
+  border:1px solid rgba(123,45,142,0.22);
+  border-radius:var(--radius-full);
+  font-size:0.78rem;
+  color:var(--accent-text);
+  font-weight:500;
+  margin-bottom:var(--space-sm);
+  animation:fadeInUp 0.5s 0.08s var(--ease-out) both;
+  }
+  .pulse-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--accent-text);
+  display:inline-block;
+  animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.35;transform:scale(1.7)}
+  }
+  .hero h1{
+  margin-bottom:var(--space-sm);
+  background:linear-gradient(135deg,#f1f5f9 0%,#d8b4fe 40%,#67e8f9 85%,#f1f5f9 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:fadeInUp 0.5s 0.14s var(--ease-out) both, shimmer 6s ease-in-out infinite;
+  max-width:720px;
+  margin-left:auto;
+  margin-right:auto;
+  }
+  @keyframes shimmer{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  }
+  .hero .sub{
+  max-width:500px;
+  margin:0 auto var(--space-lg);
+  animation:fadeInUp 0.5s 0.22s var(--ease-out) both;
+  }
 
-    /* ── Big CTA button (hero) ──────────────────────── */
-    .hero-btn-wrap{
-      animation:fadeInUp 0.5s 0.30s var(--ease-out) both;
-    }
-    .hero-btn{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:16px 40px;
-      border-radius:var(--radius-full);
-      font-family:'Inter',system-ui,sans-serif;
-      font-size:1.05rem;
-      font-weight:600;
-      border:0;
-      cursor:pointer;
-      white-space:nowrap;
-      transition:all 0.25s var(--ease-out);
-      text-decoration:none;
-      letter-spacing:-0.01em;
-      -webkit-tap-highlight-color:transparent;
-      background:var(--accent);
-      color:#fff;
-      position:relative;
-      overflow:hidden;
-    }
-    .hero-btn::after{
-      content:'';
-      position:absolute;
-      inset:0;
-      border-radius:inherit;
-      background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);
-      transform:translateX(-100%);
-      transition:transform 0.5s var(--ease-out);
-    }
-    .hero-btn:hover::after{
-      transform:translateX(100%);
-    }
-    .hero-btn:hover{
-      background:var(--accent-hover);
-      box-shadow:0 8px 30px var(--accent-glow);
-      transform:translateY(-2px);
-    }
-    .hero-btn:active{
-      transform:scale(0.97);
-    }
-    .hero-btn .btn-arrow{
-      width:18px;height:18px;
-      transition:transform 0.3s var(--ease-spring);
-    }
-    .hero-btn:hover .btn-arrow{
-      transform:translateX(3px);
-    }
+  /* ── Big CTA button (hero) ──────────────────────── */
+  .hero-btn-wrap{
+  animation:fadeInUp 0.5s 0.30s var(--ease-out) both;
+  }
+  .hero-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 40px;
+  border-radius:var(--radius-full);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:1.05rem;
+  font-weight:600;
+  border:0;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all 0.25s var(--ease-out);
+  text-decoration:none;
+  letter-spacing:-0.01em;
+  -webkit-tap-highlight-color:transparent;
+  background:var(--accent-hover);
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 8px 30px var(--accent-glow);
+  transform:translateY(-2px);
+  }
+  .hero-btn::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);
+  transform:translateX(100%);
+  }
+  .hero-btn:active{
+  transform:scale(0.97);
+  }
 
-    .hero-trust{
-      margin-top:var(--space-md);
-      animation:fadeInUp 0.5s 0.38s var(--ease-out) both;
-    }
-    .scroll-hint{
-      margin-top:var(--space-lg);
-      animation:fadeInUp 0.5s 0.46s var(--ease-out) both;
-    }
-    .scroll-hint span{
-      display:inline-block;
-      width:32px;height:32px;
-      border-radius:50%;
-      border:1.5px solid rgba(255,255,255,0.15);
-      animation:bounceDown 1.8s ease-in-out infinite;
-    }
-    .scroll-hint span::after{
-      content:'';
-      display:block;
-      width:6px;height:6px;
-      border-right:1.5px solid rgba(255,255,255,0.35);
-      border-bottom:1.5px solid rgba(255,255,255,0.35);
-      transform:rotate(45deg);
-      margin:8px auto 0;
-    }
-    @keyframes bounceDown{
-      0%,100%{transform:translateY(0);opacity:0.5}
-      50%{transform:translateY(10px);opacity:1}
-    }
+  .hero-trust{
+  margin-top:var(--space-md);
+  animation:fadeInUp 0.5s 0.38s var(--ease-out) both;
+  }
+  .scroll-hint{
+  margin-top:var(--space-lg);
+  animation:fadeInUp 0.5s 0.46s var(--ease-out) both;
+  }
+  .scroll-hint span{
+  display:inline-block;
+  width:32px;height:32px;
+  border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.15);
+  animation:bounceDown 1.8s ease-in-out infinite;
+  }
+  .scroll-hint span::after{
+  content:'';
+  display:block;
+  width:6px;height:6px;
+  border-right:1.5px solid rgba(255,255,255,0.35);
+  border-bottom:1.5px solid rgba(255,255,255,0.35);
+  transform:rotate(45deg);
+  margin:8px auto 0;
+  }
+  @keyframes bounceDown{
+  0%,100%{transform:translateY(0);opacity:0.5}
+  50%{transform:translateY(10px);opacity:1}
+  }
 
-    /* ── Email form (only in signup section) ────────── */
-    .email-form{
-      display:flex;
-      gap:10px;
-      max-width:460px;
-      margin:0 auto;
-    }
-    .email-form input{
-      flex:1;
-      padding:14px 18px;
-      background:var(--surface);
-      border:1px solid var(--border-strong);
-      border-radius:var(--radius-full);
-      color:var(--fg);
-      font-family:'Inter',system-ui,sans-serif;
-      font-size:0.95rem;
-      outline:none;
-      transition:border-color 0.25s var(--ease-out),box-shadow 0.25s var(--ease-out);
-    }
-    .email-form input:focus{
-      border-color:var(--accent);
-      box-shadow:0 0 0 4px var(--accent-soft);
-    }
-    .email-form input::placeholder{color:var(--fg-muted)}
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      padding:14px 28px;
-      border-radius:var(--radius-full);
-      font-family:'Inter',system-ui,sans-serif;
-      font-size:0.95rem;
-      font-weight:600;
-      border:0;
-      cursor:pointer;
-      white-space:nowrap;
-      transition:all 0.25s var(--ease-out);
-      text-decoration:none;
-      letter-spacing:-0.01em;
-      -webkit-tap-highlight-color:transparent;
-      position:relative;
-      overflow:hidden;
-    }
-    .btn-primary{
-      background:var(--accent);
-      color:#fff;
-    }
-    .btn-primary::after{
-      content:'';
-      position:absolute;
-      inset:0;
-      border-radius:inherit;
-      background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);
-      transform:translateX(-100%);
-      transition:transform 0.5s var(--ease-out);
-    }
-    .btn-primary:hover::after{transform:translateX(100%)}
-    .btn-primary:hover{
-      background:var(--accent-hover);
-      box-shadow:0 8px 28px var(--accent-glow);
-      transform:translateY(-1px);
-    }
-    .btn-primary:active{transform:scale(0.97)}
-    .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
-    .btn-spinner{
-      width:18px;height:18px;
-      border:2px solid rgba(255,255,255,0.3);
-      border-top-color:#fff;
-      border-radius:50%;
-      animation:spin 0.6s linear infinite;
-      display:none;
-    }
-    .btn.loading .btn-spinner{display:inline-block}
-    .btn.loading .btn-label{opacity:0}
-    .btn.loading{position:relative}
-    .btn.loading .btn-spinner{position:absolute}
-    @keyframes spin{to{transform:rotate(360deg)}}
+  /* ── Email form (only in signup section) ────────── */
+  .email-form{
+  display:flex;
+  gap:10px;
+  max-width:460px;
+  margin:0 auto;
+  }
+  .email-form input{
+  flex:1;
+  padding:14px 18px;
+  background:var(--surface);
+  border:1px solid var(--border-strong);
+  border-radius:var(--radius-full);
+  color:var(--fg);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:0.95rem;
+  outline:none;
+  transition:border-color 0.25s var(--ease-out),box-shadow 0.25s var(--ease-out);
+  }
+  .email-form input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px var(--accent-soft);
+  }
+  .email-form input::placeholder{color:var(--fg-muted)}
+  .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:14px 28px;
+  border-radius:var(--radius-full);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:0.95rem;
+  font-weight:600;
+  border:0;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all 0.25s var(--ease-out);
+  text-decoration:none;
+  letter-spacing:-0.01em;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;
+  overflow:hidden;
+  }
+  .btn-primary{
+  background:var(--accent);
+  color:#fff;
+  }
+  .btn-primary::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);
+  transform:translateX(-100%);
+  transition:transform 0.5s var(--ease-out);
+  }
+  .btn-primary:hover::after{transform:translateX(100%)}
+  .btn-primary:hover{
+  background:var(--accent-hover);
+  box-shadow:0 8px 28px var(--accent-glow);
+  transform:translateY(-1px);
+  }
+  .btn-primary:active{transform:scale(0.97)}
+  .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-spinner{
+  width:18px;height:18px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.6s linear infinite;
+  display:none;
+  }
+  .btn.loading .btn-spinner{display:inline-block}
+  .btn.loading .btn-label{opacity:0}
+  .btn.loading{position:relative}
+  .btn.loading .btn-spinner{position:absolute}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── Form feedback ──────────────────────────────── */
-    .form-success{
-      display:none;
-      text-align:center;
-      padding:var(--space-lg);
-    }
-    .form-success.show{display:block;animation:fadeInUp 0.4s var(--ease-spring)}
-    .success-icon{
-      width:56px;height:56px;
-      border-radius:50%;
-      background:var(--success-soft);
-      color:var(--success);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:1.6rem;
-      margin-bottom:var(--space-sm);
-      animation:popIn 0.45s var(--ease-spring) 0.15s both;
-    }
-    @keyframes popIn{
-      0%{transform:scale(0);opacity:0}
-      100%{transform:scale(1);opacity:1}
-    }
-    .form-error{
-      display:none;
-      color:#f87171;
-      font-size:0.8rem;
-      margin-top:var(--space-xs);
-    }
-    .form-error.show{display:block}
+  /* ── Form feedback ──────────────────────────────── */
+  .form-success{
+  display:none;
+  text-align:center;
+  padding:var(--space-lg);
+  }
+  .form-success.show{display:block;animation:fadeInUp 0.4s var(--ease-spring)}
+  .success-icon{
+  width:56px;height:56px;
+  border-radius:50%;
+  background:var(--success-soft);
+  color:var(--success);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  margin-bottom:var(--space-sm);
+  animation:popIn 0.45s var(--ease-spring) 0.15s both;
+  }
+  @keyframes popIn{
+  0%{transform:scale(0);opacity:0}
+  100%{transform:scale(1);opacity:1}
+  }
+  .form-error{
+  display:none;
+  color:#f87171;
+  font-size:0.8rem;
+  margin-top:var(--space-xs);
+  }
+  .form-error.show{display:block}
 
-    /* ── Section anchor CTA ─────────────────────────── */
-    .section-cta-wrap{
-      text-align:center;
-      padding:var(--space-lg) 0 var(--space-sm);
-      position:relative;
-      z-index:2;
-    }
-    .section-cta{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:12px 24px;
-      border-radius:var(--radius-full);
-      background:rgba(255,255,255,0.03);
-      border:1px solid var(--border-strong);
-      color:var(--fg-dim);
-      font-size:0.88rem;
-      font-weight:500;
-      text-decoration:none;
-      transition:all 0.3s var(--ease-out);
-      cursor:pointer;
-    }
-    .section-cta:hover{
-      background:var(--accent-soft);
-      border-color:rgba(123,45,142,0.35);
-      color:var(--accent-text);
-      transform:translateY(-2px);
-      box-shadow:0 6px 20px rgba(123,45,142,0.15);
-    }
-    .section-cta .cta-arrow{
-      width:16px;height:16px;
-      animation:arrowBob 1.4s ease-in-out infinite;
-    }
-    .section-cta:hover .cta-arrow{
-      animation:arrowBobFast 0.6s ease-in-out infinite;
-    }
-    @keyframes arrowBob{
-      0%,100%{transform:translateY(0)}
-      50%{transform:translateY(3px)}
-    }
-    @keyframes arrowBobFast{
-      0%,100%{transform:translateY(0)}
-      50%{transform:translateY(4px)}
-    }
+  /* ── Section anchor CTA ─────────────────────────── */
+  .section-cta-wrap{
+  text-align:center;
+  padding:var(--space-lg) 0 var(--space-sm);
+  position:relative;
+  z-index:2;
+  }
+  .section-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 24px;
+  border-radius:var(--radius-full);
+  background:var(--accent-soft);
+  border:1px solid rgba(123,45,142,0.35);
+  color:var(--accent-text);
+  font-size:0.88rem;
+  font-weight:500;
+  text-decoration:none;
+  transition:all 0.3s var(--ease-out);
+  cursor:pointer;
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(123,45,142,0.15);
+  }
+  .section-cta .cta-arrow{
+  width:16px;height:16px;
+  animation:arrowBob 1.4s ease-in-out infinite;
+  }
+  .section-cta:hover .cta-arrow{
+  animation:arrowBobFast 0.6s ease-in-out infinite;
+  }
+  @keyframes arrowBob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(3px)}
+  }
+  @keyframes arrowBobFast{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(4px)}
+  }
 
-    /* ── Agitation ──────────────────────────────────── */
-    .agitate{
-      text-align:center;
-      padding:0 var(--space-md) var(--space-lg);
-    }
-    .agitate p{
-      max-width:580px;
-      margin:0 auto;
-      font-size:1rem;
-      color:var(--fg-muted);
-      line-height:1.7;
-    }
-    .agitate strong{color:var(--fg-dim)}
+  /* ── Agitation ──────────────────────────────────── */
+  .agitate{
+  text-align:center;
+  padding:0 var(--space-md) var(--space-lg);
+  }
+  .agitate p{
+  max-width:580px;
+  margin:0 auto;
+  font-size:1rem;
+  color:var(--fg-muted);
+  line-height:1.7;
+  }
+  .agitate strong{color:var(--fg-dim)}
 
-    /* ── Feature grid ───────────────────────────────── */
-    .feature-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:var(--space-md);
-    }
-    .feature-card{
-      background:rgba(255,255,255,0.02);
-      border:1px solid var(--border);
-      border-radius:var(--radius-lg);
-      padding:var(--space-lg);
-      transition:border-color 0.3s var(--ease-out),transform 0.3s var(--ease-out),background 0.3s var(--ease-out),box-shadow 0.3s var(--ease-out);
-      position:relative;
-      overflow:hidden;
-    }
-    .feature-card::before{
-      content:'';
-      position:absolute;
-      inset:0;
-      border-radius:inherit;
-      background:radial-gradient(400px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(123,45,142,0.06),transparent 60%);
-      opacity:0;
-      transition:opacity 0.3s var(--ease-out);
-    }
-    .feature-card:hover::before{opacity:1}
-    .feature-card:hover{
-      border-color:rgba(123,45,142,0.3);
-      background:rgba(123,45,142,0.04);
-      transform:translateY(-3px);
-      box-shadow:0 12px 40px rgba(0,0,0,0.3);
-    }
-    .feature-icon{
-      width:42px;height:42px;
-      border-radius:var(--radius-sm);
-      background:var(--accent-soft);
-      color:var(--accent-text);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin-bottom:var(--space-md);
-      position:relative;
-      z-index:1;
-    }
-    .feature-icon svg{
-      width:20px;height:20px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.5;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-    .feature-card h4{
-      font-family:'Space Grotesk',sans-serif;
-      font-size:0.92rem;
-      font-weight:600;
-      margin-bottom:var(--space-xs);
-      color:var(--fg);
-      letter-spacing:-0.01em;
-      position:relative;
-      z-index:1;
-    }
-    .feature-card p{
-      font-size:0.8rem;
-      color:var(--fg-muted);
-      line-height:1.55;
-      position:relative;
-      z-index:1;
-    }
+  /* ── Feature grid ───────────────────────────────── */
+  .feature-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--space-md);
+  }
+  .feature-card{
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:var(--space-lg);
+  transition:border-color 0.3s var(--ease-out),transform 0.3s var(--ease-out),background 0.3s var(--ease-out),box-shadow 0.3s var(--ease-out);
+  position:relative;
+  overflow:hidden;
+  }
+  .feature-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(400px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(123,45,142,0.06),transparent 60%);
+  opacity:0;
+  transition:opacity 0.3s var(--ease-out);
+  }
+  .feature-card:hover::before{opacity:1}
+  .feature-card:hover{
+  border-color:rgba(123,45,142,0.3);
+  background:rgba(123,45,142,0.04);
+  transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  }
+  .feature-icon{
+  width:42px;height:42px;
+  border-radius:var(--radius-sm);
+  background:var(--accent-soft);
+  color:var(--accent-text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:var(--space-md);
+  position:relative;
+  z-index:1;
+  }
+  .feature-icon svg{
+  width:20px;height:20px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  }
+  .feature-card h4{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.92rem;
+  font-weight:600;
+  margin-bottom:var(--space-xs);
+  color:var(--fg);
+  letter-spacing:-0.01em;
+  position:relative;
+  z-index:1;
+  }
+  .feature-card p{
+  font-size:0.8rem;
+  color:var(--fg-muted);
+  line-height:1.55;
+  position:relative;
+  z-index:1;
+  }
 
-    /* ── How it works ───────────────────────────────── */
-    .how-flow{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:var(--space-md);
-      position:relative;
-      margin-top:var(--space-xl);
-    }
-    .how-flow::before{
-      content:'';
-      position:absolute;
-      top:28px;
-      left:calc(12.5% + 14px);
-      right:calc(12.5% + 14px);
-      height:1px;
-      background:linear-gradient(90deg,rgba(123,45,142,0.45),rgba(123,45,142,0.1),rgba(123,45,142,0.1),rgba(123,45,142,0.45));
-      z-index:0;
-      pointer-events:none;
-    }
-    .how-step{
-      text-align:center;
-      position:relative;
-      z-index:1;
-    }
-    .how-step-num{
-      width:56px;height:56px;
-      border-radius:50%;
-      background:var(--surface);
-      border:1px solid rgba(123,45,142,0.25);
-      color:var(--accent-text);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-family:'Space Grotesk',sans-serif;
-      font-weight:700;
-      font-size:1.2rem;
-      margin-bottom:var(--space-md);
-      position:relative;
-      z-index:2;
-      transition:all 0.3s var(--ease-out);
-    }
-    .how-step:hover .how-step-num{
-      background:var(--accent-soft);
-      border-color:var(--accent-ring);
-      box-shadow:0 0 24px var(--accent-glow);
-      transform:scale(1.08);
-    }
-    .how-step h4{
-      font-size:0.95rem;
-      font-weight:600;
-      margin-bottom:var(--space-xs);
-    }
-    .how-step p{
-      font-size:0.8rem;
-      color:var(--fg-muted);
-      line-height:1.55;
-    }
+  /* ── How it works ───────────────────────────────── */
+  .how-flow{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--space-md);
+  position:relative;
+  margin-top:var(--space-xl);
+}
+.how-flow::before{
+  content:\"\";
+  position:absolute;
+  top:28px;
+  left:calc(12.5% + 14px);
+  right:calc(12.5% + 14px);
+  height:1px;
+  background:linear-gradient(90deg,rgba(123,45,142,0.45),rgba(123,45,142,0.1),rgba(123,45,142,0.1),rgba(123,45,142,0.45));
+  z-index:0;
+  pointer-events:none;
+}
+.how-step{
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+.how-step-num{
+  width:56px;height:56px;
+  border-radius:50%;
+  background:var(--surface);
+  border:1px solid rgba(123,45,142,0.25);
+  color:var(--accent-text);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-family:\"Space Grotesk\",sans-serif;
+  font-weight:700;
+  font-size:1.2rem;
+  margin-bottom:var(--space-md);
+  position:relative;
+  z-index:2;
+  transition:all 0.3s var(--ease-out);
+}
+.how-step:hover .how-step-num{
+  background:var(--accent-soft);
+  border-color:var(--accent-ring);
+  box-shadow:0 0 24px var(--accent-glow);
+  transform:scale(1.08);
+}
+.how-step h4{
+  font-size:0.95rem;
+  font-weight:600;
+  margin-bottom:var(--space-xs);
+}
+.how-step p{
+  font-size:0.8rem;
+  color:var(--fg-muted);
+  line-height:1.55;
+}
+.how-step-body{
+  flex:1;
+  min-width:0;
+}
+.integrations-section{
+  padding-top:var(--space-lg);
+  padding-bottom:var(--space-lg);
+  overflow:hidden;
+  }
+  .integrations-track-wrapper{
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  mask-image:linear-gradient(to right,transparent 0%,#000 5%,#000 95%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 5%,#000 95%,transparent 100%);
+  }
+  .integrations-track{
+  display:flex;
+  gap:48px;
+  align-items:center;
+  width:max-content;
+  animation:scrollTrack 30s linear infinite;
+  }
+  .integrations-track-inner{
+  display:flex;
+  gap:48px;
+  align-items:center;
+  }
+  @keyframes scrollTrack{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+  }
+  .int-logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  white-space:nowrap;
+  }
+  .int-logo svg{
+  height:clamp(22px,3.5vw,32px);
+  width:auto;
+  opacity:0.6;
+  transition:opacity 0.25s var(--ease-out);
+  }
+  .int-logo:hover svg{opacity:0.9}
+  .int-logo span{
+  font-size:clamp(0.8rem,1.4vw,1rem);
+  color:var(--fg-muted);
+  font-weight:500;
+  letter-spacing:0.02em;
+  }
 
-    /* ── Integrations scrolling band ────────────────── */
-    .integrations-section{
-      padding-top:var(--space-lg);
-      padding-bottom:var(--space-lg);
-      overflow:hidden;
-    }
-    .integrations-track-wrapper{
-      position:relative;
-      width:100%;
-      overflow:hidden;
-      mask-image:linear-gradient(to right,transparent 0%,#000 5%,#000 95%,transparent 100%);
-      -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 5%,#000 95%,transparent 100%);
-    }
-    .integrations-track{
-      display:flex;
-      gap:48px;
-      align-items:center;
-      width:max-content;
-      animation:scrollTrack 30s linear infinite;
-    }
-    .integrations-track-inner{
-      display:flex;
-      gap:48px;
-      align-items:center;
-    }
-    @keyframes scrollTrack{
-      0%{transform:translateX(0)}
-      100%{transform:translateX(-50%)}
-    }
-    .int-logo{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      white-space:nowrap;
-    }
-    .int-logo svg{
-      height:clamp(22px,3.5vw,32px);
-      width:auto;
-      opacity:0.6;
-      transition:opacity 0.25s var(--ease-out);
-    }
-    .int-logo:hover svg{opacity:0.9}
-    .int-logo span{
-      font-size:clamp(0.8rem,1.4vw,1rem);
-      color:var(--fg-muted);
-      font-weight:500;
-      letter-spacing:0.02em;
-    }
-
-    /* ── Pricing ────────────────────────────────────── */
-    .pricing-card{
+  /* ── Pricing ────────────────────────────────────── */
+  .pricing-card{
       display:flex;
       align-items:center;
       gap:var(--space-xl);
@@ -821,12 +804,12 @@
     .pricing-detail h4{font-size:1rem;font-weight:600;margin-bottom:var(--space-xs)}
     .pricing-detail p{font-size:0.85rem;color:var(--fg-dim);line-height:1.6}
 
-    /* ── Signup target section ──────────────────────── */
-    #signup{
-      scroll-margin-top:40px;
-      padding:var(--space-3xl) var(--space-md);
-    }
-    .signup-card{
+  /* ── Signup target section ──────────────────────── */
+  #signup{
+  scroll-margin-top:40px;
+  padding:var(--space-3xl) var(--space-md);
+  }
+  .signup-card{
       background:rgba(255,255,255,0.03);
       backdrop-filter:blur(16px);
       -webkit-backdrop-filter:blur(16px);
@@ -875,149 +858,290 @@
       z-index:1;
     }
 
-    /* ── Mobile floating CTA ────────────────────────── */
-    .mobile-float-cta{
-      position:fixed;
-      bottom:0;
-      left:0;
-      right:0;
-      z-index:100;
-      padding:12px 16px;
-      padding-bottom:max(12px,env(safe-area-inset-bottom,12px));
-      background:rgba(8,9,13,0.88);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-      border-top:1px solid var(--border);
-      transform:translateY(100%);
-      transition:transform 0.35s var(--ease-out);
-      display:none;
-    }
-    .mobile-float-cta.visible{transform:translateY(0)}
-    .mobile-float-cta .btn{width:100%;padding:15px 28px;font-size:1rem}
+  /* ── Mobile floating CTA ────────────────────────── */
+  .mobile-float-cta{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:100;
+  padding:12px 16px;
+  padding-bottom:max(12px,env(safe-area-inset-bottom,12px));
+  background:rgba(8,9,13,0.88);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  transform:translateY(100%);
+  transition:transform 0.35s var(--ease-out);
+  display:none;
+  }
+  .mobile-float-cta.visible{transform:translateY(0)}
+  .mobile-float-cta .btn{width:100%;padding:15px 28px;font-size:1rem}
 
-    /* ── Footer ─────────────────────────────────────── */
-    footer{
-      text-align:center;
-      padding:var(--space-xl) var(--space-md);
-      border-top:1px solid var(--border);
-      color:var(--fg-muted);
-      font-size:0.8rem;
-      position:relative;
-      z-index:1;
-    }
-    footer a{color:var(--accent-text);text-decoration:none}
-    footer a:hover{text-decoration:underline}
+  /* ── Footer ─────────────────────────────────────── */
+  footer{
+  text-align:center;
+  padding:var(--space-xl) var(--space-md);
+  border-top:1px solid var(--border);
+  color:var(--fg-muted);
+  font-size:0.8rem;
+  position:relative;
+  z-index:1;
+  }
+  footer a{color:var(--accent-text);text-decoration:none}
+  footer a:hover{text-decoration:underline}
 
-    /* ── Scroll reveals ─────────────────────────────── */
-    .reveal{
-      opacity:0;
-      transform:translateY(30px);
-      transition:opacity 0.7s var(--ease-out),transform 0.7s var(--ease-out);
-      will-change:opacity,transform;
-    }
-    .reveal.visible{opacity:1;transform:translateY(0)}
-    .reveal-stagger>*:nth-child(1){transition-delay:0s}
-    .reveal-stagger>*:nth-child(2){transition-delay:0.06s}
-    .reveal-stagger>*:nth-child(3){transition-delay:0.12s}
-    .reveal-stagger>*:nth-child(4){transition-delay:0.18s}
-    .reveal-stagger>*:nth-child(5){transition-delay:0.24s}
-    .reveal-stagger>*:nth-child(6){transition-delay:0.30s}
-    .reveal-stagger>*:nth-child(7){transition-delay:0.36s}
-    .reveal-stagger>*:nth-child(8){transition-delay:0.42s}
+  /* ── Scroll reveals ─────────────────────────────── */
+  .reveal{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity 0.7s var(--ease-out),transform 0.7s var(--ease-out);
+  will-change:opacity,transform;
+  }
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  .reveal-stagger>*:nth-child(1){transition-delay:0s}
+  .reveal-stagger>*:nth-child(2){transition-delay:0.06s}
+  .reveal-stagger>*:nth-child(3){transition-delay:0.12s}
+  .reveal-stagger>*:nth-child(4){transition-delay:0.18s}
+  .reveal-stagger>*:nth-child(5){transition-delay:0.24s}
+  .reveal-stagger>*:nth-child(6){transition-delay:0.30s}
+  .reveal-stagger>*:nth-child(7){transition-delay:0.36s}
+  .reveal-stagger>*:nth-child(8){transition-delay:0.42s}
 
-    @keyframes fadeInUp{
-      from{opacity:0;transform:translateY(16px)}
-      to{opacity:1;transform:translateY(0)}
-    }
+  @keyframes fadeInUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+  }
 
-    /* ── Glow ring on signup focus ──────────────────── */
-    @keyframes glowRing{
-      0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}
-      50%{box-shadow:0 0 0 18px transparent}
-    }
-    #signup:target .signup-card{
-      animation:glowRing 1.8s var(--ease-out);
-    }
+  /* ── Glow ring on signup focus ──────────────────── */
+  @keyframes glowRing{
+  0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}
+  50%{box-shadow:0 0 0 18px transparent}
+  }
+  #signup:target .signup-card{
+  animation:glowRing 1.8s var(--ease-out);
+  }
 
-    /* ── Responsive ─────────────────────────────────── */
-    @media(max-width:768px){
-      .hero{min-height:auto;padding-top:var(--space-xl);padding-bottom:var(--space-xl)}
-      section{padding:var(--space-xl) var(--space-sm)}
-      h1.display{font-size:1.75rem}
-      h2.display{font-size:1.35rem}
+  
+  /* ── Carousel (replaces feature grid) ──────────────── */
+  .carousel-container{
+  position:relative;
+  width:100%;
+  }
+  .carousel-track{
+  display:flex;
+  gap:var(--space-md);
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+  padding:6px 2px;
+  scrollbar-width:none;
+  }
+  .carousel-track::-webkit-scrollbar{display:none}
+  .carousel-slide{
+  flex:0 0 calc(33.333% - 14px);
+  min-width:0;
+  scroll-snap-align:start;
+  }
+  .carousel-slide .feature-card{
+  height:100%;
+  }
+  .carousel-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-md);
+  margin-top:var(--space-lg);
+  }
+  .carousel-btn{
+  width:40px;height:40px;
+  border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface);
+  color:var(--fg-dim);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.25s var(--ease-out);
+  }
+  .carousel-btn svg{width:18px;height:18px}
+  .carousel-btn:hover{
+  background:var(--accent-soft);
+  border-color:rgba(123,45,142,0.35);
+  color:var(--accent-text);
+  }
+  .carousel-dots{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  }
+  .carousel-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  border:0;
+  background:var(--fg-muted);
+  opacity:0.35;
+  cursor:pointer;
+  transition:all 0.3s var(--ease-out);
+  padding:0;
+  }
+  .carousel-dot.active{
+  opacity:1;
+  background:var(--accent-text);
+  width:24px;
+  border-radius:4px;
+  }
+  .carousel-dot:hover{opacity:0.7}
+  @media(max-width:768px){
+ .carousel-slide{flex:0 0 calc(100% - 4px)}
+  .carousel-btn{display:none}
+   .hero{min-height:auto;padding-top:var(--space-xl);padding-bottom:var(--space-xl)}
+  section{padding:var(--space-xl) var(--space-sm)}
+  h1.display{font-size:1.75rem}
+  h2.display{font-size:1.35rem}
+  .email-form{flex-direction:column;gap:10px}
+  .email-form input,.email-form .btn{width:100%;text-align:center}
+  .feature-grid{grid-template-columns:1fr}
+  .how-flow{
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  .how-flow::before{display:none}
+  .how-step{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:16px;
+    text-align:left;
+    padding:20px 16px;
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:14px;
+    margin-bottom:12px;
+  }
+  .how-step-num{
+    flex-shrink:0;
+    width:40px;height:40px;
+    font-size:0.95rem;
+    margin-bottom:0;
+  }
+  .how-step-body{
+    flex:1;
+    min-width:0;
+  }
+  .how-step-body h4{
+    font-size:0.95rem;
+    margin-bottom:4px;
+  }
+  .how-step-body p{
+    font-size:0.82rem;
+    color:var(--fg-muted);
+    line-height:1.5;
+  }
+  .pricing-card{flex-direction:column;text-align:center;gap:var(--space-md)}
+  .pricing-big{padding-right:0;border-right:0;border-bottom:1px solid var(--border);padding-bottom:var(--space-md);width:100%}
+  .pricing-big .free{font-size:2rem}
+  .signup-card{padding:var(--space-xl) var(--space-md)}
+  #signup{scroll-margin-top:20px;padding:var(--space-2xl) var(--space-sm)}
+  .section-cta-wrap{padding:var(--space-md) 0 var(--space-xs)}
+  .section-cta{font-size:0.84rem;padding:11px 20px}
+  .integrations-track{gap:32px}
+  .integrations-track-inner{gap:32px}
+  .int-logo svg{height:20px}
+  .int-logo span{font-size:0.75rem}
+  .hero-btn{padding:14px 30px;font-size:0.95rem}
+  .price-badge{top:8%;right:6%;padding:7px 12px}
+  .price-badge .amount{font-size:1.2rem}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .carousel-slide{flex:0 0 calc(50% - 10px)}
+  }
 
-      .email-form{
-        flex-direction:column;
-        gap:10px;
-      }
-      .email-form input,
-      .email-form .btn{
-        width:100%;
-        text-align:center;
-      }
+  
+  
+  }
 
-      .feature-grid{
-        grid-template-columns:1fr;
-      }
+  /* ── Responsive ─────────────────────────────────── */
+  @media(max-width:768px){
+  .hero{min-height:auto;padding-top:var(--space-xl);padding-bottom:var(--space-xl)}
+  section{padding:var(--space-xl) var(--space-sm)}
+  h1.display{font-size:1.75rem}
+  h2.display{font-size:1.35rem}
 
-      .how-flow{
-        grid-template-columns:1fr;
-        gap:var(--space-lg);
-      }
-      .how-flow::before{display:none}
-      .how-step{
-        display:flex;
-        align-items:flex-start;
-        gap:var(--space-md);
-        text-align:left;
-      }
-      .how-step-num{
-        flex-shrink:0;
-        width:44px;height:44px;
-        font-size:1rem;
-        margin-bottom:0;
-      }
+  .email-form{
+    flex-direction:column;
+    gap:10px;
+  }
+  .email-form input,
+  .email-form .btn{
+    width:100%;
+    text-align:center;
+  }
 
-      .pricing-card{
-        flex-direction:column;
-        text-align:center;
-        gap:var(--space-md);
-      }
-      .pricing-big{
-        padding-right:0;
-        border-right:0;
-        border-bottom:1px solid var(--border);
-        padding-bottom:var(--space-md);
-        width:100%;
-      }
-      .pricing-big .free{font-size:2rem}
+  .feature-grid{
+    grid-template-columns:1fr;
+  }
 
-      .signup-card{padding:var(--space-xl) var(--space-md)}
-      #signup{scroll-margin-top:20px;padding:var(--space-2xl) var(--space-sm)}
+  .how-flow{
+    grid-template-columns:1fr;
+    gap:var(--space-lg);
+  }
+  .how-flow::before{display:none}
+  .how-step{
+    display:flex;
+    align-items:flex-start;
+    gap:var(--space-md);
+    text-align:left;
+  }
+  .how-step-num{
+    flex-shrink:0;
+    width:44px;height:44px;
+    font-size:1rem;
+    margin-bottom:0;
+  }
 
-      .section-cta-wrap{padding:var(--space-md) 0 var(--space-xs)}
-      .section-cta{font-size:0.84rem;padding:11px 20px}
+  .pricing-card{
+    flex-direction:column;
+    text-align:center;
+    gap:var(--space-md);
+  }
+  .pricing-big{
+    padding-right:0;
+    border-right:0;
+    border-bottom:1px solid var(--border);
+    padding-bottom:var(--space-md);
+    width:100%;
+  }
+  .pricing-big .free{font-size:2rem}
 
-      .integrations-track{gap:32px}
-      .integrations-track-inner{gap:32px}
-      .int-logo svg{height:20px}
-      .int-logo span{font-size:0.75rem}
+  .signup-card{padding:var(--space-xl) var(--space-md)}
+  #signup{scroll-margin-top:20px;padding:var(--space-2xl) var(--space-sm)}
 
-      .hero-btn{padding:14px 30px;font-size:0.95rem}
-      .price-badge{top:8%;right:6%;padding:7px 12px}
-      .price-badge .amount{font-size:1.2rem}
-    }
+  .section-cta-wrap{padding:var(--space-md) 0 var(--space-xs)}
+  .section-cta{font-size:0.84rem;padding:11px 20px}
 
-    @media(min-width:769px) and (max-width:1024px){
-      .feature-grid{
-        grid-template-columns:repeat(2,1fr);
-      }
-      .how-flow{
-        grid-template-columns:repeat(2,1fr);
-        gap:var(--space-lg);
-      }
-      .how-flow::before{display:none}
-    }
+  .integrations-track{gap:32px}
+  .integrations-track-inner{gap:32px}
+  .int-logo svg{height:20px}
+  .int-logo span{font-size:0.75rem}
+
+  .hero-btn{padding:14px 30px;font-size:0.95rem}
+  .price-badge{top:8%;right:6%;padding:7px 12px}
+  .price-badge .amount{font-size:1.2rem}
+  }
+
+  @media(min-width:769px) and (max-width:1024px){
+  .feature-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .how-flow{
+    grid-template-columns:repeat(2,1fr);
+    gap:var(--space-lg);
+  }
+  .how-flow::before{display:none}
+  }
   </style>
 <style data-od-tweaks-bridge-style="">
 [data-od-tweaks-hidden] .tw-panel {
@@ -1038,471 +1162,496 @@
   function panelEl(){ return document.querySelector('.tw-panel'); }
 
   function applyClassesToPanel(visible){
-    var panel = panelEl();
-    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  var panel = panelEl();
+  if (panel) panel.classList.toggle('tw-hidden', !visible);
   }
 
   function setPanelVisible(visible){
-    suppressEcho = true;
-    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
-    applyClassesToPanel(visible);
-    // Clear flag after the MutationObserver has had a chance to fire for this
-    // change so we don't echo our own host-driven toggles back to the host.
-    Promise.resolve().then(function(){ suppressEcho = false; });
+  suppressEcho = true;
+  document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+  applyClassesToPanel(visible);
+  // Clear flag after the MutationObserver has had a chance to fire for this
+  // change so we don't echo our own host-driven toggles back to the host.
+  Promise.resolve().then(function(){ suppressEcho = false; });
   }
 
   function postState(){
-    var panel = panelEl();
-    if (!panel) return;
-    try {
-      parent.postMessage({
-        type: 'od:tweaks-panel-state',
-        visible: !panel.classList.contains('tw-hidden'),
-      }, '*');
-    } catch (e) {}
+  var panel = panelEl();
+  if (!panel) return;
+  try {
+  parent.postMessage({
+    type: 'od:tweaks-panel-state',
+    visible: !panel.classList.contains('tw-hidden'),
+  }, '*');
+  } catch (e) {}
   }
 
   function postAvailability(){
-    try {
-      parent.postMessage({
-        type: 'od:tweaks-available',
-        available: !!panelEl(),
-      }, '*');
-    } catch (e) {}
+  try {
+  parent.postMessage({
+    type: 'od:tweaks-available',
+    available: !!panelEl(),
+  }, '*');
+  } catch (e) {}
   }
 
   function attachObserver(){
-    var panel = panelEl();
-    if (!panel || observer) return;
-    observer = new MutationObserver(function(){
-      if (suppressEcho) return;
-      postState();
-    });
-    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  var panel = panelEl();
+  if (!panel || observer) return;
+  observer = new MutationObserver(function(){
+  if (suppressEcho) return;
+  postState();
+  });
+  observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 
   function onReady(){
-    // Capture the panel authored visibility BEFORE we apply the host hidden
-    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
-    // (before the body parses), so on entry to onReady the attribute is
-    // always present even though the artifact may have authored the panel
-    // as default-visible. Reading the panel class first is the only place
-    // we can still observe the author intent. Then drive the attribute,
-    // classes, and posted state from that captured value so a default
-    // visible tw-panel reports visible:true and the toolbar toggle starts
-    // ON. Issue surfaced in PR #1643 review.
-    var panel = panelEl();
-    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
-    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
-    applyClassesToPanel(initialVisible);
-    attachObserver();
-    postAvailability();
-    // Post the captured initial visibility so the toolbar toggle reflects
-    // the default state on mount. Without this the toggle reads OFF while
-    // a default-visible tw-panel artifact clearly shows its panel and the
-    // user would have to click toggle-on then toggle-off to actually hide.
-    postState();
+  // Capture the panel authored visibility BEFORE we apply the host hidden
+  // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+  // (before the body parses), so on entry to onReady the attribute is
+  // always present even though the artifact may have authored the panel
+  // as default-visible. Reading the panel class first is the only place
+  // we can still observe the author intent. Then drive the attribute,
+  // classes, and posted state from that captured value so a default
+  // visible tw-panel reports visible:true and the toolbar toggle starts
+  // ON. Issue surfaced in PR #1643 review.
+  var panel = panelEl();
+  var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+  document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+  applyClassesToPanel(initialVisible);
+  attachObserver();
+  postAvailability();
+  // Post the captured initial visibility so the toolbar toggle reflects
+  // the default state on mount. Without this the toggle reads OFF while
+  // a default-visible tw-panel artifact clearly shows its panel and the
+  // user would have to click toggle-on then toggle-off to actually hide.
+  postState();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', onReady);
+  document.addEventListener('DOMContentLoaded', onReady);
   } else {
-    onReady();
+  onReady();
   }
 
   window.addEventListener('message', function(ev){
-    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
-    setPanelVisible(!!ev.data.visible);
+  if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+  setPanelVisible(!!ev.data.visible);
   });
 })();</script></head>
 <body>
 
   <!-- ════════════════ AMBIENT ORBS ════════════════ -->
   <div class="ambient-orbs" data-od-id="path-0">
-    <div class="orb"></div>
-    <div class="orb"></div>
-    <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
   </div>
 
   <!-- ════════════════ HERO ════════════════ -->
   <section class="hero" data-od-id="path-1">
-    <div class="container-narrow" data-od-id="path-1-0">
-      <div class="logo-wrap">
-        <img src="mq3di1q7-Logo.png" alt="Deep Edge">
-        <span class="logo-text">Deep Edge</span>
-      </div>
+  <div class="container-narrow" data-od-id="path-1-0">
+  <div class="logo-wrap">
+    <img src="mq3di1q7-Logo.png" alt="Deep Edge">
+    <span class="logo-text">Deep Edge</span>
+  </div>
 
-      <div class="hero-badge">
-        <span class="pulse-dot"></span> Early access · NZ only
-      </div>
+  <div class="hero-badge">
+    <span class="pulse-dot"></span> Early access NZ only
+  </div>
 
-      <h1 class="display" data-od-id="path-1-0-2">Quote. Schedule. Invoice.<br>Without lifting a finger.</h1>
+  <h1 class="display" data-od-id="path-1-0-2">Quote. Schedule. Invoice.<br>Without lifting a finger.</h1>
 
-      <p class="body-lg sub">
-        The all-in-one system that measures lawns, sends quotes, routes your day,
-        and collects payments — built for Kiwi lawn operators.
-      </p>
+  <p class="body-lg sub">
+    The all in one system that measures lawns, sends quotes, routes your day,
+    and collects payments built for Kiwi lawn operators.
+  </p>
 
-      <!-- Hero image with price badge -->
-      <div class="hero-visual">
-        <svg viewBox="0 0 700 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Sky gradient -->
-          <defs>
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-0">
-              <stop offset="0%" stop-color="#1a1e2e"></stop>
-              <stop offset="100%" stop-color="#0f172a"></stop>
-            </linearGradient>
-            <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-1">
-              <stop offset="0%" stop-color="#1a3a2a"></stop>
-              <stop offset="100%" stop-color="#0d2818"></stop>
-            </linearGradient>
-            <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-2">
-              <stop offset="0%" stop-color="#2a2a35"></stop>
-              <stop offset="100%" stop-color="#1a1a24"></stop>
-            </linearGradient>
-            <filter id="glow" data-od-id="path-1-0-4-0-0-3">
-              <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
-              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
-            </filter>
-            <!-- Scanning line pattern -->
-            <pattern id="scanLines" width="6" height="6" patternUnits="userSpaceOnUse" data-od-id="path-1-0-4-0-0-4">
-              <rect width="6" height="3" fill="rgba(192,132,252,0.04)"></rect>
-            </pattern>
-          </defs>
+  <!-- Hero image with price badge -->
+  <div class="hero-visual">
+    <svg viewBox="0 0 700 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sky gradient -->
+    <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-0">
+      <stop offset="0%" stop-color="#1a1e2e"></stop>
+      <stop offset="100%" stop-color="#0f172a"></stop>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-1">
+      <stop offset="0%" stop-color="#1a3a2a"></stop>
+      <stop offset="100%" stop-color="#0d2818"></stop>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1" data-od-id="path-1-0-4-0-0-2">
+      <stop offset="0%" stop-color="#2a2a35"></stop>
+      <stop offset="100%" stop-color="#1a1a24"></stop>
+    </linearGradient>
+    <filter id="glow" data-od-id="path-1-0-4-0-0-3">
+      <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+      <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+    </filter>
+    <!-- Scanning line pattern -->
+    <pattern id="scanLines" width="6" height="6" patternUnits="userSpaceOnUse" data-od-id="path-1-0-4-0-0-4">
+      <rect width="6" height="3" fill="rgba(192,132,252,0.04)"></rect>
+    </pattern>
+    </defs>
 
-          <!-- Sky -->
-          <rect width="700" height="420" fill="url(#sky)"></rect>
+    <!-- Sky -->
+    <rect width="700" height="420" fill="url(#sky)"></rect>
 
-          <!-- Distant hills -->
-          <ellipse cx="200" cy="240" rx="280" ry="60" fill="#1a2a20" opacity="0.5"></ellipse>
-          <ellipse cx="550" cy="250" rx="250" ry="50" fill="#162420" opacity="0.4"></ellipse>
+    <!-- Distant hills -->
+    <ellipse cx="200" cy="240" rx="280" ry="60" fill="#1a2a20" opacity="0.5"></ellipse>
+    <ellipse cx="550" cy="250" rx="250" ry="50" fill="#162420" opacity="0.4"></ellipse>
 
-          <!-- Property boundary highlight -->
-          <rect x="120" y="200" width="460" height="180" rx="6" fill="none" stroke="rgba(192,132,252,0.12)" stroke-width="2" stroke-dasharray="8 4"></rect>
+    <!-- Property boundary highlight -->
+    <rect x="120" y="200" width="460" height="180" rx="6" fill="none" stroke="rgba(192,132,252,0.12)" stroke-width="2" stroke-dasharray="8 4"></rect>
 
-          <!-- House body -->
-          <rect x="260" y="230" width="180" height="130" rx="2" fill="url(#roof)" stroke="#3a3a45" stroke-width="1"></rect>
-          <!-- Roof -->
-          <polygon points="240,235 350,175 460,235" fill="#3a3a45" stroke="#4a4a55" stroke-width="1"></polygon>
-          <!-- Chimney -->
-          <rect x="300" y="180" width="14" height="30" fill="#2a2a35" stroke="#3a3a45" stroke-width="0.5"></rect>
+    <!-- House body -->
+    <rect x="260" y="230" width="180" height="130" rx="2" fill="url(#roof)" stroke="#3a3a45" stroke-width="1"></rect>
+    <!-- Roof -->
+    <polygon points="240,235 350,175 460,235" fill="#3a3a45" stroke="#4a4a55" stroke-width="1"></polygon>
+    <!-- Chimney -->
+    <rect x="300" y="180" width="14" height="30" fill="#2a2a35" stroke="#3a3a45" stroke-width="0.5"></rect>
 
-          <!-- Windows -->
-          <rect x="278" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-          <rect x="310" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-          <rect x="370" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
-          <!-- Door -->
-          <rect x="340" y="300" width="30" height="60" rx="2" fill="#2a2a35" stroke="#3a3a45" stroke-width="1"></rect>
+    <!-- Windows -->
+    <rect x="278" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
+    <rect x="310" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
+    <rect x="370" y="250" width="24" height="24" rx="2" fill="rgba(192,132,252,0.06)" stroke="#3a3a45" stroke-width="1"></rect>
+    <!-- Door -->
+    <rect x="340" y="300" width="30" height="60" rx="2" fill="#2a2a35" stroke="#3a3a45" stroke-width="1"></rect>
 
-          <!-- Driveway -->
-          <path d="M370 360 L320 420" stroke="rgba(255,255,255,0.04)" stroke-width="18"></path>
+    <!-- Driveway -->
+    <path d="M370 360 L320 420" stroke="rgba(255,255,255,0.04)" stroke-width="18"></path>
 
-          <!-- Lawn area scan overlay -->
-          <rect x="140" y="210" width="420" height="170" rx="10" fill="url(#scanLines)" opacity="0.6"></rect>
+    <!-- Lawn area scan overlay -->
+    <rect x="140" y="210" width="420" height="170" rx="10" fill="url(#scanLines)" opacity="0.6"></rect>
 
-          <!-- Scan beam -->
-          <rect x="140" y="225" width="420" height="3" fill="rgba(192,132,252,0.15)" filter="url(#glow)" opacity="0.8">
-            <animate attributeName="y" from="210" to="370" dur="2.5s" repeatCount="indefinite"></animate>
-            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2.5s" repeatCount="indefinite"></animate>
-          </rect>
+    <!-- Scan beam -->
+    <rect x="140" y="225" width="420" height="3" fill="rgba(192,132,252,0.15)" filter="url(#glow)" opacity="0.8">
+    <animate attributeName="y" from="210" to="370" dur="2.5s" repeatCount="indefinite"></animate>
+    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2.5s" repeatCount="indefinite"></animate>
+    </rect>
 
-          <!-- Measurement lines on lawn -->
-          <line x1="145" y1="260" x2="555" y2="260" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
-          <line x1="145" y1="300" x2="555" y2="300" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
-          <line x1="145" y1="340" x2="555" y2="340" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
+    <!-- Measurement lines on lawn -->
+    <line x1="145" y1="260" x2="555" y2="260" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
+    <line x1="145" y1="300" x2="555" y2="300" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
+    <line x1="145" y1="340" x2="555" y2="340" stroke="rgba(192,132,252,0.2)" stroke-width="0.5" stroke-dasharray="3 3"></line>
 
-          <!-- Dimension labels -->
-          <text x="560" y="270" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">42.3m</text>
-          <text x="560" y="310" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">18.7m</text>
+    <!-- Dimension labels -->
+    <text x="560" y="270" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">42.3m</text>
+    <text x="560" y="310" fill="#c084fc" font-size="7" font-family="monospace" opacity="0.6">18.7m</text>
 
-          <!-- Area label -->
-          <rect x="300" y="280" width="80" height="20" rx="4" fill="rgba(123,45,142,0.12)" stroke="rgba(123,45,142,0.2)" stroke-width="0.5"></rect>
-          <text x="340" y="294" fill="#c084fc" font-size="9" font-family="monospace" font-weight="600" text-anchor="middle">342m²</text>
+    <!-- Area label -->
+    <rect x="300" y="280" width="80" height="20" rx="4" fill="rgba(123,45,142,0.12)" stroke="rgba(123,45,142,0.2)" stroke-width="0.5"></rect>
+    <text x="340" y="294" fill="#c084fc" font-size="9" font-family="monospace" font-weight="600" text-anchor="middle">342m²</text>
 
-          <!-- Fence line -->
-          <rect x="600" y="215" width="2" height="170" fill="rgba(255,255,255,0.06)"></rect>
+    <!-- Fence line -->
+    <rect x="600" y="215" width="2" height="170" fill="rgba(255,255,255,0.06)"></rect>
 
-          <!-- Trees -->
-          <circle cx="100" cy="230" r="18" fill="rgba(16,185,129,0.08)"></circle>
-          <circle cx="100" cy="230" r="10" fill="rgba(16,185,129,0.06)"></circle>
+    <!-- Trees -->
+    <circle cx="100" cy="230" r="18" fill="rgba(16,185,129,0.08)"></circle>
+    <circle cx="100" cy="230" r="10" fill="rgba(16,185,129,0.06)"></circle>
 
-          <!-- Small satellite icon top right -->
-          <circle cx="620" cy="60" r="8" fill="none" stroke="rgba(192,132,252,0.15)" stroke-width="1" stroke-dasharray="3 2">
-            <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"></animate>
-          </circle>
-          <circle cx="620" cy="60" r="2" fill="rgba(192,132,252,0.2)"></circle>
+    <!-- Small satellite icon top right -->
+    <circle cx="620" cy="60" r="8" fill="none" stroke="rgba(192,132,252,0.15)" stroke-width="1" stroke-dasharray="3 2">
+    <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"></animate>
+    </circle>
+    <circle cx="620" cy="60" r="2" fill="rgba(192,132,252,0.2)"></circle>
 
-          <!-- Grid lines -->
-          <line x1="0" y1="400" x2="700" y2="400" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"></line>
-          <line x1="0" y1="380" x2="700" y2="380" stroke="rgba(255,255,255,0.01)" stroke-width="0.5"></line>
+    <!-- Grid lines -->
+    <line x1="0" y1="400" x2="700" y2="400" stroke="rgba(255,255,255,0.02)" stroke-width="0.5"></line>
+    <line x1="0" y1="380" x2="700" y2="380" stroke="rgba(255,255,255,0.01)" stroke-width="0.5"></line>
 
-          <!-- Ground fill -->
-          <rect x="0" y="390" width="700" height="30" fill="url(#grass)"></rect>
-        </svg>
+    <!-- Ground fill -->
+    <rect x="0" y="390" width="700" height="30" fill="url(#grass)"></rect>
+    </svg>
 
-        <!-- Overlaid price badge -->
-        <div class="price-badge">
-          <div class="amount">$58.50</div>
-          <div class="label">Est. quote</div>
-          <div class="tag">Instant</div>
-        </div>
-      </div>
-
-      <div class="hero-btn-wrap">
-        <a href="#signup" class="hero-btn" data-od-id="path-1-0-5-0">
-          Get early access
-          <svg class="btn-arrow" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h8M9 5l4 4-4 4"></path></svg>
-        </a>
-      </div>
-      <p class="body-sm hero-trust">Free to use · 5% per paid job · No lock-in</p>
-
-      <div class="scroll-hint"><span></span></div>
+    <!-- Overlaid price badge -->
+    <div class="price-badge">
+    <div class="amount">$58.50</div>
+    <div class="label">Est. quote</div>
+    <div class="tag">Instant</div>
     </div>
+  </div>
+
+  <div class="hero-btn-wrap">
+    <a href="#signup" class="hero-btn" data-od-id="path-1-0-5-0">
+    Get early access
+    </a>
+  </div>
+  </div>
   </section>
 
   <!-- ════════════════ AGITATION ════════════════ -->
   <section class="agitate" data-od-id="path-2">
-    <div class="container-narrow reveal" data-od-id="path-2-0">
-      <p>
-        Still measuring in person, texting quotes from your phone, and chasing payments
-        on Sunday night? <strong>There's a faster way · and your competitors are already looking for it.</strong>
-      </p>
-    </div>
+  <div class="container-narrow reveal" data-od-id="path-2-0">
+  <p>
+    Still measuring in person, texting quotes from your phone, and chasing payments
+    on Sunday night? <strong>There's a faster way and your competitors are already looking for it.</strong>
+  </p>
+  </div>
   </section>
 
   <!-- Anchor CTA after agitation -->
   <div class="section-cta-wrap reveal" data-od-id="path-3">
-    <a href="#signup" class="section-cta" data-od-id="path-3-0">
-      Join the waitlist
-      <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
-    </a>
+  <a href="#signup" class="section-cta" data-od-id="path-3-0">
+  Join the waitlist
+  <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
+  </a>
   </div>
 
   <!-- ════════════════ FEATURES ════════════════ -->
   <section data-od-id="path-4">
-    <div class="container" data-od-id="path-4-0">
-      <div class="container-narrow reveal" style="margin-bottom:var(--space-xl);">
-        <span class="section-label">Everything you need</span>
-        <h2 class="display" data-od-id="path-4-0-0-1">The entire job, on autopilot.</h2>
-        <p class="body-base" style="margin-top:var(--space-sm);">
-          From first measurement to final payment — every feature works together so you don't have to.
-        </p>
-      </div>
+  <div class="container" data-od-id="path-4-0">
+  <div class="container-narrow reveal" style="margin-bottom:var(--space-xl);">
+    <span class="section-label">Everything you need</span>
+    <h2 class="display" data-od-id="path-4-0-0-1">The entire job, on autopilot.</h2>
+    <p class="body-base" style="margin-top:var(--space-sm);">
+    From first measurement to final payment every feature works together so you don't have to.
+    </p>
+  </div>
 
-      <div class="feature-grid reveal-stagger">
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><line x1="12" y1="1" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="23"></line></svg></div>
-          <h4 data-od-id="path-4-0-1-0-1">AI Quote Tool</h4>
-          <p>Enter any NZ address. Our AI measures the lawn from satellite imagery and prices it instantly.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 2L11 13"></path><polygon points="22,2 15,22 11,13 2,9"></polygon></svg></div>
-          <h4 data-od-id="path-4-0-1-1-1">Quote Delivery</h4>
-          <p>Send by SMS or email. Customers approve, request changes, or suggest a time — all from a link.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><rect x="8" y="14" width="3" height="3" rx="0.5"></rect><rect x="13" y="14" width="3" height="3" rx="0.5"></rect></svg></div>
-          <h4 data-od-id="path-4-0-1-2-1">Auto Scheduling</h4>
-          <p>Jobs slot into the best available day automatically. You always get final say before anything goes live.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><polyline points="7,7 12,10 17,7"></polyline><polyline points="7,17 12,14 17,17"></polyline></svg></div>
-          <h4 data-od-id="path-4-0-1-3-1">Smart Routing</h4>
-          <p>Daily jobs mapped into the most efficient driving route. No more zig-zagging across town.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="8" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg></div>
-          <h4 data-od-id="path-4-0-1-4-1">Job Management</h4>
-          <p>Track every job — in progress, invoiced, paid. Reschedule, add notes, or ping the customer anytime.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></div>
-          <h4 data-od-id="path-4-0-1-5-1">Auto Invoicing &amp; Payments</h4>
-          <p>Invoice generated after every job. Sent automatically with a payment link and smart reminders.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></div>
-          <h4 data-od-id="path-4-0-1-6-1">Upsells &amp; Add-ons</h4>
-          <p>Define extra services — hedge trimming, fertiliser, gutter clean — and add them at any job stage.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"></rect><circle cx="12" cy="12" r="3"></circle></svg></div>
-          <h4 data-od-id="path-4-0-1-7-1">Integrations</h4>
-          <p>Connects with Xero, MYOB, QuickBooks. CSV export always available — your data, your way.</p>
-        </div>
-      </div>
+  </div>
+  <div class="carousel-container reveal-stagger">
+  <div class="carousel-track" id="feature-carousel">
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><line x1="12" y1="1" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="23"></line></svg></div>
+    <h4 data-od-id="path-4-0-1-0-1">AI Quote Tool</h4>
+    <p>Enter any NZ address. Our AI measures the lawn from satellite imagery and prices it instantly.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 2L11 13"></path><polygon points="22,2 15,22 11,13 2,9"></polygon></svg></div>
+    <h4 data-od-id="path-4-0-1-1-1">Quote Delivery</h4>
+    <p>Send by SMS or email. Customers approve, request changes, or suggest a time all from a link.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><rect x="8" y="14" width="3" height="3" rx="0.5"></rect><rect x="13" y="14" width="3" height="3" rx="0.5"></rect></svg></div>
+    <h4 data-od-id="path-4-0-1-2-1">Auto Scheduling</h4>
+    <p>Jobs slot into the best available day automatically. You always get final say before anything goes live.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><polyline points="7,7 12,10 17,7"></polyline><polyline points="7,17 12,14 17,17"></polyline></svg></div>
+    <h4 data-od-id="path-4-0-1-3-1">Smart Routing</h4>
+    <p>Daily jobs mapped into the most efficient driving route. No more zig zagging across town.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="8" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg></div>
+    <h4 data-od-id="path-4-0-1-4-1">Job Management</h4>
+    <p>Track every job in progress, invoiced, paid. Reschedule, add notes, or ping the customer anytime.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></div>
+    <h4 data-od-id="path-4-0-1-5-1">Auto Invoicing &amp; Payments</h4>
+    <p>Invoice generated after every job. Sent automatically with a payment link and smart reminders.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></div>
+    <h4 data-od-id="path-4-0-1-6-1">Upsells &amp; Add ons</h4>
+    <p>Define extra services hedge trimming, fertiliser, gutter clean and add them at any job stage.</p>
+    </div></div>
+    <div class="carousel-slide"><div class="feature-card">
+    <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"></rect><circle cx="12" cy="12" r="3"></circle></svg></div>
+    <h4 data-od-id="path-4-0-1-7-1">Integrations</h4>
+    <p>Connects with Xero, MYOB, QuickBooks. CSV export always available your data, your way.</p>
+    </div></div>
+  </div>
+  <div class="carousel-controls">
+    <button class="carousel-btn carousel-prev" aria-label="Previous" onclick="scrollCarousel(-1)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="carousel-dots" id="carousel-dots">
+    <button class="carousel-dot active" data-index="0" aria-label="Go to slide 1"></button>
+    <button class="carousel-dot" data-index="1" aria-label="Go to slide 2"></button>
+    <button class="carousel-dot" data-index="2" aria-label="Go to slide 3"></button>
+    <button class="carousel-dot" data-index="3" aria-label="Go to slide 4"></button>
+    <button class="carousel-dot" data-index="4" aria-label="Go to slide 5"></button>
+    <button class="carousel-dot" data-index="5" aria-label="Go to slide 6"></button>
+    <button class="carousel-dot" data-index="6" aria-label="Go to slide 7"></button>
+    <button class="carousel-dot" data-index="7" aria-label="Go to slide 8"></button>
     </div>
+    <button class="carousel-btn carousel-next" aria-label="Next" onclick="scrollCarousel(1)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+  </div>
+  </div>
+  </div>
   </section>
 
   <!-- Anchor CTA after features -->
   <div class="section-cta-wrap reveal" data-od-id="path-5">
-    <a href="#signup" class="section-cta" data-od-id="path-5-0">
-      Ready to try it?
-      <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
-    </a>
+  <a href="#signup" class="section-cta" data-od-id="path-5-0">
+  Ready to try it?
+  <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
+  </a>
   </div>
 
   <!-- ════════════════ HOW IT WORKS ════════════════ -->
   <section data-od-id="path-6">
-    <div class="container" data-od-id="path-6-0">
-      <div class="container-narrow reveal" style="margin-bottom:var(--space-xl);">
-        <span class="section-label">How it works</span>
-        <h2 class="display" data-od-id="path-6-0-0-1">Four steps from quote to paid.</h2>
-      </div>
+  <div class="container" data-od-id="path-6-0">
+  <div class="container-narrow reveal" style="margin-bottom:var(--space-xl);">
+    <span class="section-label">How it works</span>
+    <h2 class="display" data-od-id="path-6-0-0-1">Four steps from quote to paid.</h2>
+  </div>
 
-      <div class="how-flow reveal-stagger">
-        <div class="how-step reveal">
-          <div class="how-step-num">1</div>
-          <h4 data-od-id="path-6-0-1-0-1">Enter the address</h4>
-          <p>Type any NZ property. AI measures the mowable area from satellite data in seconds.</p>
-        </div>
-        <div class="how-step reveal">
-          <div class="how-step-num">2</div>
-          <h4 data-od-id="path-6-0-1-1-1">Send the quote</h4>
-          <p>Customer gets an SMS or email with a link. They approve, adjust, or pick a time — instantly.</p>
-        </div>
-        <div class="how-step reveal">
-          <div class="how-step-num">3</div>
-          <h4 data-od-id="path-6-0-1-2-1">Job auto-schedules</h4>
-          <p>It lands on the best day, route-optimised. You review and confirm with one tap.</p>
-        </div>
-        <div class="how-step reveal">
-          <div class="how-step-num">4</div>
-          <h4 data-od-id="path-6-0-1-3-1">Invoice &amp; get paid</h4>
-          <p>Invoice fires after the job. Customer pays online. Automatic reminders until it's done.</p>
-        </div>
-      </div>
+  <div class="how-flow reveal-stagger">
+    <div class="how-step reveal">
+    <div class="how-step-num">1</div>
+    <div class="how-step-body">
+    <h4 data-od-id="path-6-0-1-0-1">Enter the address</h4>
+    <p>Type any NZ property. AI measures the mowable area from satellite data in seconds.</p>
     </div>
+    </div>
+    <div class="how-step reveal">
+    <div class="how-step-num">2</div>
+    <div class="how-step-body">
+    <h4 data-od-id="path-6-0-1-1-1">Send the quote</h4>
+    <p>Customer gets an SMS or email with a link. They approve, adjust, or pick a time instantly.</p>
+    </div>
+    </div>
+    <div class="how-step reveal">
+    <div class="how-step-num">3</div>
+    <div class="how-step-body">
+    <h4 data-od-id="path-6-0-1-2-1">Job auto schedules</h4>
+    <p>It lands on the best day, route optimised. You review and confirm with one tap.</p>
+    </div>
+    </div>
+    <div class="how-step reveal">
+    <div class="how-step-num">4</div>
+    <div class="how-step-body">
+    <h4 data-od-id="path-6-0-1-3-1">Invoice &amp; get paid</h4>
+    <p>Invoice fires after the job. Customer pays online. Automatic reminders until it's done.</p>
+    </div>
+    </div>
+  </div>
+  </div>
   </section>
 
   <!-- Anchor CTA after how it works -->
   <div class="section-cta-wrap reveal" data-od-id="path-7">
-    <a href="#signup" class="section-cta" data-od-id="path-7-0">
-      Get started
-      <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
-    </a>
+  <a href="#signup" class="section-cta" data-od-id="path-7-0">
+  Get started
+  <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
+  </a>
   </div>
 
   <!-- ════════════════ INTEGRATIONS LOOPING BAND ════════════════ -->
   <section class="integrations-section" data-od-id="path-8">
-    <div class="container-narrow reveal" style="margin-bottom:var(--space-lg);" data-od-id="path-8-0">
-      <span class="section-label">Connects with</span>
-    </div>
+  <div class="container-narrow reveal" style="margin-bottom:var(--space-lg);" data-od-id="path-8-0">
+  <span class="section-label">Connects with</span>
+  </div>
 
-    <div class="integrations-track-wrapper reveal" data-od-id="path-8-1">
-      <div class="integrations-track">
-        <!-- First copy -->
-        <div class="integrations-track-inner">
-          <div class="int-logo">
-            <svg viewBox="0 0 80 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.5 0.5C4.08 0.5 0.5 4.08 0.5 8.5C0.5 12.92 4.08 16.5 8.5 16.5C12.92 16.5 16.5 12.92 16.5 8.5C16.5 4.08 12.92 0.5 8.5 0.5ZM8.5 14.5C5.19 14.5 2.5 11.81 2.5 8.5C2.5 5.19 5.19 2.5 8.5 2.5C11.81 2.5 14.5 5.19 14.5 8.5C14.5 11.81 11.81 14.5 8.5 14.5Z" fill="white" opacity="0.7"></path>
-              <path d="M34 2.5H30L26.5 14.5H30L31.2 10.5H36.8L38 14.5H42L38.5 2.5H34ZM34.5 7.5L36 3.5L37.5 7.5H34.5Z" fill="white" opacity="0.7"></path>
-              <path d="M46 2.5H42.5L46.5 14.5H50L54 2.5H50.5L48.5 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M68 0.5H64L60.5 14.5H64L68 0.5Z" fill="white" opacity="0.7"></path>
-              <path d="M74 2.5C72.34 2.5 71 3.84 71 5.5C71 7.16 72.34 8.5 74 8.5C75.66 8.5 77 7.16 77 5.5C77 3.84 75.66 2.5 74 2.5ZM74 6.5C73.45 6.5 73 6.05 73 5.5C73 4.95 73.45 4.5 74 4.5C74.55 4.5 75 4.95 75 5.5C75 6.05 74.55 6.5 74 6.5Z" fill="white" opacity="0.7"></path>
-            </svg>
-            <span>Xero</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 70 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M28 2.5L24 14.5H28L29 11.5H33L34 14.5H38L34 2.5H28ZM29.5 9L30.5 6L31.5 9H29.5Z" fill="white" opacity="0.6"></path>
-              <path d="M44 2.5H40L44 14.5H48L52 2.5H48L46 9.8L44 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M56 2.5H52.5L56 14.5H59.5L56 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M66 10.5C66 11.05 65.55 11.5 65 11.5H61V14.5H65C67.21 14.5 69 12.71 69 10.5C69 8.29 67.21 6.5 65 6.5H62V9.5H65C65.55 9.5 66 9.95 66 10.5Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>MYOB</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 90 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 0.5C5.92 0.5 1 5.42 1 11.5C1 17.58 5.92 22.5 12 22.5C18.08 22.5 23 17.58 23 11.5C23 5.42 18.08 0.5 12 0.5ZM12 20.5C7.03 20.5 3 16.47 3 11.5C3 6.53 7.03 2.5 12 2.5C16.97 2.5 21 6.53 21 11.5C21 16.47 16.97 20.5 12 20.5Z" fill="white" opacity="0.7"></path>
-              <path d="M30 2.5L26 14.5H30L31 11.5H35L36 14.5H40L36 2.5H30ZM31.5 8.5L33 5L34.5 8.5H31.5Z" fill="white" opacity="0.7"></path>
-              <path d="M46 2.5H42L46 14.5H50L54 2.5H50L48 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M68 2.5H64.5L68.5 14.5H72L76 2.5H72.5L70.5 9.8L68 2.5Z" fill="white" opacity="0.7"></path>
-            </svg>
-            <span>QuickBooks</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M24 2.5L20 14.5H24L25 11.5H29L30 14.5H34L30 2.5H24ZM25.5 9L26.5 6L27.5 9H25.5Z" fill="white" opacity="0.6"></path>
-              <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>CSV</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M26 2.5H22.5L26.5 14.5H30L34 2.5H30.5L28.5 9.8L26 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>Hnry</span>
-          </div>
-        </div>
-        <!-- Duplicate for seamless scroll -->
-        <div class="integrations-track-inner">
-          <div class="int-logo">
-            <svg viewBox="0 0 80 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.5 0.5C4.08 0.5 0.5 4.08 0.5 8.5C0.5 12.92 4.08 16.5 8.5 16.5C12.92 16.5 16.5 12.92 16.5 8.5C16.5 4.08 12.92 0.5 8.5 0.5ZM8.5 14.5C5.19 14.5 2.5 11.81 2.5 8.5C2.5 5.19 5.19 2.5 8.5 2.5C11.81 2.5 14.5 5.19 14.5 8.5C14.5 11.81 11.81 14.5 8.5 14.5Z" fill="white" opacity="0.7"></path>
-              <path d="M34 2.5H30L26.5 14.5H30L31.2 10.5H36.8L38 14.5H42L38.5 2.5H34ZM34.5 7.5L36 3.5L37.5 7.5H34.5Z" fill="white" opacity="0.7"></path>
-              <path d="M46 2.5H42.5L46.5 14.5H50L54 2.5H50.5L48.5 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M68 0.5H64L60.5 14.5H64L68 0.5Z" fill="white" opacity="0.7"></path>
-              <path d="M74 2.5C72.34 2.5 71 3.84 71 5.5C71 7.16 72.34 8.5 74 8.5C75.66 8.5 77 7.16 77 5.5C77 3.84 75.66 2.5 74 2.5ZM74 6.5C73.45 6.5 73 6.05 73 5.5C73 4.95 73.45 4.5 74 4.5C74.55 4.5 75 4.95 75 5.5C75 6.05 74.55 6.5 74 6.5Z" fill="white" opacity="0.7"></path>
-            </svg>
-            <span>Xero</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 70 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M28 2.5L24 14.5H28L29 11.5H33L34 14.5H38L34 2.5H28ZM29.5 9L30.5 6L31.5 9H29.5Z" fill="white" opacity="0.6"></path>
-              <path d="M44 2.5H40L44 14.5H48L52 2.5H48L46 9.8L44 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M56 2.5H52.5L56 14.5H59.5L56 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M66 10.5C66 11.05 65.55 11.5 65 11.5H61V14.5H65C67.21 14.5 69 12.71 69 10.5C69 8.29 67.21 6.5 65 6.5H62V9.5H65C65.55 9.5 66 9.95 66 10.5Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>MYOB</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 90 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 0.5C5.92 0.5 1 5.42 1 11.5C1 17.58 5.92 22.5 12 22.5C18.08 22.5 23 17.58 23 11.5C23 5.42 18.08 0.5 12 0.5ZM12 20.5C7.03 20.5 3 16.47 3 11.5C3 6.53 7.03 2.5 12 2.5C16.97 2.5 21 6.53 21 11.5C21 16.47 16.97 20.5 12 20.5Z" fill="white" opacity="0.7"></path>
-              <path d="M30 2.5L26 14.5H30L31 11.5H35L36 14.5H40L36 2.5H30ZM31.5 8.5L33 5L34.5 8.5H31.5Z" fill="white" opacity="0.7"></path>
-              <path d="M46 2.5H42L46 14.5H50L54 2.5H50L48 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
-              <path d="M68 2.5H64.5L68.5 14.5H72L76 2.5H72.5L70.5 9.8L68 2.5Z" fill="white" opacity="0.7"></path>
-            </svg>
-            <span>QuickBooks</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M24 2.5L20 14.5H24L25 11.5H29L30 14.5H34L30 2.5H24ZM25.5 9L26.5 6L27.5 9H25.5Z" fill="white" opacity="0.6"></path>
-              <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>CSV</span>
-          </div>
-          <div class="int-logo">
-            <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
-              <path d="M26 2.5H22.5L26.5 14.5H30L34 2.5H30.5L28.5 9.8L26 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
-              <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
-            </svg>
-            <span>Hnry</span>
-          </div>
-        </div>
-      </div>
+  <div class="integrations-track-wrapper reveal" data-od-id="path-8-1">
+  <div class="integrations-track">
+    <!-- First copy -->
+    <div class="integrations-track-inner">
+    <div class="int-logo">
+    <svg viewBox="0 0 80 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.5 0.5C4.08 0.5 0.5 4.08 0.5 8.5C0.5 12.92 4.08 16.5 8.5 16.5C12.92 16.5 16.5 12.92 16.5 8.5C16.5 4.08 12.92 0.5 8.5 0.5ZM8.5 14.5C5.19 14.5 2.5 11.81 2.5 8.5C2.5 5.19 5.19 2.5 8.5 2.5C11.81 2.5 14.5 5.19 14.5 8.5C14.5 11.81 11.81 14.5 8.5 14.5Z" fill="white" opacity="0.7"></path>
+      <path d="M34 2.5H30L26.5 14.5H30L31.2 10.5H36.8L38 14.5H42L38.5 2.5H34ZM34.5 7.5L36 3.5L37.5 7.5H34.5Z" fill="white" opacity="0.7"></path>
+      <path d="M46 2.5H42.5L46.5 14.5H50L54 2.5H50.5L48.5 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M68 0.5H64L60.5 14.5H64L68 0.5Z" fill="white" opacity="0.7"></path>
+      <path d="M74 2.5C72.34 2.5 71 3.84 71 5.5C71 7.16 72.34 8.5 74 8.5C75.66 8.5 77 7.16 77 5.5C77 3.84 75.66 2.5 74 2.5ZM74 6.5C73.45 6.5 73 6.05 73 5.5C73 4.95 73.45 4.5 74 4.5C74.55 4.5 75 4.95 75 5.5C75 6.05 74.55 6.5 74 6.5Z" fill="white" opacity="0.7"></path>
+    </svg>
+    <span>Xero</span>
     </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 70 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M28 2.5L24 14.5H28L29 11.5H33L34 14.5H38L34 2.5H28ZM29.5 9L30.5 6L31.5 9H29.5Z" fill="white" opacity="0.6"></path>
+      <path d="M44 2.5H40L44 14.5H48L52 2.5H48L46 9.8L44 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M56 2.5H52.5L56 14.5H59.5L56 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M66 10.5C66 11.05 65.55 11.5 65 11.5H61V14.5H65C67.21 14.5 69 12.71 69 10.5C69 8.29 67.21 6.5 65 6.5H62V9.5H65C65.55 9.5 66 9.95 66 10.5Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>MYOB</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 90 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0.5C5.92 0.5 1 5.42 1 11.5C1 17.58 5.92 22.5 12 22.5C18.08 22.5 23 17.58 23 11.5C23 5.42 18.08 0.5 12 0.5ZM12 20.5C7.03 20.5 3 16.47 3 11.5C3 6.53 7.03 2.5 12 2.5C16.97 2.5 21 6.53 21 11.5C21 16.47 16.97 20.5 12 20.5Z" fill="white" opacity="0.7"></path>
+      <path d="M30 2.5L26 14.5H30L31 11.5H35L36 14.5H40L36 2.5H30ZM31.5 8.5L33 5L34.5 8.5H31.5Z" fill="white" opacity="0.7"></path>
+      <path d="M46 2.5H42L46 14.5H50L54 2.5H50L48 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M68 2.5H64.5L68.5 14.5H72L76 2.5H72.5L70.5 9.8L68 2.5Z" fill="white" opacity="0.7"></path>
+    </svg>
+    <span>QuickBooks</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M24 2.5L20 14.5H24L25 11.5H29L30 14.5H34L30 2.5H24ZM25.5 9L26.5 6L27.5 9H25.5Z" fill="white" opacity="0.6"></path>
+      <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>CSV</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M26 2.5H22.5L26.5 14.5H30L34 2.5H30.5L28.5 9.8L26 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>Hnry</span>
+    </div>
+    </div>
+    <!-- Duplicate for seamless scroll -->
+    <div class="integrations-track-inner">
+    <div class="int-logo">
+    <svg viewBox="0 0 80 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.5 0.5C4.08 0.5 0.5 4.08 0.5 8.5C0.5 12.92 4.08 16.5 8.5 16.5C12.92 16.5 16.5 12.92 16.5 8.5C16.5 4.08 12.92 0.5 8.5 0.5ZM8.5 14.5C5.19 14.5 2.5 11.81 2.5 8.5C2.5 5.19 5.19 2.5 8.5 2.5C11.81 2.5 14.5 5.19 14.5 8.5C14.5 11.81 11.81 14.5 8.5 14.5Z" fill="white" opacity="0.7"></path>
+      <path d="M34 2.5H30L26.5 14.5H30L31.2 10.5H36.8L38 14.5H42L38.5 2.5H34ZM34.5 7.5L36 3.5L37.5 7.5H34.5Z" fill="white" opacity="0.7"></path>
+      <path d="M46 2.5H42.5L46.5 14.5H50L54 2.5H50.5L48.5 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M68 0.5H64L60.5 14.5H64L68 0.5Z" fill="white" opacity="0.7"></path>
+      <path d="M74 2.5C72.34 2.5 71 3.84 71 5.5C71 7.16 72.34 8.5 74 8.5C75.66 8.5 77 7.16 77 5.5C77 3.84 75.66 2.5 74 2.5ZM74 6.5C73.45 6.5 73 6.05 73 5.5C73 4.95 73.45 4.5 74 4.5C74.55 4.5 75 4.95 75 5.5C75 6.05 74.55 6.5 74 6.5Z" fill="white" opacity="0.7"></path>
+    </svg>
+    <span>Xero</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 70 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M28 2.5L24 14.5H28L29 11.5H33L34 14.5H38L34 2.5H28ZM29.5 9L30.5 6L31.5 9H29.5Z" fill="white" opacity="0.6"></path>
+      <path d="M44 2.5H40L44 14.5H48L52 2.5H48L46 9.8L44 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M56 2.5H52.5L56 14.5H59.5L56 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M66 10.5C66 11.05 65.55 11.5 65 11.5H61V14.5H65C67.21 14.5 69 12.71 69 10.5C69 8.29 67.21 6.5 65 6.5H62V9.5H65C65.55 9.5 66 9.95 66 10.5Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>MYOB</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 90 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0.5C5.92 0.5 1 5.42 1 11.5C1 17.58 5.92 22.5 12 22.5C18.08 22.5 23 17.58 23 11.5C23 5.42 18.08 0.5 12 0.5ZM12 20.5C7.03 20.5 3 16.47 3 11.5C3 6.53 7.03 2.5 12 2.5C16.97 2.5 21 6.53 21 11.5C21 16.47 16.97 20.5 12 20.5Z" fill="white" opacity="0.7"></path>
+      <path d="M30 2.5L26 14.5H30L31 11.5H35L36 14.5H40L36 2.5H30ZM31.5 8.5L33 5L34.5 8.5H31.5Z" fill="white" opacity="0.7"></path>
+      <path d="M46 2.5H42L46 14.5H50L54 2.5H50L48 9.8L46 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M58 2.5H55.5L59 14.5H61.5L58 2.5Z" fill="white" opacity="0.7"></path>
+      <path d="M68 2.5H64.5L68.5 14.5H72L76 2.5H72.5L70.5 9.8L68 2.5Z" fill="white" opacity="0.7"></path>
+    </svg>
+    <span>QuickBooks</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M24 2.5L20 14.5H24L25 11.5H29L30 14.5H34L30 2.5H24ZM25.5 9L26.5 6L27.5 9H25.5Z" fill="white" opacity="0.6"></path>
+      <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>CSV</span>
+    </div>
+    <div class="int-logo">
+    <svg viewBox="0 0 60 22" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0.5C4.48 0.5 0 4.98 0 10.5C0 16.02 4.48 20.5 10 20.5C15.52 20.5 20 16.02 20 10.5C20 4.98 15.52 0.5 10 0.5ZM10 18.5C5.58 18.5 2 14.92 2 10.5C2 6.08 5.58 2.5 10 2.5C14.42 2.5 18 6.08 18 10.5C18 14.92 14.42 18.5 10 18.5Z" fill="white" opacity="0.6"></path>
+      <path d="M26 2.5H22.5L26.5 14.5H30L34 2.5H30.5L28.5 9.8L26 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M40 2.5H36L40 14.5H44L48 2.5H44L42 9.8L40 2.5Z" fill="white" opacity="0.6"></path>
+      <path d="M52 2.5L53.5 8.5L55 2.5H58.5L55.5 10.5L56.5 14.5H53L52 10.5L49 14.5H45.5L49 8.5L50.5 2.5H52Z" fill="white" opacity="0.6"></path>
+    </svg>
+    <span>Hnry</span>
+    </div>
+    </div>
+  </div>
+  </div>
   </section>
 
   <!-- ════════════════ PRICING ════════════════ -->
   <section data-od-id="path-9">
-    <div class="container-narrow reveal" data-od-id="path-9-0">
-      <span class="section-label">Pricing</span>
+  <div class="container-narrow reveal" data-od-id="path-9-0">
+  <span class="section-label  <span class="section-label">Pricing</span>
       <div class="pricing-card">
         <div class="pricing-big">
           <div class="free">$0<span style="font-size:1.3rem;">/mo</span></div>
@@ -1520,17 +1669,10 @@
     </div>
   </section>
 
-  <!-- Anchor CTA after pricing -->
-  <div class="section-cta-wrap reveal" data-od-id="path-10">
-    <a href="#signup" class="section-cta" data-od-id="path-10-0">
-      Join free · no risk
-      <svg class="cta-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v8M4 8l4 4 4-4"></path></svg>
-    </a>
-  </div>
-
   <!-- ════════════════ SIGNUP TARGET ════════════════ -->
   <section id="signup" data-od-id="path-11">
     <div class="container-narrow reveal" data-od-id="path-11-0">
+      <span class="section-label">Waitlist</span>
       <div class="signup-card">
         <h2 class="display" data-od-id="path-11-0-0-0">Ready to stop doing admin?</h2>
         <p class="body-base">
@@ -1545,7 +1687,7 @@
           </button>
         </form>
         <p class="form-error" id="eoi-error-bottom" data-od-id="path-11-0-0-3"></p>
-        <p class="body-sm">Free to use · 5% per paid job · Cancel anytime</p>
+        <p class="body-sm">Free to use   5% per paid job   Cancel anytime</p>
 
         <div class="form-success" id="eoi-success-bottom" data-od-id="path-11-0-0-5">
           <div class="success-icon" data-od-id="path-11-0-0-5-0">✓</div>
@@ -1558,233 +1700,260 @@
 
   <!-- ════════════════ MOBILE FLOAT CTA ════════════════ -->
   <div class="mobile-float-cta" id="mobile-float-cta" data-od-id="path-12">
-    <a href="#signup" class="btn btn-primary" data-od-id="path-12-0">Get early access</a>
+  <a href="#signup" class="btn btn-primary" data-od-id="path-12-0">Get early access</a>
   </div>
 
   <!-- ════════════════ FOOTER ════════════════ -->
   <footer data-od-id="path-13">
-    <p>© 2026 Deep Edge · Built for Kiwi tradies · <a href="mailto:hello@deepedge.nz" data-od-id="path-13-0-0">hello@deepedge.nz</a></p>
+  <p>© 2026 Deep Edge Built for Kiwi lawn operators <a href="mailto:hello@deepedge.nz" data-od-id="path-13-0-0">hello@deepedge.nz</a></p>
   </footer>
 
   <!-- ════════════════ SCRIPTS ════════════════ -->
   <script>
-    (function () {
-      // ── Scroll reveal ──────────────────────────────
-      var reveals = document.querySelectorAll('.reveal');
-      var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+  (function () {
+  // ── Carousel navigation ─────────────────────────
+  var carouselTrack = document.getElementById('feature-carousel');
+  var dots = document.querySelectorAll('.carousel-dot');
+  if (carouselTrack && dots.length) {
+    function updateDots() {
+    var scrollLeft = carouselTrack.scrollLeft;
+    var slideWidth = carouselTrack.querySelector('.carousel-slide')?.offsetWidth + 16 || 1;
+    var idx = Math.round(scrollLeft / slideWidth);
+    idx = Math.min(idx, dots.length - 1);
+    dots.forEach(function(d) { d.classList.remove('active'); });
+    if (dots[idx]) dots[idx].classList.add('active');
+    }
+    carouselTrack.addEventListener('scroll', updateDots);
+    dots.forEach(function(dot) {
+    dot.addEventListener('click', function() {
+    var idx = parseInt(this.getAttribute('data-index'));
+    var slideWidth = carouselTrack.querySelector('.carousel-slide')?.offsetWidth + 16 || 0;
+    carouselTrack.scrollTo({ left: idx * slideWidth, behavior: 'smooth' });
+    });
+    });
+  }
+  window.scrollCarousel = function(dir) {
+    if (!carouselTrack) return;
+    var slideWidth = carouselTrack.querySelector('.carousel-slide')?.offsetWidth + 16 || 300;
+    carouselTrack.scrollBy({ left: dir * slideWidth, behavior: 'smooth' });
+  };
+  
+  // ── Scroll reveal ──────────────────────────────
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+    if (entry.isIntersecting) {
+    entry.target.classList.add('visible');
+    observer.unobserve(entry.target);
+    }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
 
-      reveals.forEach(function (el) { observer.observe(el); });
+  reveals.forEach(function (el) { observer.observe(el); });
 
-      // Trigger stagger parents
-      var staggerParents = document.querySelectorAll('.reveal-stagger');
-      var staggerObs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            var children = entry.target.querySelectorAll('.reveal');
-            children.forEach(function (child) { child.classList.add('visible'); });
-            staggerObs.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  // Trigger stagger parents
+  var staggerParents = document.querySelectorAll('.reveal-stagger');
+  var staggerObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+    if (entry.isIntersecting) {
+    var children = entry.target.querySelectorAll('.reveal');
+    children.forEach(function (child) { child.classList.add('visible'); });
+    staggerObs.unobserve(entry.target);
+    }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-      staggerParents.forEach(function (el) { staggerObs.observe(el); });
+  staggerParents.forEach(function (el) { staggerObs.observe(el); });
 
-      // ── Mobile floating CTA ────────────────────────
-      var mobileFloat = document.getElementById('mobile-float-cta');
-      var heroEl = document.querySelector('.hero');
+  // ── Mobile floating CTA ────────────────────────
+  var mobileFloat = document.getElementById('mobile-float-cta');
+  var heroEl = document.querySelector('.hero');
 
-      if (mobileFloat && heroEl) {
-        var floatObserver = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            mobileFloat.classList.toggle('visible', !entry.isIntersecting);
-          });
-        }, { threshold: 0 });
-        floatObserver.observe(heroEl);
-      }
+  if (mobileFloat && heroEl) {
+    var floatObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+    mobileFloat.classList.toggle('visible', !entry.isIntersecting);
+    });
+    }, { threshold: 0 });
+    floatObserver.observe(heroEl);
+  }
 
-      // ── Feature card mouse tracking ─────────────────
-      var featureCards = document.querySelectorAll('.feature-card');
-      featureCards.forEach(function (card) {
-        card.addEventListener('mousemove', function (e) {
-          var rect = card.getBoundingClientRect();
-          card.style.setProperty('--mouse-x', ((e.clientX - rect.left) / rect.width * 100) + '%');
-          card.style.setProperty('--mouse-y', ((e.clientY - rect.top) / rect.height * 100) + '%');
-        });
-      });
+  // ── Feature card mouse tracking ─────────────────
+  var featureCards = document.querySelectorAll('.feature-card');
+  featureCards.forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+    var rect = card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+    card.style.setProperty('--mouse-y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+    });
+  });
 
-      // ── Email validation ───────────────────────────
-      function isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      }
+  // ── Email validation ───────────────────────────
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
 
-      function setupForm(formId, emailId, submitId, errorId, successId, wrapId) {
-        var form    = document.getElementById(formId);
-        var emailEl = document.getElementById(emailId);
-        var submit  = document.getElementById(submitId);
-        var errorEl = document.getElementById(errorId);
-        var success = document.getElementById(successId);
-        var wrap    = wrapId ? document.getElementById(wrapId) : null;
+  function setupForm(formId, emailId, submitId, errorId, successId, wrapId) {
+    var form  = document.getElementById(formId);
+    var emailEl = document.getElementById(emailId);
+    var submit  = document.getElementById(submitId);
+    var errorEl = document.getElementById(errorId);
+    var success = document.getElementById(successId);
+    var wrap  = wrapId ? document.getElementById(wrapId) : null;
 
-        if (!form || !emailEl || !submit) return;
+    if (!form || !emailEl || !submit) return;
 
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          errorEl.classList.remove('show');
-          var email = emailEl.value.trim();
+    form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    errorEl.classList.remove('show');
+    var email = emailEl.value.trim();
 
-          if (!email) {
-            errorEl.textContent = 'Please enter your email address.';
-            errorEl.classList.add('show');
-            emailEl.focus();
-            return;
-          }
+    if (!email) {
+    errorEl.textContent = 'Please enter your email address.';
+    errorEl.classList.add('show');
+    emailEl.focus();
+    return;
+    }
 
-          if (!isValidEmail(email)) {
-            errorEl.textContent = 'Please enter a valid email address.';
-            errorEl.classList.add('show');
-            emailEl.focus();
-            return;
-          }
+    if (!isValidEmail(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
+    errorEl.classList.add('show');
+    emailEl.focus();
+    return;
+    }
 
-          submit.classList.add('loading');
-          submit.disabled = true;
+    submit.classList.add('loading');
+    submit.disabled = true;
 
-          setTimeout(function () {
-            submit.classList.remove('loading');
-            submit.disabled = false;
-            if (wrap) wrap.style.display = 'none';
-            form.style.display = 'none';
-            if (errorEl) errorEl.classList.remove('show');
-            success.classList.add('show');
-            syncAllSuccess();
-          }, 850);
-        });
-      }
+    setTimeout(function () {
+    submit.classList.remove('loading');
+    submit.disabled = false;
+    if (wrap) wrap.style.display = 'none';
+    form.style.display = 'none';
+    if (errorEl) errorEl.classList.remove('show');
+    success.classList.add('show');
+    syncAllSuccess();
+    }, 850);
+    });
+  }
 
-      function syncAllSuccess() {
-        document.querySelectorAll('.form-success').forEach(function (s) { s.classList.add('show'); });
-        document.querySelectorAll('.email-form').forEach(function (f) { f.style.display = 'none'; });
-        document.querySelectorAll('.hero-form-wrap').forEach(function (w) { w.style.display = 'none'; });
-      }
+  function syncAllSuccess() {
+    document.querySelectorAll('.form-success').forEach(function (s) { s.classList.add('show'); });
+    document.querySelectorAll('.email-form').forEach(function (f) { f.style.display = 'none'; });
+    document.querySelectorAll('.hero-form-wrap').forEach(function (w) { w.style.display = 'none'; });
+  }
 
-      setupForm('eoi-form-bottom', 'eoi-email-bottom', 'eoi-submit-bottom', 'eoi-error-bottom', 'eoi-success-bottom', null);
+  setupForm('eoi-form-bottom', 'eoi-email-bottom', 'eoi-submit-bottom', 'eoi-error-bottom', 'eoi-success-bottom', null);
 
-      // ── Signup target glow on hash ─────────────────
-      window.addEventListener('hashchange', function () {
-        if (location.hash === '#signup') {
-          var card = document.querySelector('#signup .signup-card');
-          if (card) {
-            card.style.animation = 'none';
-            card.offsetHeight;
-            card.style.animation = 'glowRing 1.8s cubic-bezier(0.16,1,0.3,1)';
-          }
-        }
-      });
-    })();
+  // ── Signup target glow on hash ─────────────────
+  window.addEventListener('hashchange', function () {
+    if (location.hash === '#signup') {
+    var card = document.querySelector('#signup .signup-card');
+    if (card) {
+    card.style.animation = 'none';
+    card.offsetHeight;
+    card.style.animation = 'glowRing 1.8s cubic-bezier(0.16,1,0.3,1)';
+    }
+    }
+  });
+  })();
   </script>
 
 
 
 <script data-od-snapshot-bridge="">(function(){
   function copyComputedStyle(source, target){
-    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
-    var computed = window.getComputedStyle(source);
-    var style = target.getAttribute('style') || '';
-    for (var i = 0; i < computed.length; i++){
-      var prop = computed[i];
-      style += prop + ':' + computed.getPropertyValue(prop) + ';';
-    }
-    target.setAttribute('style', style);
+  if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+  var computed = window.getComputedStyle(source);
+  var style = target.getAttribute('style') || '';
+  for (var i = 0; i < computed.length; i++){
+  var prop = computed[i];
+  style += prop + ':' + computed.getPropertyValue(prop) + ';';
+  }
+  target.setAttribute('style', style);
   }
   function syncElementState(source, target){
-    var tag = source.tagName ? source.tagName.toLowerCase() : '';
-    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
-    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
-    if (tag === 'canvas') {
-      try {
-        var img = document.createElement('img');
-        img.setAttribute('src', source.toDataURL('image/png'));
-        img.setAttribute('style', target.getAttribute('style') || '');
-        target.parentNode && target.parentNode.replaceChild(img, target);
-      } catch (_) {}
-    }
+  var tag = source.tagName ? source.tagName.toLowerCase() : '';
+  if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+  if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+  if (tag === 'canvas') {
+  try {
+    var img = document.createElement('img');
+    img.setAttribute('src', source.toDataURL('image/png'));
+    img.setAttribute('style', target.getAttribute('style') || '');
+    target.parentNode && target.parentNode.replaceChild(img, target);
+  } catch (_) {}
+  }
   }
   function inlineSnapshotStyles(originalRoot, cloneRoot){
-    copyComputedStyle(originalRoot, cloneRoot);
-    syncElementState(originalRoot, cloneRoot);
-    var originals = originalRoot.querySelectorAll('*');
-    var clones = cloneRoot.querySelectorAll('*');
-    var count = Math.min(originals.length, clones.length);
-    for (var i = 0; i < count; i++){
-      copyComputedStyle(originals[i], clones[i]);
-      syncElementState(originals[i], clones[i]);
-    }
-    var scripts = cloneRoot.querySelectorAll('script');
-    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  copyComputedStyle(originalRoot, cloneRoot);
+  syncElementState(originalRoot, cloneRoot);
+  var originals = originalRoot.querySelectorAll('*');
+  var clones = cloneRoot.querySelectorAll('*');
+  var count = Math.min(originals.length, clones.length);
+  for (var i = 0; i < count; i++){
+  copyComputedStyle(originals[i], clones[i]);
+  syncElementState(originals[i], clones[i]);
+  }
+  var scripts = cloneRoot.querySelectorAll('script');
+  for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
   }
   function waitForImages(){
-    var imgs = Array.prototype.slice.call(document.images || []);
-    return Promise.all(imgs.map(function(img){
-      if (img.complete) return Promise.resolve();
-      return new Promise(function(resolve){
-        img.addEventListener('load', resolve, { once: true });
-        img.addEventListener('error', resolve, { once: true });
-      });
-    }));
+  var imgs = Array.prototype.slice.call(document.images || []);
+  return Promise.all(imgs.map(function(img){
+  if (img.complete) return Promise.resolve();
+  return new Promise(function(resolve){
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+  });
+  }));
   }
   function renderSnapshot(id){
-    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
-    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
-    var dpr = window.devicePixelRatio || 1;
-    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
-    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
-    var clone = document.documentElement.cloneNode(true);
-    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-    inlineSnapshotStyles(document.documentElement, clone);
-    var serializer = new XMLSerializer();
-    var html = serializer.serializeToString(clone);
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
-      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
-      html +
-      '</foreignObject></svg>';
-    var img = new Image();
-    img.onload = function(){
-      try {
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.floor(w * dpr));
-        canvas.height = Math.max(1, Math.floor(h * dpr));
-        var ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('no 2d context');
-        ctx.scale(dpr, dpr);
-        ctx.drawImage(img, 0, 0, w, h);
-        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
-      } catch (err) {
-        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
-      }
-    };
-    img.onerror = function(){
-      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+  var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+  var dpr = window.devicePixelRatio || 1;
+  var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+  var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+  var clone = document.documentElement.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  inlineSnapshotStyles(document.documentElement, clone);
+  var serializer = new XMLSerializer();
+  var html = serializer.serializeToString(clone);
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+  '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+  html +
+  '</foreignObject></svg>';
+  var img = new Image();
+  img.onload = function(){
+  try {
+    var canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.floor(w * dpr));
+    canvas.height = Math.max(1, Math.floor(h * dpr));
+    var ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('no 2d context');
+    ctx.scale(dpr, dpr);
+    ctx.drawImage(img, 0, 0, w, h);
+    window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+  } catch (err) {
+    window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+  }
+  };
+  img.onerror = function(){
+  window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
   window.addEventListener('message', function(ev){
-    var data = ev && ev.data;
-    if (!data || data.type !== 'od:snapshot' || !data.id) return;
-    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  var data = ev && ev.data;
+  if (!data || data.type !== 'od:snapshot' || !data.id) return;
+  waitForImages().then(function(){ renderSnapshot(String(data.id)); });
   });
 })();</script><script data-od-srcdoc-transport-activation="">(function(){
   window.addEventListener('message', function(ev){
-    var data = ev && ev.data;
-    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
-    document.open();
-    document.write(data.html);
-    document.close();
+  var data = ev && ev.data;
+  if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+  document.open();
+  document.write(data.html);
+  document.close();
   });
 })();</script></body></html>
